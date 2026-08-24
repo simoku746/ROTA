@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  YONETICI
+  TASARIM
+  URETIM
+  MONTAJ
+  MUHASEBE
+}
+
+enum Stage {
+  KESIF
+  TASARIM
+  URETIM
+  MONTAJ
+  TAHSILAT
+}
+
+enum ApprovalStatus {
+  BEKLIYOR
+  ONAYLANDI
+  REVIZYON
+}
+
+enum PaymentStatus {
+  BEKLIYOR
+  KISMI
+  TAMAMLANDI
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  createdAt    DateTime @default(now())
+}
+
+model Job {
+  id          String          @id @default(cuid())
+  code        String          @unique
+  client      String
+  description String
+  stage       Stage           @default(KESIF)
+  material    String?
+  cost        Float?
+  dueDate     DateTime?
+  overdue     Boolean         @default(false)
+  assignee    String?
+  payStatus   PaymentStatus   @default(BEKLIYOR)
+  approval    ApprovalStatus?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
