@@ -2,10 +2,8 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { roleCanSeeTab } from '@/lib/roles';
 import { prisma } from '@/lib/prisma';
-import Header from '@/components/Header';
+import Sidebar from '@/components/Sidebar';
 
-// Basit bir varsayım: bir ekip/kişi haftada en fazla 5 iş taşıyabilir kabul ediyoruz.
-// Gerçek kullanımda bu sayı ekiple birlikte kalibre edilmeli.
 const CAPACITY_PER_ASSIGNEE = 5;
 
 export default async function KapasitePage() {
@@ -30,24 +28,27 @@ export default async function KapasitePage() {
   }));
 
   return (
-    <div>
-      <Header role={session.role} name={session.name} active="kapasite" />
-      <div className="main">
-        <div className="note">
-          Bu hesap, atanan iş sayısına göre otomatik yapılıyor (varsayım: kişi/ekip başına haftada {CAPACITY_PER_ASSIGNEE} iş kapasitesi). Sayı ekibinizle birlikte kalibre edilmeli.
+    <div className="shell">
+      <Sidebar role={session.role} name={session.name} active="kapasite" />
+      <div className="content">
+        <div className="page-head">
+          <h1 className="page-title">Kapasite</h1>
+          <p className="page-sub">Atanan iş sayısına göre otomatik hesaplanan doluluk oranı.</p>
         </div>
+        <div className="note">Varsayım: kişi/ekip başına haftada {CAPACITY_PER_ASSIGNEE} iş kapasitesi. Ekibinizle birlikte kalibre edin.</div>
         <div className="grid">
           {rows.length === 0 && <div className="note">Şu an atanmış iş yok.</div>}
           {rows.map((r) => (
             <div className="card" key={r.name}>
               <div className="client">{r.name}</div>
               <div className="desc">{r.count} iş atanmış · %{r.pct} dolu</div>
-              <div style={{ background: '#E6E1D2', height: 9, borderRadius: 5, overflow: 'hidden', marginTop: 6 }}>
+              <div style={{ background: '#F0F0F5', height: 9, borderRadius: 5, overflow: 'hidden', marginTop: 8 }}>
                 <div
                   style={{
                     width: `${r.pct}%`,
                     height: '100%',
-                    background: r.pct >= 85 ? '#B4432F' : r.pct >= 65 ? '#E2792A' : '#3F7268',
+                    borderRadius: 5,
+                    background: r.pct >= 85 ? '#FF6A55' : r.pct >= 65 ? '#FFA53E' : '#2ED47A',
                   }}
                 />
               </div>

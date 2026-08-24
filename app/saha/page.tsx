@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { roleCanSeeTab } from '@/lib/roles';
 import { prisma } from '@/lib/prisma';
-import Header from '@/components/Header';
+import Sidebar from '@/components/Sidebar';
 import CompleteButton from '@/components/CompleteButton';
 
 export default async function SahaPage() {
@@ -13,10 +13,13 @@ export default async function SahaPage() {
   const jobs = await prisma.job.findMany({ where: { stage: 'MONTAJ' }, orderBy: { dueDate: 'asc' } });
 
   return (
-    <div>
-      <Header role={session.role} name={session.name} active="saha" />
-      <div className="main">
-        <div className="note">Sadece size atanmış montaj işleri burada görünür.</div>
+    <div className="shell">
+      <Sidebar role={session.role} name={session.name} active="saha" />
+      <div className="content">
+        <div className="page-head">
+          <h1 className="page-title">Saha (Montaj)</h1>
+          <p className="page-sub">Sadece size atanmış montaj işleri burada görünür.</p>
+        </div>
         {jobs.length === 0 && <div className="note">Şu an atanmış montaj işiniz yok.</div>}
         <div className="grid">
           {jobs.map((j) => (

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { roleCanSeeTab } from '@/lib/roles';
 import { prisma } from '@/lib/prisma';
-import Header from '@/components/Header';
+import Sidebar from '@/components/Sidebar';
 
 export default async function UretimPage() {
   const session = getSession();
@@ -15,10 +15,13 @@ export default async function UretimPage() {
   });
 
   return (
-    <div>
-      <Header role={session.role} name={session.name} active="uretim" />
-      <div className="main">
-        <div className="note">Bu ekranda sadece Üretim ve Montaj aşamasındaki işler görünür — maliyet/tahsilat bilgisi yok.</div>
+    <div className="shell">
+      <Sidebar role={session.role} name={session.name} active="uretim" />
+      <div className="content">
+        <div className="page-head">
+          <h1 className="page-title">Üretim Programı</h1>
+          <p className="page-sub">Üretim ve Montaj aşamasındaki işler — maliyet/tahsilat bilgisi yok.</p>
+        </div>
         <div className="grid">
           {jobs.length === 0 && <div className="note">Şu an programda iş yok.</div>}
           {jobs.map((j) => (
