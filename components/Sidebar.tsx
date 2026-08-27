@@ -1,27 +1,9 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { RoleKey, ROLE_CONFIG } from '@/lib/roles';
-
-const TAB_LABELS: Record<string, string> = {
-  planlama: 'Planlama',
-  kapasite: 'Kapasite',
-  uretim: 'Üretim Programı',
-  saha: 'Saha (Montaj)',
-};
-const TAB_ICONS: Record<string, string> = {
-  planlama: '📋',
-  kapasite: '📊',
-  uretim: '🏭',
-  saha: '🚐',
-};
+import { RoleKey, ROLE_CONFIG, TAB_LABELS, TAB_ICONS, TAB_COLORS } from '@/lib/roles';
 
 function initials(name: string) {
-  return name
-    .split(' ')
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  return name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase();
 }
 
 export default function Sidebar({ role, name, active }: { role: RoleKey; name: string; active: string }) {
@@ -36,11 +18,13 @@ export default function Sidebar({ role, name, active }: { role: RoleKey; name: s
 
   return (
     <div className="sidebar">
-      <div className="sidebar-brand"><span className="dot" />ROTA</div>
-      <div className="sidebar-nav">
+      <div className="brand">
+        <div className="brand-left"><span className="brand-logo">🧭</span>ROTA</div>
+      </div>
+      <div className="nav">
         {cfg.tabs.map((t) => (
-          <a key={t} href={`/${t}`} className={`sidebar-link ${active === t ? 'active' : ''}`}>
-            <span className="ic">{TAB_ICONS[t]}</span>
+          <a key={t} href={`/${t}`} className={active === t ? 'active' : ''}>
+            <span className="nav-item-icon" style={{ background: TAB_COLORS[t] }}>{TAB_ICONS[t]}</span>
             {TAB_LABELS[t]}
           </a>
         ))}

@@ -9,15 +9,12 @@ export type SessionUser = { id: string; email: string; name: string; role: RoleK
 export async function hashPassword(plain: string) {
   return bcrypt.hash(plain, 10);
 }
-
 export async function checkPassword(plain: string, hash: string) {
   return bcrypt.compare(plain, hash);
 }
-
 export function signSession(user: SessionUser) {
   return jwt.sign(user, JWT_SECRET, { expiresIn: '30d' });
 }
-
 export function verifySession(token: string): SessionUser | null {
   try {
     return jwt.verify(token, JWT_SECRET) as SessionUser;

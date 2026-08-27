@@ -16,18 +16,15 @@ export default async function SahaPage() {
     <div className="shell">
       <Sidebar role={session.role} name={session.name} active="saha" />
       <div className="content">
-        <div className="page-head">
-          <h1 className="page-title">Saha (Montaj)</h1>
-          <p className="page-sub">Sadece size atanmış montaj işleri burada görünür.</p>
-        </div>
+        <div className="page-head"><div><div className="page-title">Saha (Montaj)</div><div className="page-sub">Sadece size atanmış montaj işleri.</div></div></div>
         {jobs.length === 0 && <div className="note">Şu an atanmış montaj işiniz yok.</div>}
         <div className="grid">
           {jobs.map((j) => (
             <div className="card" key={j.id}>
-              <div className="client">{j.client}</div>
-              <div className="desc">{j.description}</div>
-              {j.material && <div className="desc">Malzeme: {j.material}</div>}
-              {j.dueDate && <div className="desc">Tarih: {new Date(j.dueDate).toLocaleDateString('tr-TR')}</div>}
+              <div className="name">{j.client}</div>
+              <div className="line">{j.description}</div>
+              {j.material && <div className="line">Malzeme: {j.material}</div>}
+              {j.dueDate && <div className="line">Tarih: {new Date(j.dueDate).toLocaleDateString('tr-TR')}</div>}
               <CompleteButton jobId={j.id} />
             </div>
           ))}

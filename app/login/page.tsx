@@ -31,7 +31,7 @@ export default function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-box">
-        <h1><span className="dot" />ROTA</h1>
+        <h1>🧭 ROTA</h1>
         <p>Ajans iş akışı sistemine giriş</p>
         <form onSubmit={handleSubmit}>
           <div className="field">

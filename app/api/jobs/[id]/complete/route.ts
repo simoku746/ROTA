@@ -8,14 +8,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const job = await prisma.job.findUnique({ where: { id: params.id } });
   if (!job) return NextResponse.json({ error: 'İş bulunamadı' }, { status: 404 });
-  if (job.stage !== 'MONTAJ') {
-    return NextResponse.json({ error: 'Bu iş montaj aşamasında değil' }, { status: 400 });
-  }
+  if (job.stage !== 'MONTAJ') return NextResponse.json({ error: 'Bu iş montaj aşamasında değil' }, { status: 400 });
 
-  const updated = await prisma.job.update({
-    where: { id: params.id },
-    data: { stage: 'TAHSILAT' },
-  });
-
+  const updated = await prisma.job.update({ where: { id: params.id }, data: { stage: 'TAHSILAT' } });
   return NextResponse.json(updated);
 }

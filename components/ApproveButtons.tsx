@@ -19,12 +19,8 @@ export default function ApproveButtons({ jobId }: { jobId: string }) {
 
   return (
     <div className="btns">
-      <button className="btn btn-approve" disabled={loading} onClick={() => decide('ONAYLANDI')}>
-        Onaylandı
-      </button>
-      <button className="btn btn-revise" disabled={loading} onClick={() => decide('REVIZYON')}>
-        Revizyon
-      </button>
+      <button className="btn btn-approve" disabled={loading} onClick={() => decide('ONAYLANDI')}>Onaylandı</button>
+      <button className="btn btn-revise" disabled={loading} onClick={() => decide('REVIZYON')}>Revizyon</button>
     </div>
   );
 }

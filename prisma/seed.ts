@@ -13,13 +13,8 @@ async function main() {
     { email: 'montaj@ajans.com', name: 'Montaj Ekip A', role: 'MONTAJ' as const },
     { email: 'muhasebe@ajans.com', name: 'Muhasebe', role: 'MUHASEBE' as const },
   ];
-
   for (const u of users) {
-    await prisma.user.upsert({
-      where: { email: u.email },
-      update: {},
-      create: { ...u, passwordHash: password },
-    });
+    await prisma.user.upsert({ where: { email: u.email }, update: {}, create: { ...u, passwordHash: password } });
   }
 
   const jobs = [
@@ -31,19 +26,23 @@ async function main() {
     { code: 'AJ-2580', client: 'Barış Otomotiv', description: 'Showroom cam giydirme', stage: 'MONTAJ' as const, material: 'One-way vision folyo', cost: 7200, assignee: 'Montaj Ekip B', payStatus: 'BEKLIYOR' as const, approval: 'ONAYLANDI' as const },
     { code: 'AJ-2577', client: 'Nazlı Kuaför', description: 'Vitrin tabelası', stage: 'TAHSILAT' as const, material: 'Kutu harf', cost: 5400, assignee: 'Muhasebe', payStatus: 'TAMAMLANDI' as const, approval: 'ONAYLANDI' as const },
   ];
-
   for (const j of jobs) {
     await prisma.job.upsert({ where: { code: j.code }, update: {}, create: j });
+  }
+
+  const customers = [
+    { type: 'FIRMA' as const, name: 'Kaya İnşaat', contact: 'Mehmet Kaya', phone: '0532 111 22 33', email: 'mehmet@kayainsaat.com', address: 'Organize San. Böl. No:4, Adana', temsilci: 'Ayşe (Yönetici)' },
+    { type: 'FIRMA' as const, name: 'Mavi Market Zinciri', contact: 'Elif Mavi', phone: '0533 222 33 44', email: 'elif@mavimarket.com', address: 'Merkez Mah. No:12, Adana', temsilci: 'Ayşe (Yönetici)' },
+    { type: 'FIRMA' as const, name: 'Pinar Su', contact: 'Kaan Pınar', phone: '0534 333 44 55', email: 'kaan@pinarsu.com', address: 'Sanayi Sit. No:7, Adana', temsilci: 'Ayşe (Yönetici)' },
+  ];
+  for (const c of customers) {
+    const existing = await prisma.customer.findFirst({ where: { name: c.name } });
+    if (!existing) await prisma.customer.create({ data: c });
   }
 
   console.log('Seed tamamlandı. Demo kullanıcı şifresi: demo1234');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error(e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });

@@ -35,6 +35,11 @@ enum PaymentStatus {
   TAMAMLANDI
 }
 
+enum CustomerType {
+  FIRMA
+  SAHIS
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -59,4 +64,36 @@ model Job {
   approval    ApprovalStatus?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+}
+
+// Kişiler (Müşteri/Firma) — Teklifler ve Görev Yönetimi bu tabloya bağlanır
+model Customer {
+  id             String       @id @default(cuid())
+  type           CustomerType @default(FIRMA)
+  name           String       // Firma Adı ya da Ad Soyad
+  contact        String?      // Yetkili kişi (firma ise)
+  phone          String?
+  email          String?
+  address        String?
+  kaynak         String?
+  kampanya       String?
+  temsilci       String?
+  sektor         String?
+  etiket         String?
+  kisaAciklama   String?
+  hatirlatma     String?
+  contactRows    Json?        // [{type, value}] - çoklu telefon/e-posta
+  addressRows    Json?        // [{type, country, postal, ilce, sehir, eyalet, detail}]
+  faturaUnvani   String?
+  vergiNo        String?
+  vergiDairesi   String?
+  faturaAdresi   String?
+  fPostaKodu     String?
+  fIlce          String?
+  fSehir         String?
+  fUlke          String?
+  vadeGun        Int?
+  calisanSayisi  Int?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
