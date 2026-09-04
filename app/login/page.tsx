@@ -59,6 +59,7 @@ export default function LoginPage() {
           {error && <div className="error">{error}</div>}
         </form>
         <div className="auth-foot">Şifrenizi yöneticiniz sıfırlayabilir.</div>
+        <div className="imza">Fikir &amp; Tasarım — <b>Seyit Can KARATEPE</b></div>
       </div>
     </div>
   );

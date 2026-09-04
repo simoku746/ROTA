@@ -81,6 +81,7 @@ export default function SetupPage() {
           </button>
           {error && <div className="error">{error}</div>}
         </form>
+        <div className="imza">Fikir &amp; Tasarım — <b>Seyit Can KARATEPE</b></div>
       </div>
     </div>
   );
