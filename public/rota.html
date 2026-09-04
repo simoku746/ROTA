@@ -971,6 +971,67 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .v-stat-value{font-family:var(--font-mono);font-size:13.5px;font-weight:600;color:var(--ink);margin-top:2px;}
 .v-stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:8px;margin-bottom:14px;}
 @media(max-width:640px){ .v-grid{grid-template-columns:1fr;} }
+
+/* ---------- Not Defteri (sağ alt) ---------- */
+#notWrap{position:fixed;bottom:0;right:200px;z-index:55;font-family:var(--font-body);}
+.not-tab{display:flex;align-items:center;gap:7px;height:32px;padding:0 14px;
+  background:var(--ink);color:var(--surface);border:none;border-radius:8px 8px 0 0;
+  font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;
+  box-shadow:0 -2px 10px rgba(15,23,42,.18);}
+.not-tab:hover{opacity:.92;}
+.not-sayi{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--signal);
+  color:#fff;font-family:var(--font-mono);font-size:10.5px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;}
+.not-sayi:empty{display:none;}
+.not-panel{display:none;width:328px;height:452px;background:var(--surface);
+  border:1px solid var(--line-strong);border-bottom:none;border-radius:10px 10px 0 0;
+  box-shadow:var(--shadow-md);flex-direction:column;overflow:hidden;}
+#notWrap.open .not-panel{display:flex;}
+#notWrap.open .not-tab{display:none;}
+.not-head{display:flex;align-items:center;justify-content:space-between;height:38px;
+  padding:0 8px 0 13px;background:var(--ink);color:var(--surface);flex-shrink:0;}
+.not-head b{font-family:var(--font-display);font-size:12.5px;font-weight:700;letter-spacing:.3px;}
+.not-head-kucult{width:26px;height:26px;border:none;border-radius:6px;background:transparent;
+  color:var(--surface);font-size:14px;cursor:pointer;line-height:1;}
+.not-head-kucult:hover{background:rgba(255,255,255,.15);}
+.not-giris{display:flex;gap:7px;padding:10px 11px;border-bottom:1px solid var(--line);flex-shrink:0;}
+.not-giris textarea{flex:1;resize:none;height:52px;padding:7px 9px;border:1px solid var(--line-strong);
+  border-radius:6px;background:var(--surface);color:var(--ink);font-size:12.5px;line-height:17px;font-family:inherit;}
+.not-giris textarea:focus{outline:none;border-color:var(--ink);}
+.not-giris textarea::placeholder{color:var(--ink-3);}
+.not-ekle{width:36px;border:none;border-radius:6px;background:var(--ink);color:var(--surface);
+  font-size:17px;font-weight:600;cursor:pointer;flex-shrink:0;}
+.not-ekle:hover{opacity:.85;}
+.not-liste{flex:1;overflow-y:auto;padding:6px 0;}
+.not-satir{display:flex;gap:9px;align-items:flex-start;padding:8px 11px;border-bottom:1px solid var(--line);}
+.not-satir:hover{background:var(--surface-sunk);}
+.not-check{width:20px;height:20px;flex-shrink:0;margin-top:1px;border:1.5px solid var(--line-strong);
+  border-radius:999px;background:var(--surface);color:#fff;font-size:11px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;}
+.not-check:hover{border-color:var(--ok);color:var(--ok);}
+.not-satir.tamam .not-check{background:var(--ok);border-color:var(--ok);}
+.not-metin{flex:1;min-width:0;font-size:12.5px;line-height:17px;color:var(--ink);
+  white-space:pre-wrap;word-wrap:break-word;cursor:text;}
+.not-satir.tamam .not-metin{color:var(--ink-3);text-decoration:line-through;}
+.not-zaman{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-3);margin-top:3px;text-decoration:none;}
+.not-sil{width:22px;height:22px;flex-shrink:0;border:none;border-radius:5px;background:none;
+  color:var(--ink-3);font-size:11px;cursor:pointer;opacity:0;padding:0;}
+.not-satir:hover .not-sil{opacity:1;}
+.not-sil:hover{background:var(--risk-soft);color:var(--risk);}
+.not-bolum{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 5px;
+  font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--ink-3);}
+.not-bolum button{border:none;background:none;color:var(--ink-3);font-size:10.5px;cursor:pointer;
+  text-decoration:underline;font-family:inherit;padding:0;}
+.not-bolum button:hover{color:var(--risk);}
+.not-bos{padding:26px 16px;text-align:center;font-size:12px;color:var(--ink-3);line-height:18px;}
+.not-duzenle-alani{flex:1;resize:none;padding:6px 8px;border:1px solid var(--ink);border-radius:6px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;line-height:17px;font-family:inherit;}
+.not-duzenle-alani:focus{outline:none;}
+@media(max-width:760px){
+  #notWrap{right:12px;}
+  .not-panel{width:calc(100vw - 24px);max-width:360px;height:60vh;}
+}
 </style>
 <div class="top-right-bar">
   <div class="preview-flag" id="saveStatus" title="Değişiklikler otomatik kaydedilir">●&nbsp;Yükleniyor</div>
@@ -1023,6 +1084,20 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="side-drawer" id="sideDrawer"></div>
 <div class="toast" id="toast"></div>
+
+<!-- Not Defteri: sağ altta; küçültülünce alt kenarda sekme olarak durur -->
+<div id="notWrap" style="display:none;">
+  <button class="not-tab" onclick="notAcKapa()" title="Not defterini aç">📝 Notlarım<span class="not-sayi" id="notSayiTab"></span></button>
+  <div class="not-panel">
+    <div class="not-head"><b>📝 NOTLARIM</b>
+      <button class="not-head-kucult" onclick="notAcKapa()" title="Simge durumuna küçült">▾</button></div>
+    <div class="not-giris">
+      <textarea id="notInput" placeholder="Notunuzu yazın… (Enter: ekle · Shift+Enter: yeni satır)" onkeydown="notKeydown(event)"></textarea>
+      <button class="not-ekle" onclick="notEkle()" title="Ekle">+</button>
+    </div>
+    <div class="not-liste" id="notListe"></div>
+  </div>
+</div>
 
 <script>
 // ---------------- DATA ----------------
@@ -1223,6 +1298,8 @@ function doLogin(role){
   userNameEl.textContent = adSoyad;
   document.getElementById('userRole').textContent = roleCfg().label;
   renderNav(); renderContent(); updateBackBtn();
+  document.getElementById('notWrap').style.display = 'block';
+  renderNotlar();
 }
 async function doLogout(){
   await liveSave({ force:true });
@@ -5916,6 +5993,124 @@ function exportQuotePdf(){
 // Eski "Göreve Dönüştür" — artık teklifi kabul etmekle aynı şey
 function convertQuoteToTask(id){ changeQuoteStatus(id, 'Kabul Edildi'); }
 
+// ---------------- NOT DEFTERİ ----------------
+// Kişiye özel hızlı notlar: telefonda konuşurken yazılır, iş gibi işaretlenip kapatılır.
+// NOT_DEFTERI: { kullanıcıAnahtarı: [ {id, metin, tamam, tarih} ] } — buluta kaydedilir.
+let NOT_DEFTERI = {};
+let notAcik = false;
+let notTamamAcik = false;
+let notDuzenlenen = null;
+
+function notKullanici(){
+  if(typeof LIVE !== 'undefined' && LIVE.user && LIVE.user.email) return LIVE.user.email;
+  return 'demo-' + CURRENT_ROLE;
+}
+function notlarim(){
+  const k = notKullanici();
+  if(!Array.isArray(NOT_DEFTERI[k])) NOT_DEFTERI[k] = [];
+  return NOT_DEFTERI[k];
+}
+function notEsc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function notZamanStr(ms){
+  const d = new Date(ms);
+  return d.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+}
+function notKaydet(){
+  renderNotlar();
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+function notAcKapa(){
+  notAcik = !notAcik;
+  document.getElementById('notWrap').classList.toggle('open', notAcik);
+  if(notAcik){ const inp = document.getElementById('notInput'); if(inp) setTimeout(() => inp.focus(), 50); }
+}
+function notKeydown(e){
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); notEkle(); }
+}
+function notEkle(){
+  const inp = document.getElementById('notInput');
+  const metin = inp.value.trim();
+  if(!metin) return;
+  notlarim().unshift({ id:'n' + Date.now(), metin: metin, tamam:false, tarih: Date.now() });
+  inp.value = '';
+  notKaydet();
+  inp.focus();
+}
+function notToggle(id){
+  const n = notlarim().find(x => x.id === id);
+  if(!n) return;
+  n.tamam = !n.tamam;
+  if(n.tamam) notTamamAcik = true;
+  notKaydet();
+}
+function notSil(id){
+  const liste = notlarim();
+  const i = liste.findIndex(x => x.id === id);
+  if(i >= 0){ liste.splice(i, 1); notKaydet(); }
+}
+function notTamamlananlariTemizle(){
+  const k = notKullanici();
+  NOT_DEFTERI[k] = notlarim().filter(n => !n.tamam);
+  notKaydet();
+}
+function notDuzenle(id){
+  const n = notlarim().find(x => x.id === id);
+  if(!n || n.tamam) return;
+  notDuzenlenen = id;
+  renderNotlar();
+  const ta = document.getElementById('notDuzenleAlani');
+  if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+function notDuzenleBitir(id, deger){
+  const n = notlarim().find(x => x.id === id);
+  notDuzenlenen = null;
+  if(n){ const m = String(deger).trim(); if(m) n.metin = m; }
+  notKaydet();
+}
+function notDuzenleKeydown(e, id){
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); e.target.blur(); }
+  if(e.key === 'Escape'){ notDuzenlenen = null; renderNotlar(); }
+}
+function notSatirHtml(n){
+  const duzenleniyor = notDuzenlenen === n.id;
+  const metinHtml = duzenleniyor
+    ? `<textarea id="notDuzenleAlani" class="not-duzenle-alani" rows="2"
+         onblur="notDuzenleBitir('${n.id}', this.value)"
+         onkeydown="notDuzenleKeydown(event,'${n.id}')">${notEsc(n.metin)}</textarea>`
+    : `<div class="not-metin" ${n.tamam ? '' : `onclick="notDuzenle('${n.id}')" title="Düzenlemek için tıklayın"`}>${notEsc(n.metin)}<div class="not-zaman">${notZamanStr(n.tarih)}</div></div>`;
+  return `
+    <div class="not-satir ${n.tamam ? 'tamam' : ''}">
+      <button class="not-check" title="${n.tamam ? 'Geri al' : 'Tamamlandı işaretle'}" onclick="notToggle('${n.id}')">${n.tamam ? '✓' : ''}</button>
+      ${metinHtml}
+      <button class="not-sil" title="Notu sil" onclick="notSil('${n.id}')">✕</button>
+    </div>`;
+}
+function renderNotlar(){
+  const wrap = document.getElementById('notWrap');
+  if(!wrap) return;
+  const liste = notlarim();
+  const acik = liste.filter(n => !n.tamam);
+  const tamam = liste.filter(n => n.tamam);
+  const sayi = document.getElementById('notSayiTab');
+  if(sayi) sayi.textContent = acik.length ? String(acik.length) : '';
+  const el = document.getElementById('notListe');
+  if(!el) return;
+  let html = '';
+  if(!liste.length){
+    html = '<div class="not-bos">Henüz not yok.<br>Telefonda konuşurken aklınıza geleni buraya yazın;<br>bitince ✓ ile kapatın.</div>';
+  } else {
+    html = acik.map(notSatirHtml).join('');
+    if(!acik.length) html += '<div class="not-bos">Açık not kalmadı 🎉</div>';
+    if(tamam.length){
+      html += `<div class="not-bolum">
+        <span style="cursor:pointer;" onclick="notTamamAcik=!notTamamAcik; renderNotlar();">${notTamamAcik ? '▾' : '▸'} Tamamlananlar (${tamam.length})</span>
+        <button onclick="notTamamlananlariTemizle()">Temizle</button></div>`;
+      if(notTamamAcik) html += tamam.map(notSatirHtml).join('');
+    }
+  }
+  el.innerHTML = html;
+}
+
 // ---------------- MODAL / TOAST HELPERS ----------------
 function showModal(){ document.getElementById('overlay').classList.add('show'); document.getElementById('modalBox').className = 'modal wide'; }
 function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
@@ -5940,7 +6135,7 @@ function collectState(){
   return {
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
-    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR,
+    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI,
   };
 }
 function applyState(d){
@@ -5958,6 +6153,7 @@ function applyState(d){
   MESAI_RATES = (d.MESAI_RATES && typeof d.MESAI_RATES === 'object') ? d.MESAI_RATES : { normal:50, hafta:100, resmi:100 };
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
+  NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   if(d.AGENCY && typeof d.AGENCY === 'object'){
     // Sunucudan gelen firma bilgileri varsayılanların üzerine yazılır (logo dahil, boş değilse)
     Object.keys(d.AGENCY).forEach(k => { if(d.AGENCY[k] !== undefined && d.AGENCY[k] !== null) AGENCY[k] = d.AGENCY[k]; });
@@ -6055,6 +6251,7 @@ async function liveTick(){
     LIVE.version = d.version;
     LIVE.lastSaved = JSON.stringify(collectState());
     renderNav(); renderContent();
+    if(typeof renderNotlar === 'function') renderNotlar();
     liveSetStatus('ok', 'Güncellendi ' + liveZaman());
   }catch(e){ /* sessiz */ }
 }
