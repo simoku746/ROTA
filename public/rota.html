@@ -149,7 +149,9 @@ button,input,select,textarea{font-family:inherit;}
   letter-spacing:-.3px;margin:0;}
 .page-sub{font-size:12px;line-height:17px;color:var(--ink-2);margin:2px 0 0;}
 .gunun-sozu{margin-top:7px;font-size:13px;line-height:19px;color:var(--ink-2);font-style:italic;
-  border-left:3px solid var(--signal);padding:2px 0 2px 10px;max-width:560px;}
+  border-left:3px solid var(--signal);padding:2px 0 2px 10px;max-width:560px;
+  cursor:pointer;user-select:none;transition:color .12s;}
+.gunun-sozu:hover{color:var(--ink);}
 
 .note{background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--ink);
   border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:12px;line-height:18px;color:var(--ink-2);}
@@ -3717,7 +3719,7 @@ function anaSayfaView(){
   return `
     <div class="page-head">
       <div><div class="page-title">Bugün</div><div class="page-sub">${new Date().toLocaleDateString('tr-TR',{weekday:'long', day:'numeric', month:'long'})}</div>
-        <div class="gunun-sozu">“${gununSozu()}”</div></div>
+        <div class="gunun-sozu" onclick="sonrakiSoz()" title="Tıklayın, yeni bir söz gelsin">“${gununSozu()}”</div></div>
     </div>
     ${homeVehicleAlertsHtml()}
     <div class="grid" style="margin-bottom:20px;">
@@ -4438,13 +4440,26 @@ const MOTIVASYON_SOZLERI = [
   'Ekmek, tezgâhta dökülen terin karşılığıdır.',
   'Güzel iş, sahibini anlatır; imza gerekmez.',
 ];
-function gununSozu(){
+let sozSirasi = null;   // null = günün sözü; tıklandıkça ilerler
+function sozListesi(){
   const ozel = (AGENCY.sozler || []).map(x => String(x).trim()).filter(Boolean);
-  const liste = ozel.length ? ozel : MOTIVASYON_SOZLERI;
-  const bugun = new Date();
-  const yilBasi = new Date(bugun.getFullYear(), 0, 1);
-  const gunNo = Math.floor((bugun - yilBasi) / 86400000);
-  return liste[(gunNo + bugun.getFullYear()) % liste.length];
+  return ozel.length ? ozel : MOTIVASYON_SOZLERI;
+}
+function gununSozu(){
+  const liste = sozListesi();
+  if(sozSirasi === null){
+    const bugun = new Date();
+    const yilBasi = new Date(bugun.getFullYear(), 0, 1);
+    const gunNo = Math.floor((bugun - yilBasi) / 86400000);
+    sozSirasi = (gunNo + bugun.getFullYear()) % liste.length;
+  }
+  return liste[sozSirasi % liste.length];
+}
+function sonrakiSoz(){
+  gununSozu();          // sozSirasi'nı başlat
+  sozSirasi++;
+  const el = document.querySelector('.gunun-sozu');
+  if(el) el.innerHTML = '“' + gununSozu() + '”';
 }
 
 // ---------------- PLANLAMA ----------------
