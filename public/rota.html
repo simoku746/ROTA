@@ -381,6 +381,23 @@ tr:last-child td{border-bottom:none;}
   font-family:var(--font-mono);font-size:12px;color:var(--ink-2);padding:10px 4px 0;}
 .tf-totals .grand,.totals b{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);}
 
+.mx-head{display:grid;grid-template-columns:1fr 90px 120px 120px 34px;gap:8px;
+  font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--ink-3);padding:0 4px 8px;}
+.mx-row{display:grid;grid-template-columns:1fr 90px 120px 120px 34px;gap:8px;align-items:center;
+  padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
+.mx-row input{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
+.mx-row input:focus{outline:none;border-color:var(--ink);}
+.mx-row .mx-tutar{font-family:var(--font-mono);font-weight:600;text-align:right;background:var(--surface-sunk);border-color:var(--line);}
+.mx-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;}
+.mx-chip{height:26px;padding:0 11px;border:1px dashed var(--line-strong);border-radius:999px;
+  background:var(--surface);color:var(--ink-2);font-size:11.5px;cursor:pointer;font-family:inherit;}
+.mx-chip:hover{border-style:solid;border-color:var(--ink);color:var(--ink);}
+.mx-ozet{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:14px 16px;}
+.mx-ozet .t-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);padding:5px 0;}
+.mx-ozet .t-row span:last-child{font-family:var(--font-mono);color:var(--ink);font-weight:600;}
+.mx-ozet .t-row.final{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;font-size:13.5px;}
 .islem-item{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 12px;
   background:none;border:none;text-align:left;cursor:pointer;font-size:12.5px;color:var(--ink);}
 .islem-item:hover{background:var(--surface-sunk);}
@@ -5098,6 +5115,7 @@ let teklifCollapse = { yetkili:false, ustAlt:false, onKapak:false, dipNot:false 
 function teklifView(){
   if(teklifStep === 'form') return teklifEkleForm();
   if(teklifStep === 'view') return quoteViewPage(teklifViewId);
+  if(teklifStep === 'maliyet') return maliyetView(teklifViewId);
     return teklifListView();
 }
 
@@ -5632,6 +5650,92 @@ function statusSlug(s){
     .replace(/[^a-z0-9]+/g,'-');
 }
 
+// ---------------- TEKLİF MALİYET HESABI ----------------
+// Her teklifin içine gömülü maliyet dökümü: q.maliyet = { items:[{ad, miktar, fiyat}] }
+// Müşteriye giden belgede GÖRÜNMEZ; iç maliyet ve kâr takibi içindir.
+const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası'];
+function ensureMaliyet(q){ if(!q.maliyet || !Array.isArray(q.maliyet.items)) q.maliyet = { items: [] }; return q.maliyet; }
+function maliyetToplam(q){
+  return ((q.maliyet && q.maliyet.items) || []).reduce((s,r) => s + (Number(r.miktar)||1) * (Number(r.fiyat)||0), 0);
+}
+function openMaliyet(id){
+  pushHistory();
+  teklifViewId = id; teklifStep = 'maliyet';
+  const q = QUOTES.find(x => x.id === id);
+  if(q){ const m = ensureMaliyet(q); if(!m.items.length) m.items.push({ ad:'', miktar:1, fiyat:0 }); }
+  renderContent();
+}
+function maliyetView(id){
+  const q = QUOTES.find(x => x.id === id);
+  if(!q) return teklifListView();
+  const m = ensureMaliyet(q);
+  const c = CUSTOMERS.find(x => x.id === q.customerId);
+  const rows = m.items.map((r, i) => `
+    <div class="mx-row">
+      <input value="${r.ad || ''}" placeholder="Kalem adı (ör. Folyo baskı)" oninput="mxGuncelle(${i},'ad',this.value)">
+      <input type="number" value="${r.miktar ?? 1}" min="0" step="0.01" oninput="mxGuncelle(${i},'miktar',this.value)">
+      <input type="number" value="${r.fiyat ?? 0}" min="0" step="0.01" oninput="mxGuncelle(${i},'fiyat',this.value)">
+      <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl((Number(r.miktar)||1)*(Number(r.fiyat)||0))}">
+      <button class="li-remove" onclick="mxSatirSil(${i})">✕</button>
+    </div>`).join('');
+  return `
+    <div class="page-head">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <button class="back-btn" onclick="teklifStep='view'; renderContent();">←</button>
+        <div><div class="page-title">Maliyet Hesabı</div>
+        <div class="page-sub">${q.no} · ${c ? c.name : 'Müşteri seçilmedi'} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
+      </div>
+    </div>
+    <div class="body-two" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+      <div class="form-block" style="flex:2; min-width:460px; margin-bottom:0;">
+        <div class="mx-head"><span>Kalem</span><span>Miktar</span><span>Birim Maliyet</span><span style="text-align:right;">Tutar</span><span></span></div>
+        ${rows}
+        <button class="add-line-btn" onclick="mxSatirEkle('')">+ Satır Ekle</button>
+        <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
+        <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mxSatirEkle('${a}')">${a}</button>`).join('')}</div>
+      </div>
+      <div class="mx-ozet" style="flex:1; min-width:260px;">
+        <h5 style="font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-3);margin:0 0 10px;">Özet</h5>
+        <div class="t-row"><span>Toplam Maliyet:</span><span id="mxToplam">${tl(maliyetToplam(q))}</span></div>
+        <div class="t-row"><span>Teklif Tutarı (KDV hariç):</span><span>${tl(quoteSub(q))}</span></div>
+        <div class="t-row final"><span>Öngörülen Kâr:</span><span id="mxKar" style="color:${quoteSub(q)-maliyetToplam(q) >= 0 ? 'var(--ok)' : 'var(--risk)'};">${tl(quoteSub(q)-maliyetToplam(q))}</span></div>
+        <div class="t-row"><span>Kâr Marjı:</span><span id="mxMarj">${quoteSub(q) > 0 ? '%' + Math.round((quoteSub(q)-maliyetToplam(q)) / quoteSub(q) * 100) : '—'}</span></div>
+        <div class="hint" style="margin:12px 0 0;">Kâr, teklifin KDV hariç toplamından maliyet düşülerek hesaplanır.</div>
+      </div>
+    </div>
+  `;
+}
+function mxAktifTeklif(){ return QUOTES.find(x => x.id === teklifViewId); }
+function mxOzetGuncelle(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const maliyet = maliyetToplam(q), satis = quoteSub(q), kar = satis - maliyet;
+  const t = document.getElementById('mxToplam'); if(t) t.textContent = tl(maliyet);
+  const k = document.getElementById('mxKar');
+  if(k){ k.textContent = tl(kar); k.style.color = kar >= 0 ? 'var(--ok)' : 'var(--risk)'; }
+  const mrj = document.getElementById('mxMarj'); if(mrj) mrj.textContent = satis > 0 ? '%' + Math.round(kar / satis * 100) : '—';
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+function mxGuncelle(i, alan, deger){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  r[alan] = (alan === 'ad') ? deger : (deger === '' ? '' : Number(deger));
+  const tut = document.getElementById('mxTutar' + i);
+  if(tut) tut.value = tl((Number(r.miktar)||1) * (Number(r.fiyat)||0));
+  mxOzetGuncelle();
+}
+function mxSatirEkle(ad){
+  const q = mxAktifTeklif(); if(!q) return;
+  ensureMaliyet(q).items.push({ ad: ad || '', miktar: 1, fiyat: 0 });
+  renderContent();
+  const inputs = document.querySelectorAll('.mx-row input:first-child');
+  const son = inputs[inputs.length - 1]; if(son && !ad) son.focus();
+}
+function mxSatirSil(i){
+  const q = mxAktifTeklif(); if(!q) return;
+  ensureMaliyet(q).items.splice(i, 1);
+  renderContent();
+}
+
 function quoteViewPage(id){
   const q = QUOTES.find(x=>x.id===id);
   if(!q) return `<div class="note">Teklif bulunamadı.</div>`;
@@ -5650,6 +5754,7 @@ function quoteViewPage(id){
             <button onclick="openQuoteEdit('${q.id}')" class="islem-item">✏️ Düzenle</button>
             <button onclick="duplicateQuote('${q.id}')" class="islem-item">📄 Kopyala</button>
             <button onclick="reviseQuote('${q.id}')" class="islem-item">📝 Revize Et</button>
+            <button onclick="hideIslemlerMenu(); openMaliyet('${q.id}')" class="islem-item">🧮 Maliyet</button>
             <button onclick="deleteQuote('${q.id}')" class="islem-item" style="color:var(--risk);">🗑️ Sil</button>
             <div style="border-top:1px solid var(--line);"></div>
             <button onclick="exportQuotePdf()" class="islem-item">⬇️ Pdf'ye aktar</button>
@@ -5708,6 +5813,7 @@ function quoteViewPage(id){
         <button class="btn" style="width:100%; height:38px;" onclick="showToast('Fırsatlar modülü henüz kurulmadı')">🔗 Fırsata Bağla</button>
         <button class="btn" style="width:100%; height:38px;" onclick="showToast('Siparişler modülü henüz kurulmadı')">🛒 Siparişe Dönüştür</button>
         <button class="btn" style="width:100%; height:38px;" onclick="showToast('Faturalandırma muhasebe programınızdan yapılır')">📤 Faturalandır</button>
+        <button class="btn" style="width:100%; height:38px;" onclick="openMaliyet('${q.id}')">🧮 Maliyet Hesabı${(q.maliyet && q.maliyet.items && q.maliyet.items.length) ? ` — ${tl(maliyetToplam(q))}` : ''}</button>
         <button class="back-btn" style="width:100%; margin-top:8px;" onclick="teklifStep='list'; renderContent();">← Teklifler listesine dön</button>
       </div>
     </div>
