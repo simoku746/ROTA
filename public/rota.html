@@ -1352,14 +1352,9 @@ const GOREV_SUBS = [
   { key:'tum-isler', label:'Tüm İşler' },
   { key:'kapasite', label:'Kapasite' },
   { key:'haftalik-plan', label:'Haftalık Plan' },
-  { key:'tasarim-panosu', label:'Tasarım Panosu' },
-  { key:'uretim-programi', label:'Üretim Programı' },
   { key:'dis-alimlar', label:'Dış Alımlar' },
-  { key:'saha', label:'Saha (Montaj)' },
   { key:'gorevlerim', label:'Görevlerim' },
   { key:'projeler', label:'Projeler' },
-  { key:'kontrol-listeleri', label:'Kontrol Listeleri' },
-  { key:'rapor', label:'Rapor' },
 ];
 const YONETIM_SUBS = [
   { key:'kullanicilar', label:'Kullanıcılar' },
@@ -1384,10 +1379,10 @@ const SUB_STATE = {
 
 // ---------------- ROL BAZLI ERİŞİM ----------------
 const ROLE_CONFIG = {
-  YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','tasarim-panosu','uretim-programi','dis-alimlar','saha','gorevlerim','projeler','kontrol-listeleri','rapor'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
-  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['tasarim-panosu','gorevlerim','projeler','kontrol-listeleri','rapor'] },
-  URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['uretim-programi','dis-alimlar'] },
-  MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['saha'] },
+  YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
+  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['tum-isler','gorevlerim','projeler'] },
+  URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'] },
+  MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','gorevlerim'] },
   MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','teklifler','raporlar','yonetim','destek'], gorevSubs:[], yonetimSubs:['araclarim','kategoriler'] },
 };
 let CURRENT_ROLE = 'YONETICI';
