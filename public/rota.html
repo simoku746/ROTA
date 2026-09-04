@@ -193,6 +193,9 @@ button,input,select,textarea{font-family:inherit;}
 /* ---------- Pano (kanban) ---------- */
 .board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
 .board-col{min-width:226px;flex:0 0 226px;background:var(--surface-sunk);border:1px solid var(--line);border-radius:8px;padding:9px;}
+.board-col.drop{background:var(--surface);box-shadow:inset 0 0 0 2px var(--ink-3);}
+.kcard.suruklenen{opacity:.4;}
+.kcard[draggable="true"]{cursor:grab;}
 .board-col-head{display:flex;justify-content:space-between;align-items:center;
   margin-bottom:8px;padding:2px 4px;}
 .board-col-title{font-family:var(--font-display);font-size:12px;font-weight:700;
@@ -4383,10 +4386,13 @@ function planlamaView(){
     ${boardFilterStage ? `<div class="note" style="display:flex; justify-content:space-between; align-items:center;"><span><b>${STAGE_LABELS_TR[boardFilterStage]}</b> aşamasına filtrelendi (Ana Sayfa'daki halkadan geldiniz).</span><button class="back-btn" style="width:auto; padding:0 12px; height:28px;" onclick="boardFilterStage=null; renderContent();">Filtreyi Kaldır</button></div>` : ''}
     <div class="board">
       ${visibleStages.map(s => `
-        <div class="board-col">
+        <div class="board-col" ondragover="isSurukleUzeri(event)" ondragleave="isSurukleCik(event)" ondrop="isBirak(event,'${s.key}')">
           <div class="board-col-head"><span class="board-col-title">${s.label}</span><span class="board-col-count">${JOBS.filter(j=>j.stage===s.key).length}</span></div>
           ${JOBS.filter(j=>j.stage===s.key).map(j => `
-            <div class="kcard" style="cursor:pointer;" onclick="openJobDrawer('${j.id}')">
+            <div class="kcard" style="cursor:pointer;" draggable="${CURRENT_ROLE==='YONETICI'}"
+              title="${CURRENT_ROLE==='YONETICI' ? 'Başka aşamaya sürükleyebilirsiniz' : ''}"
+              ondragstart="isSurukleBasla(event,'${j.id}')" ondragend="isSurukleBitir(event)"
+              onclick="openJobDrawer('${j.id}')">
               <div class="code">${j.code}</div>
               <div class="client">${j.client}</div>
               <div class="desc">${j.desc}</div>
@@ -4523,6 +4529,48 @@ function submitReassign(id){
   openJobDrawer(id);
   renderContent();
   showToast('Sorumlular güncellendi.');
+}
+// ---- Pano sürükle-bırak: kartı başka aşamaya taşı (yalnız yönetici) ----
+let surukluIsId = null;
+function isSurukleBasla(e, id){
+  if(CURRENT_ROLE !== 'YONETICI'){ e.preventDefault(); return; }
+  surukluIsId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', id); } catch(err) {}
+  e.currentTarget.classList.add('suruklenen');
+}
+function isSurukleBitir(e){
+  if(e.currentTarget && e.currentTarget.classList) e.currentTarget.classList.remove('suruklenen');
+  document.querySelectorAll('.board-col.drop').forEach(c => c.classList.remove('drop'));
+  surukluIsId = null;
+}
+function isSurukleUzeri(e){
+  if(!surukluIsId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drop');
+}
+function isSurukleCik(e){ e.currentTarget.classList.remove('drop'); }
+function isBirak(e, hedef){
+  e.preventDefault();
+  const id = surukluIsId; surukluIsId = null;
+  if(!id) return;
+  jobTasi(id, hedef);
+}
+function jobTasi(id, hedef){
+  const j = JOBS.find(x => x.id === id);
+  if(!j || j.stage === hedef){ renderContent(); return; }
+  const from = STAGES.findIndex(s => s.key === j.stage);
+  const to = STAGES.findIndex(s => s.key === hedef);
+  if(j.stage === 'TASARIM' && to > from && j.approval !== 'ONAYLANDI'){
+    renderContent();
+    showToast('Müşteri onayı gelmeden iş Üretim aşamasına geçemez.');
+    return;
+  }
+  const eski = j.stage;
+  jobAsamaAyarla(j, hedef);
+  renderContent();
+  showToast(`${j.client} — ${STAGE_LABELS_TR[eski]} → ${STAGE_LABELS_TR[hedef]}.`);
 }
 // Aşama değişince onay bayrağını tutarlı tut:
 //  • Tasarım'a giren iş onay bekler (BEKLIYOR)
