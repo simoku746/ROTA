@@ -148,6 +148,8 @@ button,input,select,textarea{font-family:inherit;}
 .page-title{font-family:var(--font-display);font-size:18px;line-height:24px;font-weight:600;
   letter-spacing:-.3px;margin:0;}
 .page-sub{font-size:12px;line-height:17px;color:var(--ink-2);margin:2px 0 0;}
+.gunun-sozu{margin-top:7px;font-size:13px;line-height:19px;color:var(--ink-2);font-style:italic;
+  border-left:3px solid var(--signal);padding:2px 0 2px 10px;max-width:560px;}
 
 .note{background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--ink);
   border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:12px;line-height:18px;color:var(--ink-2);}
@@ -3714,7 +3716,8 @@ function anaSayfaView(){
     </div>`;
   return `
     <div class="page-head">
-      <div><div class="page-title">Bugün</div><div class="page-sub">${new Date().toLocaleDateString('tr-TR',{weekday:'long', day:'numeric', month:'long'})}</div></div>
+      <div><div class="page-title">Bugün</div><div class="page-sub">${new Date().toLocaleDateString('tr-TR',{weekday:'long', day:'numeric', month:'long'})}</div>
+        <div class="gunun-sozu">“${gununSozu()}”</div></div>
     </div>
     ${homeVehicleAlertsHtml()}
     <div class="grid" style="margin-bottom:20px;">
@@ -3939,6 +3942,10 @@ function firmaBilgileriView(){
         </div>
         <div class="hint" style="margin:6px 0 0;">Teklif belgesinin başlığında bu logo kullanılır. Değiştirmek için yeni dosyayı iletin.</div>
       </div>
+      <div class="group-header" style="margin:18px 0 10px;"><span>— Günün Sözü</span></div>
+      <div class="field"><label>Kendi sözleriniz (her satıra bir söz)</label>
+        <textarea id="fAgencySozler" rows="5" placeholder="Boş bırakırsanız hazır listeden her gün farklı bir söz gösterilir.">${(AGENCY.sozler || []).join('\n')}</textarea></div>
+      <div class="hint" style="margin:2px 0 12px;">Ana sayfada tarihin altında görünür; her gün sıradaki söze geçer.</div>
       <button class="save-btn" onclick="submitAgency()">Kaydet</button>
     </div>
   `;
@@ -3979,6 +3986,7 @@ function submitAgency(){
   AGENCY.facebook = document.getElementById('fAgencyFb').value.trim();
   AGENCY.instagram = document.getElementById('fAgencyIg').value.trim();
   AGENCY.banks = readBankRows();
+  AGENCY.sozler = document.getElementById('fAgencySozler').value.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
   showToast('Firma bilgileri güncellendi.');
 }
 
@@ -4373,6 +4381,70 @@ function placeholderView(){
     </div>
     <div class="note">"${p.label}" sekmesinde neler olmasını istediğinizi söyleyin (alanlar, listeler, formlar) — birlikte kuralım.</div>
   `;
+}
+
+// ---------------- GÜNÜN SÖZÜ ----------------
+// Ana sayfada tarihin altında dönen motivasyon sözleri. Yönetim → Firma Bilgileri'nden
+// kendi listenizi girerseniz o kullanılır; boşsa bu varsayılan liste döner.
+const MOTIVASYON_SOZLERI = [
+  'Toprağı işleyen ekmeği dişler.',
+  'İşleyen demir ışıldar.',
+  'Bugünün işini yarına bırakma.',
+  'Damlaya damlaya göl olur.',
+  'Bir elin nesi var, iki elin sesi var.',
+  'Emek olmadan yemek olmaz.',
+  'Sabırla koruk helva olur, dut yaprağı atlas.',
+  'Ağır giden yol alır, hızlı giden yolda kalır.',
+  'Ne ekersen onu biçersin.',
+  'Akan su yosun tutmaz.',
+  'Taşı delen suyun gücü değil, damlanın sürekliliğidir.',
+  'Başlamak, bitirmenin yarısıdır.',
+  'Küçük adımlar büyük işleri bitirir.',
+  'İyi yapılan iş, en iyi reklamdır.',
+  'Bugün alın teri döken, yarın alnı açık gezer.',
+  'Ustalık, aynı işi her gün biraz daha iyi yapmaktır.',
+  'Ölçmeden biçen, malzemeye acır.',
+  'İki kere ölç, bir kere kes.',
+  'Takım tezgâhı değil, tezgâh takımı güçlü kılar.',
+  'Zor iş, vaktinde başlanınca kolaylaşır.',
+  'Düzenli atölye, rahat kafa demektir.',
+  'Her tabelanın arkasında bir ekip vardır.',
+  'Müşterinin gülümsemesi, en iyi teslim tutanağıdır.',
+  'Kalite tesadüf değildir; her gün tekrarlanan özendir.',
+  'Yarım iş, iki kere iştir.',
+  'Erken kalkan yol alır.',
+  'Birlikten kuvvet doğar.',
+  'El eli yıkar, iki el yüzü yıkar.',
+  'Çalışan demir pas tutmaz.',
+  'Zahmetsiz rahmet olmaz.',
+  'Bin işçi, bir başçı ile iş görür.',
+  'Söz gümüşse, teslim edilen iş altındır.',
+  'Plansız gün, rüzgârsız yelken gibidir.',
+  'Sağlam iskele, yüksek tabela demektir; önce güvenlik.',
+  'Dünün hatası bugünün ustalığıdır.',
+  'İşin sırrı: sözünde durmak, vaktinde teslim etmek.',
+  'Her büyük iş, küçük bir keşifle başlar.',
+  'Temiz kesim, temiz montaj, temiz vicdan.',
+  'Gün doğmadan neler doğar.',
+  'Azmin elinden hiçbir şey kurtulmaz.',
+  'Çok bilen çok yanılmaz; soran hiç yanılmaz.',
+  'İyi ekip, yükü fark ettirmeden paylaşandır.',
+  'Bugün bir fazla vida, yarın bir eksik arıza.',
+  'Alın teri en parlak boyadan daha çok ışıldar.',
+  'Sanatını seven, saatine bakmaz; ama planına uyar.',
+  'Hedefi olmayan gemiye hiçbir rüzgâr yardım edemez.',
+  'Yavaş yavaş giden, sağlam varır.',
+  'Her tamamlanan iş, bir sonraki için referanstır.',
+  'Ekmek, tezgâhta dökülen terin karşılığıdır.',
+  'Güzel iş, sahibini anlatır; imza gerekmez.',
+];
+function gununSozu(){
+  const ozel = (AGENCY.sozler || []).map(x => String(x).trim()).filter(Boolean);
+  const liste = ozel.length ? ozel : MOTIVASYON_SOZLERI;
+  const bugun = new Date();
+  const yilBasi = new Date(bugun.getFullYear(), 0, 1);
+  const gunNo = Math.floor((bugun - yilBasi) / 86400000);
+  return liste[(gunNo + bugun.getFullYear()) % liste.length];
 }
 
 // ---------------- PLANLAMA ----------------
