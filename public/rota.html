@@ -381,11 +381,15 @@ tr:last-child td{border-bottom:none;}
   font-family:var(--font-mono);font-size:12px;color:var(--ink-2);padding:10px 4px 0;}
 .tf-totals .grand,.totals b{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);}
 
-.mx-head{display:grid;grid-template-columns:1fr 90px 120px 120px 34px;gap:8px;
+.mx-head{display:grid;grid-template-columns:minmax(240px,1fr) 76px 106px 112px 32px;gap:8px;
   font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
   letter-spacing:.7px;color:var(--ink-3);padding:0 4px 8px;}
-.mx-row{display:grid;grid-template-columns:1fr 90px 120px 120px 34px;gap:8px;align-items:center;
+.mx-row{display:grid;grid-template-columns:minmax(240px,1fr) 76px 106px 112px 32px;gap:8px;align-items:center;
   padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
+.mx-row .mx-aciklama{grid-column:1 / -1;height:28px;font-size:11.5px;color:var(--ink-2);
+  border:1px dashed var(--line-strong);background:var(--surface);}
+.mx-row .mx-aciklama:focus{border-style:solid;}
+.mx-row .mx-aciklama::placeholder{color:var(--ink-3);}
 .mx-row input{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
   background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
 .mx-row input:focus{outline:none;border-color:var(--ink);}
@@ -5677,6 +5681,9 @@ function maliyetView(id){
       <input type="number" value="${r.fiyat ?? 0}" min="0" step="0.01" oninput="mxGuncelle(${i},'fiyat',this.value)">
       <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl((Number(r.miktar)||1)*(Number(r.fiyat)||0))}">
       <button class="li-remove" onclick="mxSatirSil(${i})">✕</button>
+      <input class="mx-aciklama" value="${(r.aciklama || '').replace(/"/g,'&quot;')}"
+        placeholder="Açıklama — ör. X firmasından alındı, özel iskontolu fiyattır"
+        oninput="mxGuncelle(${i},'aciklama',this.value)">
     </div>`).join('');
   return `
     <div class="page-head">
@@ -5687,7 +5694,7 @@ function maliyetView(id){
       </div>
     </div>
     <div class="body-two" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
-      <div class="form-block" style="flex:2; min-width:460px; margin-bottom:0;">
+      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
         <div class="mx-head"><span>Kalem</span><span>Miktar</span><span>Birim Maliyet</span><span style="text-align:right;">Tutar</span><span></span></div>
         ${rows}
         <button class="add-line-btn" onclick="mxSatirEkle('')">+ Satır Ekle</button>
@@ -5718,7 +5725,7 @@ function mxOzetGuncelle(){
 function mxGuncelle(i, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
   const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r[alan] = (alan === 'ad') ? deger : (deger === '' ? '' : Number(deger));
+  r[alan] = (alan === 'ad' || alan === 'aciklama') ? deger : (deger === '' ? '' : Number(deger));
   const tut = document.getElementById('mxTutar' + i);
   if(tut) tut.value = tl((Number(r.miktar)||1) * (Number(r.fiyat)||0));
   mxOzetGuncelle();
