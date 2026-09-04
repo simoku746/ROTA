@@ -148,10 +148,12 @@ button,input,select,textarea{font-family:inherit;}
 .page-title{font-family:var(--font-display);font-size:18px;line-height:24px;font-weight:600;
   letter-spacing:-.3px;margin:0;}
 .page-sub{font-size:12px;line-height:17px;color:var(--ink-2);margin:2px 0 0;}
-.gunun-sozu{margin-top:7px;font-size:13px;line-height:19px;color:var(--ink-2);font-style:italic;
-  border-left:3px solid var(--signal);padding:2px 0 2px 10px;max-width:560px;
-  cursor:pointer;user-select:none;transition:color .12s;}
-.gunun-sozu:hover{color:var(--ink);}
+.gunun-sozu{margin-top:8px;font-size:13.5px;line-height:20px;color:var(--ink);
+  font-weight:600;font-style:italic;letter-spacing:.1px;
+  border-left:3px solid var(--signal);padding:3px 0 3px 11px;max-width:600px;}
+.gunun-sozu .tirnak{font-family:Georgia,'Times New Roman',serif;font-style:normal;
+  font-size:23px;line-height:0;color:var(--signal);vertical-align:-7px;padding-right:3px;}
+.gunun-sozu .tirnak.kapa{padding:0 0 0 3px;vertical-align:-9px;}
 
 .note{background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--ink);
   border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:12px;line-height:18px;color:var(--ink-2);}
@@ -1285,6 +1287,7 @@ function selectSub(parentKey, subKey){
 }
 function goTo(key){
   if(key !== currentPage) pushHistory();
+  if(key === 'ana-sayfa' && currentPage !== 'ana-sayfa' && sozSirasi !== null) sozSirasi++;
   currentPage = key; kisilerStep = 'list'; editingCustomerId = null; teklifStep = 'list'; boardFilterStage = null; gtAssigneeFilter = ''; gtSearchQuery = ''; if(!SUBMENUS[key]) openSubmenu = null; renderNav(); renderContent(); closeMobileSidebar();
 }
 
@@ -3719,7 +3722,7 @@ function anaSayfaView(){
   return `
     <div class="page-head">
       <div><div class="page-title">Bugün</div><div class="page-sub">${new Date().toLocaleDateString('tr-TR',{weekday:'long', day:'numeric', month:'long'})}</div>
-        <div class="gunun-sozu" onclick="sonrakiSoz()" title="Tıklayın, yeni bir söz gelsin">“${gununSozu()}”</div></div>
+        <div class="gunun-sozu"><span class="tirnak">“</span>${gununSozu()}<span class="tirnak kapa">”</span></div></div>
     </div>
     ${homeVehicleAlertsHtml()}
     <div class="grid" style="margin-bottom:20px;">
@@ -4455,12 +4458,7 @@ function gununSozu(){
   }
   return liste[sozSirasi % liste.length];
 }
-function sonrakiSoz(){
-  gununSozu();          // sozSirasi'nı başlat
-  sozSirasi++;
-  const el = document.querySelector('.gunun-sozu');
-  if(el) el.innerHTML = '“' + gununSozu() + '”';
-}
+// Ana sayfaya her dönüşte goTo() sozSirasi'nı bir artırır → sıradaki söz görünür.
 
 // ---------------- PLANLAMA ----------------
 let boardFilterStage = null;
