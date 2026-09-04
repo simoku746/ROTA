@@ -1186,8 +1186,31 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-let jobCounter = 2602;   // AJ-2590/2598/2601 örnek; yeni işler AJ-2602'den başlar
-function yeniIsKodu(){ return 'AJ-' + (jobCounter++); }
+// Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
+// yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
+function benzersizId(on){ return on + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+// İş kodu: mevcut işlerin en büyüğünden devam eder (kayıtlı veriden türetilir, sayaç tutulmaz)
+function yeniIsKodu(){
+  const maks = JOBS.reduce((m, j) => {
+    const n = parseInt(String(j.code || '').replace(/\D/g, ''), 10);
+    return isNaN(n) ? m : Math.max(m, n);
+  }, 2601);
+  return 'AJ-' + (maks + 1);
+}
+// Açılışta veri onarımı: geçmişte sayaç hatasıyla oluşmuş çift kimlikleri ayırır
+function veriOnar(){
+  const gorulen = new Set();
+  QUOTES.forEach(q => {
+    if(gorulen.has(q.id)){
+      const eski = q.id;
+      q.id = benzersizId('q');
+      if(q.jobId){ const j = JOBS.find(x => x.id === q.jobId && x.quoteId === eski); if(j) j.quoteId = q.id; }
+    }
+    gorulen.add(q.id);
+  });
+  const g2 = new Set();
+  (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
+}
 
 let QUOTES = [
   { id:'q1', no:'P001', customerId:'c1', repName:'Ayşe Yılmaz', date:'2026-08-20', status:'Gönderildi', currency:'TL',
@@ -1213,7 +1236,6 @@ let QUOTES = [
     girisMetni:DEFAULT_INTRO, notlar:DEFAULT_NOTES,
     items:[ { title:'Yönlendirme Levhası', detail:'12 adet iç mekan', qty:12, price:640, kdv:20 } ] },
 ];
-let quoteCounter = 5;
 
 // Otomatik tamamlama için ürün/hizmet kataloğu — Planports'taki gibi
 // ÖNEMLİ: Bu dizi hem Teklifler'deki otomatik tamamlamada, hem Stok > Ürünler ve Hizmetler'de kullanılıyor — TEK KAYNAK.
@@ -2277,7 +2299,6 @@ let GENERAL_TASKS = [
   { id:'gt2', project:'Genel', title:'Satın alınan ürünlerin kalite kontrolü yapılacak', status:'Üzerinde Çalışıyor', due:'01 Eyl', overdue:false, assignees:['İlke Küçükbey','Hakan Erdoğan'] },
   { id:'gt3', project:'Genel', title:'İhtiyaç analizi yapılacak', status:'Tamamlandı', due:'28 Ağu', overdue:true, assignees:['Ayşe Yılmaz'] },
 ];
-let gtCounter = 4;
 let currentGtProject = 'Genel';
 let gtSearchQuery = '';
 let gtAssigneeFilter = '';
@@ -2409,7 +2430,7 @@ function submitGeneralTask(project){
   const dueRaw = document.getElementById('gtDue').value;
   const due = dueRaw ? new Date(dueRaw).toLocaleDateString('tr-TR',{day:'2-digit',month:'short'}) : 'Tarih yok';
   const overdue = dueRaw ? new Date(dueRaw) < new Date(new Date().toDateString()) : false;
-  GENERAL_TASKS.push({ id:'gt'+(gtCounter++), project, title, status: document.getElementById('gtStatus').value, due, overdue, assignees });
+  GENERAL_TASKS.push({ id: benzersizId('gt'), project, title, status: document.getElementById('gtStatus').value, due, overdue, assignees });
   closeModal(); renderContent();
   showToast(`"${title}" eklendi${assignees.length ? ' — '+assignees.length+' kişiye atandı' : ''}.`);
 }
@@ -5385,8 +5406,14 @@ function teklifListView(){
 }
 let teklifViewId = null;
 let editingQuoteId = null;
-let quoteNoCounter = 5; // P001–P004 örnek veriye ayrıldı; silinen tekliflerde bile geri sarılmaz
-function yeniTeklifNo(){ return 'P' + String(quoteNoCounter++).padStart(3,'0'); }
+// Teklif no: kayıtlı tekliflerin en büyüğünden devam eder (silinenlerde geri sarmaz, çift no üretmez)
+function yeniTeklifNo(){
+  const maks = QUOTES.reduce((m, q) => {
+    const n = parseInt(String(q.no || '').replace(/\D/g, ''), 10);
+    return isNaN(n) ? m : Math.max(m, n);
+  }, 4);
+  return 'P' + String(maks + 1).padStart(3, '0');
+}
 function openQuoteView(id){ teklifViewId = id; teklifStep = 'view'; renderContent(); }
 function openQuoteEdit(id){
   const q = QUOTES.find(x=>x.id===id);
@@ -5749,7 +5776,7 @@ function submitQuote(){
   } else {
     const no = yeniTeklifNo();
     const q = {
-      id:'q'+(quoteCounter++), no, customerId, repName, currency: quoteCurrency,
+      id: benzersizId('q'), no, customerId, repName, currency: quoteCurrency,
       date: new Date().toISOString().slice(0,10), // teklif tarihi her zaman bugün, otomatik
       status:'Taslak', girisMetni, notlar, items,
       tur:'Satış Teklifi', sonuc:'Sonuçlandırılmamış', etiketler:[],
@@ -5954,7 +5981,7 @@ function toggleIslemlerMenu(){
   const m = document.getElementById('islemlerMenu');
   m.style.display = m.style.display==='none' ? 'block' : 'none';
 }
-function hideIslemlerMenu(){ document.getElementById('islemlerMenu').style.display = 'none'; }
+function hideIslemlerMenu(){ const m = document.getElementById('islemlerMenu'); if(m) m.style.display = 'none'; }
 document.addEventListener('click', (e)=>{
   const menu = document.getElementById('islemlerMenu');
   if(menu && menu.style.display==='block' && !e.target.closest('#islemlerMenu') && !e.target.closest('.primary-btn')) menu.style.display='none';
@@ -6008,7 +6035,7 @@ function openJobFromQuote(qid){
 function duplicateQuote(id){
   const q = QUOTES.find(x=>x.id===id);
   const copy = JSON.parse(JSON.stringify(q));
-  copy.id = 'q'+(quoteCounter++);
+  copy.id = benzersizId('q');
   copy.no = yeniTeklifNo();
   copy.status = 'Taslak';
   copy.date = new Date().toISOString().slice(0,10);
@@ -6371,6 +6398,7 @@ function applyState(d){
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   DIS_ALIMLAR = arr('DIS_ALIMLAR');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
+  if(typeof veriOnar === 'function') veriOnar();   // eski sayaç hatasından kalan çift kimlikleri ayır
   if(d.AGENCY && typeof d.AGENCY === 'object'){
     // Sunucudan gelen firma bilgileri varsayılanların üzerine yazılır (logo dahil, boş değilse)
     Object.keys(d.AGENCY).forEach(k => { if(d.AGENCY[k] !== undefined && d.AGENCY[k] !== null) AGENCY[k] = d.AGENCY[k]; });
