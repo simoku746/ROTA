@@ -972,6 +972,44 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .v-stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:8px;margin-bottom:14px;}
 @media(max-width:640px){ .v-grid{grid-template-columns:1fr;} }
 
+/* ---------- Dış Alımlar ---------- */
+.da-liste{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;overflow:hidden;margin-bottom:14px;}
+.da-baslik{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--surface-sunk);
+  border-bottom:1px solid var(--line);font-family:var(--font-display);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--ink-2);}
+.da-baslik .adet{font-family:var(--font-mono);color:var(--surface);background:var(--ink-3);padding:1px 7px;border-radius:3px;font-size:10.5px;}
+.da-row{display:flex;gap:11px;align-items:flex-start;padding:10px 13px;border-bottom:1px solid var(--line);cursor:pointer;}
+.da-row:last-child{border-bottom:none;}
+.da-row:hover{background:var(--surface-sunk);}
+.da-check{width:21px;height:21px;flex-shrink:0;margin-top:1px;border:1.5px solid var(--line-strong);
+  border-radius:999px;background:var(--surface);color:#fff;font-size:11px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;}
+.da-check:hover{border-color:var(--ok);color:var(--ok);}
+.da-row.tamam .da-check{background:var(--ok);border-color:var(--ok);}
+.da-ana{flex:1;min-width:0;}
+.da-malzeme{font-size:13px;font-weight:600;color:var(--ink);line-height:18px;}
+.da-row.tamam .da-malzeme{color:var(--ink-3);text-decoration:line-through;}
+.da-alt{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:3px;font-size:11.5px;color:var(--ink-2);}
+.da-alt .mono{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);}
+.da-rozet{flex-shrink:0;font-family:var(--font-mono);font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:5px;background:var(--surface-sunk);color:var(--ink-2);white-space:nowrap;}
+.da-rozet.gecikti{background:var(--risk-soft);color:var(--risk);}
+.da-rozet.bugun{background:var(--signal-soft);color:var(--signal);}
+.da-bos{padding:22px 16px;text-align:center;font-size:12px;color:var(--ink-3);}
+/* Haftalık plan üstü şeridi */
+.da-serit{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;background:var(--surface);
+  border:1px solid var(--line);border-left:3px solid var(--hold);border-radius:8px;
+  padding:8px 10px;margin-bottom:10px;}
+.da-serit-baslik{font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--ink-3);margin:4px 4px 0 0;white-space:nowrap;}
+.da-chip{display:flex;flex-direction:column;max-width:230px;border:1px solid var(--line-strong);
+  border-radius:6px;padding:4px 9px;font-size:11px;line-height:14px;cursor:pointer;background:var(--surface);}
+.da-chip:hover{border-color:var(--ink);}
+.da-chip b{font-family:var(--font-display);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.da-chip i{font-style:normal;font-size:10px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.da-chip u{text-decoration:none;font-family:var(--font-mono);font-size:9.5px;color:var(--ink-3);}
+.da-chip.gecikti{border-color:var(--risk);background:var(--risk-soft);}
+
 /* ---------- Not Defteri (sağ alt) ---------- */
 #notWrap{position:fixed;bottom:0;right:24px;z-index:55;font-family:var(--font-body);}
 .not-tab{display:flex;align-items:center;gap:7px;height:32px;padding:0 14px;
@@ -1236,6 +1274,7 @@ const GOREV_SUBS = [
   { key:'haftalik-plan', label:'Haftalık Plan' },
   { key:'tasarim-panosu', label:'Tasarım Panosu' },
   { key:'uretim-programi', label:'Üretim Programı' },
+  { key:'dis-alimlar', label:'Dış Alımlar' },
   { key:'saha', label:'Saha (Montaj)' },
   { key:'gorevlerim', label:'Görevlerim' },
   { key:'projeler', label:'Projeler' },
@@ -1265,9 +1304,9 @@ const SUB_STATE = {
 
 // ---------------- ROL BAZLI ERİŞİM ----------------
 const ROLE_CONFIG = {
-  YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','tasarim-panosu','uretim-programi','saha','gorevlerim','projeler','kontrol-listeleri','rapor'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
+  YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','tasarim-panosu','uretim-programi','dis-alimlar','saha','gorevlerim','projeler','kontrol-listeleri','rapor'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
   TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['tasarim-panosu','gorevlerim','projeler','kontrol-listeleri','rapor'] },
-  URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['uretim-programi'] },
+  URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['uretim-programi','dis-alimlar'] },
   MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['saha'] },
   MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','teklifler','raporlar','yonetim','destek'], gorevSubs:[], yonetimSubs:['araclarim','kategoriler'] },
 };
@@ -1510,6 +1549,7 @@ function gorevYonetimiView(){
   if(gorevSub==='kapasite') return kapasiteView();
   if(gorevSub==='haftalik-plan') return haftalikPlanView();
   if(gorevSub==='uretim-programi') return uretimProgramiView();
+  if(gorevSub==='dis-alimlar') return disAlimlarView();
   if(gorevSub==='saha') return sahaView();
   if(gorevSub==='gorevlerim') return gorevlerimView();
   if(gorevSub==='genel-board') return planlamaView();
@@ -1710,6 +1750,7 @@ function planTepsiHtml(){
   const sec = planSecim();
   const asamaAdi = sec.stages ? sec.stages.map(k => (STAGES.find(s => s.key === k)||{}).label).join(' / ') : 'tüm aşamalar';
   return `
+    ${disAlimSeritHtml()}
     <div class="hp-tepsi" ondragover="planTepsiOver(event)" ondragleave="planDragLeave(event)" ondrop="planTepsiDrop(event)">
       <span class="hp-tepsi-baslik">Planlanmamış <b>${isler.length}</b></span>
       ${isler.length ? isler.map(j => { const c = planRenk(j.client);
@@ -5993,6 +6034,176 @@ function exportQuotePdf(){
 // Eski "Göreve Dönüştür" — artık teklifi kabul etmekle aynı şey
 function convertQuoteToTask(id){ changeQuoteStatus(id, 'Kabul Edildi'); }
 
+// ---------------- DIŞ ALIMLAR ----------------
+// Tedarikçilerden araçla toplanacak malzemeler + sipariş verilen ve gelişi beklenen ürünler.
+// Kayıtlar buluta kaydedilir; haftalık planın üstünde o haftanın alımları şerit olarak görünür.
+let DIS_ALIMLAR = [];
+let daTamamAcik = false;
+
+const DA_TURLER = {
+  toplama:  { ad:'Araçla Toplanacak',          ikon:'🚚', sublabel:'Tedarikçiden biz alacağız' },
+  teslimat: { ad:'Sipariş — Geliş Bekleniyor', ikon:'📦', sublabel:'Kargo / tedarikçi getirecek' },
+};
+function daTarihRozet(a){
+  if(a.durum === 'tamam') return '<span class="da-rozet">✓ tamam</span>';
+  if(!a.tarih) return '<span class="da-rozet">tarih yok</span>';
+  const bugun = planIso(new Date());
+  const gunFark = Math.round((new Date(a.tarih+'T00:00:00') - new Date(bugun+'T00:00:00')) / 86400000);
+  const d = new Date(a.tarih+'T00:00:00');
+  const kisa = d.getDate() + ' ' + PLAN_AYLAR[d.getMonth()];
+  if(gunFark < 0)  return `<span class="da-rozet gecikti">${kisa} · ${-gunFark} gün gecikti</span>`;
+  if(gunFark === 0) return '<span class="da-rozet bugun">bugün</span>';
+  if(gunFark === 1) return '<span class="da-rozet bugun">yarın</span>';
+  return `<span class="da-rozet">${kisa}</span>`;
+}
+function daSatirHtml(a){
+  const p = PERSONELLER.find(x => x.id === a.sorumluId);
+  const v = VEHICLES.find(x => x.id === a.aracId);
+  const j = JOBS.find(x => x.id === a.jobId);
+  return `
+    <div class="da-row ${a.durum === 'tamam' ? 'tamam' : ''}" onclick="openDisAlimModal('${a.id}')">
+      <button class="da-check" title="${a.durum === 'tamam' ? 'Geri al' : 'Teslim alındı işaretle'}"
+        onclick="event.stopPropagation(); daToggle('${a.id}')">${a.durum === 'tamam' ? '✓' : ''}</button>
+      <div class="da-ana">
+        <div class="da-malzeme">${notEsc(a.malzeme || '—')}</div>
+        <div class="da-alt">
+          <span><b>${notEsc(a.tedarikci || 'Tedarikçi belirtilmedi')}</b></span>
+          ${p ? `<span>👤 ${notEsc(p.name)}</span>` : ''}
+          ${v ? `<span class="mono">🚐 ${v.plate}</span>` : ''}
+          ${j ? `<span class="mono">📋 ${j.code} · ${notEsc(j.client)}</span>` : ''}
+          ${a.tutar ? `<span class="mono">${tl(a.tutar)}</span>` : ''}
+          ${a.not ? `<span>📝 ${notEsc(a.not)}</span>` : ''}
+        </div>
+      </div>
+      ${daTarihRozet(a)}
+    </div>`;
+}
+function disAlimlarView(){
+  const sirala = (x, y) => (x.tarih || '9999') < (y.tarih || '9999') ? -1 : 1;
+  const acik = DIS_ALIMLAR.filter(a => a.durum !== 'tamam').sort(sirala);
+  const tamam = DIS_ALIMLAR.filter(a => a.durum === 'tamam').sort(sirala).reverse();
+  const bolum = tur => {
+    const grup = acik.filter(a => a.tur === tur);
+    return `
+      <div class="da-liste">
+        <div class="da-baslik">${DA_TURLER[tur].ikon} ${DA_TURLER[tur].ad}<span class="adet">${grup.length}</span>
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-3);margin-left:4px;">— ${DA_TURLER[tur].sublabel}</span></div>
+        ${grup.length ? grup.map(daSatirHtml).join('') : `<div class="da-bos">Bekleyen kayıt yok.</div>`}
+      </div>`;
+  };
+  return `
+    <div class="list-page-head">
+      <div><div class="page-title">Dış Alımlar</div>
+        <div class="page-sub">Tedarikçiden toplanacak malzemeler ve gelişi beklenen siparişler. Teslim alınca ✓ ile kapatın.</div></div>
+      <button class="primary-btn" onclick="openDisAlimModal()">+ Dış Alım Ekle</button>
+    </div>
+    ${bolum('toplama')}
+    ${bolum('teslimat')}
+    ${tamam.length ? `
+      <div class="da-liste">
+        <div class="da-baslik" style="cursor:pointer;" onclick="daTamamAcik=!daTamamAcik; renderContent();">
+          ${daTamamAcik ? '▾' : '▸'} Tamamlananlar<span class="adet">${tamam.length}</span>
+          <button class="mx-chip" style="margin-left:auto;" onclick="event.stopPropagation(); daTamamTemizle()">Temizle</button></div>
+        ${daTamamAcik ? tamam.map(daSatirHtml).join('') : ''}
+      </div>` : ''}
+  `;
+}
+function openDisAlimModal(id){
+  const a = id ? DIS_ALIMLAR.find(x => x.id === id) : null;
+  const per = PERSONELLER.filter(p => !p.arsiv);
+  const isler = JOBS.filter(j => j.stage !== 'TAHSILAT');
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${a ? 'Dış Alımı Düzenle' : 'Dış Alım Ekle'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Tür</label><select id="daTur">
+      ${Object.keys(DA_TURLER).map(k => `<option value="${k}" ${a && a.tur === k ? 'selected' : ''}>${DA_TURLER[k].ikon} ${DA_TURLER[k].ad}</option>`).join('')}</select></div>
+    <div class="field"><label>Malzeme / Sipariş</label><input id="daMalzeme" value="${a ? notEsc(a.malzeme) : ''}" placeholder="ör. 6 mt alüminyum profil × 12 adet"></div>
+    <div class="field"><label>Tedarikçi</label><input id="daTedarikci" list="daTedList" value="${a ? notEsc(a.tedarikci || '') : ''}" placeholder="Firma adı">
+      <datalist id="daTedList">${CUSTOMERS.map(c => `<option value="${notEsc(c.name)}">`).join('')}</datalist></div>
+    <div class="field-row">
+      <div class="field"><label>Tarih</label><input id="daTarih" type="date" value="${a && a.tarih ? a.tarih : planIso(new Date())}"></div>
+      <div class="field"><label>Tutar (isteğe bağlı)</label><input id="daTutar" type="number" min="0" value="${a && a.tutar ? a.tutar : ''}" placeholder="0"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Sorumlu</label><select id="daSorumlu">
+        <option value="">— Seçilmedi —</option>
+        ${per.map(p => `<option value="${p.id}" ${a && a.sorumluId === p.id ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Araç (toplama için)</label><select id="daArac">
+        <option value="">— Seçilmedi —</option>
+        ${VEHICLES.map(v => `<option value="${v.id}" ${a && a.aracId === v.id ? 'selected' : ''}>${v.plate} · ${v.brand} ${v.model}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>İlgili İş (isteğe bağlı)</label><select id="daJob">
+      <option value="">— Genel / işe bağlı değil —</option>
+      ${isler.map(j => `<option value="${j.id}" ${a && a.jobId === j.id ? 'selected' : ''}>${j.code} · ${notEsc(j.client)}</option>`).join('')}</select></div>
+    <div class="field"><label>Not</label><input id="daNot" value="${a ? notEsc(a.not || '') : ''}" placeholder="ör. saat 14:00'ten önce, iskonto konuşuldu"></div>
+    ${a ? `<button class="btn" style="width:100%;height:34px;margin-bottom:8px;color:var(--risk);border-color:var(--risk);" onclick="daSil('${a.id}')">🗑️ Kaydı Sil</button>` : ''}
+    <button class="modal-submit" onclick="submitDisAlim('${a ? a.id : ''}')">${a ? 'Kaydet' : 'Ekle'}</button>
+  `;
+  showModal();
+}
+function submitDisAlim(id){
+  const malzeme = document.getElementById('daMalzeme').value.trim();
+  if(!malzeme){ showToast('Malzeme / sipariş açıklaması girin.'); return; }
+  const veri = {
+    tur: document.getElementById('daTur').value,
+    malzeme: malzeme,
+    tedarikci: document.getElementById('daTedarikci').value.trim(),
+    tarih: document.getElementById('daTarih').value,
+    tutar: Number(document.getElementById('daTutar').value) || 0,
+    sorumluId: document.getElementById('daSorumlu').value || null,
+    aracId: document.getElementById('daArac').value || null,
+    jobId: document.getElementById('daJob').value || null,
+    not: document.getElementById('daNot').value.trim(),
+  };
+  if(id){
+    const a = DIS_ALIMLAR.find(x => x.id === id);
+    if(a) Object.assign(a, veri);
+  } else {
+    DIS_ALIMLAR.push(Object.assign({ id:'da' + Date.now(), durum:'bekliyor' }, veri));
+  }
+  closeModal(); renderContent();
+  showToast(id ? 'Dış alım güncellendi.' : 'Dış alım eklendi.');
+}
+function daToggle(id){
+  const a = DIS_ALIMLAR.find(x => x.id === id);
+  if(!a) return;
+  a.durum = a.durum === 'tamam' ? 'bekliyor' : 'tamam';
+  if(a.durum === 'tamam') daTamamAcik = true;
+  renderContent();
+}
+function daSil(id){
+  const i = DIS_ALIMLAR.findIndex(x => x.id === id);
+  if(i >= 0){ DIS_ALIMLAR.splice(i, 1); closeModal(); renderContent(); showToast('Dış alım silindi.'); }
+}
+function daTamamTemizle(){
+  DIS_ALIMLAR = DIS_ALIMLAR.filter(a => a.durum !== 'tamam');
+  renderContent();
+}
+// Haftalık planın üstünde: bu haftanın bekleyen dış alımları
+function disAlimSeritHtml(){
+  const bas = planHaftaBasi(planHaftaOfset);
+  const gunler = Array.from({length:7}, (_, i) => { const d = new Date(bas); d.setDate(bas.getDate() + i); return planIso(d); });
+  const bugun = planIso(new Date());
+  const hafta = DIS_ALIMLAR.filter(a => a.durum !== 'tamam' && (gunler.includes(a.tarih) || (a.tarih && a.tarih < bugun)))
+    .sort((x, y) => (x.tarih || '') < (y.tarih || '') ? -1 : 1);
+  if(!hafta.length) return '';
+  const GUN_KISA = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+  return `
+    <div class="da-serit">
+      <span class="da-serit-baslik">📦 Dış Alımlar <b style="color:var(--signal);">${hafta.length}</b></span>
+      ${hafta.map(a => {
+        const d = a.tarih ? new Date(a.tarih + 'T00:00:00') : null;
+        const p = PERSONELLER.find(x => x.id === a.sorumluId);
+        const gecikti = a.tarih && a.tarih < bugun;
+        return `<div class="da-chip ${gecikti ? 'gecikti' : ''}" onclick="selectSub('gorev-yonetimi','dis-alimlar')"
+          title="${DA_TURLER[a.tur].ad}${a.not ? ' — ' + notEsc(a.not) : ''}">
+          <b>${DA_TURLER[a.tur].ikon} ${notEsc(a.malzeme)}</b>
+          <i>${notEsc(a.tedarikci || '')}${p ? ' · ' + notEsc(p.name.split(' ')[0]) : ''}</i>
+          <u>${gecikti ? 'GECİKTİ · ' : ''}${d ? GUN_KISA[d.getDay()] + ' ' + d.getDate() + ' ' + PLAN_AYLAR[d.getMonth()] : 'tarih yok'}</u>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
 // ---------------- NOT DEFTERİ ----------------
 // Kişiye özel hızlı notlar: telefonda konuşurken yazılır, iş gibi işaretlenip kapatılır.
 // NOT_DEFTERI: { kullanıcıAnahtarı: [ {id, metin, tamam, tarih} ] } — buluta kaydedilir.
@@ -6135,7 +6346,7 @@ function collectState(){
   return {
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
-    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI,
+    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR,
   };
 }
 function applyState(d){
@@ -6153,6 +6364,7 @@ function applyState(d){
   MESAI_RATES = (d.MESAI_RATES && typeof d.MESAI_RATES === 'object') ? d.MESAI_RATES : { normal:50, hafta:100, resmi:100 };
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
+  DIS_ALIMLAR = arr('DIS_ALIMLAR');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   if(d.AGENCY && typeof d.AGENCY === 'object'){
     // Sunucudan gelen firma bilgileri varsayılanların üzerine yazılır (logo dahil, boş değilse)
