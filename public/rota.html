@@ -1011,6 +1011,41 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .da-chip u{text-decoration:none;font-family:var(--font-mono);font-size:9.5px;color:var(--ink-3);}
 .da-chip.gecikti{border-color:var(--risk);background:var(--risk-soft);}
 
+/* ---------- Bildirimler (sağ üst çan) ---------- */
+#bildirimWrap{position:fixed;top:14px;right:20px;z-index:72;font-family:var(--font-body);}
+.bildirim-can{position:relative;width:38px;height:38px;border-radius:999px;border:1px solid var(--line-strong);
+  background:var(--surface);font-size:16px;cursor:pointer;box-shadow:var(--shadow-sm);}
+.bildirim-can:hover{border-color:var(--ink);}
+.bildirim-rozet{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;
+  border-radius:999px;background:var(--risk);color:#fff;font-family:var(--font-mono);
+  font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.bildirim-rozet:empty{display:none;}
+.bildirim-panel{display:none;position:absolute;top:46px;right:0;width:356px;max-height:460px;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;
+  box-shadow:var(--shadow-md);overflow:hidden;flex-direction:column;}
+#bildirimWrap.open .bildirim-panel{display:flex;}
+.bildirim-head{display:flex;align-items:center;justify-content:space-between;height:38px;flex-shrink:0;
+  padding:0 13px;background:var(--ink);color:var(--surface);
+  font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.4px;}
+.bildirim-head button{border:none;background:none;color:var(--surface);opacity:.75;font-size:11px;
+  cursor:pointer;text-decoration:underline;font-family:inherit;}
+.bildirim-head button:hover{opacity:1;}
+.bildirim-liste{overflow-y:auto;}
+.bildirim-satir{display:flex;gap:10px;padding:10px 13px;border-bottom:1px solid var(--line);align-items:flex-start;}
+.bildirim-satir:last-child{border-bottom:none;}
+.bildirim-satir.yeni{background:var(--signal-soft);}
+.bildirim-ikon{flex:0 0 20px;font-size:15px;margin-top:1px;}
+.bildirim-metin{flex:1;min-width:0;font-size:12.5px;line-height:17px;color:var(--ink);}
+.bildirim-zaman{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-3);margin-top:3px;}
+.bildirim-aksiyon{display:flex;gap:7px;margin-top:7px;}
+.bildirim-aksiyon button{height:26px;padding:0 11px;border-radius:6px;font-size:11.5px;font-weight:600;
+  cursor:pointer;font-family:inherit;}
+.bildirim-aksiyon .onay{background:var(--risk);color:#fff;border:none;}
+.bildirim-aksiyon .red{background:var(--surface);color:var(--ink-2);border:1px solid var(--line-strong);}
+.bildirim-sonuc{margin-top:6px;font-size:11px;font-weight:600;color:var(--ink-3);}
+.bildirim-bos{padding:26px 16px;text-align:center;font-size:12px;color:var(--ink-3);}
+@media(max-width:760px){ #bildirimWrap{top:56px;right:12px;} .bildirim-panel{width:calc(100vw - 24px);max-width:356px;} }
+
 /* ---------- Not Defteri (sağ alt) ---------- */
 #notWrap{position:fixed;bottom:0;right:24px;z-index:55;font-family:var(--font-body);}
 .not-tab{display:flex;align-items:center;gap:7px;height:32px;padding:0 14px;
@@ -1124,6 +1159,15 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 <div class="side-drawer" id="sideDrawer"></div>
 <div class="toast" id="toast"></div>
 
+<!-- Bildirimler: sağ üstte çan -->
+<div id="bildirimWrap" style="display:none;">
+  <button class="bildirim-can" onclick="bildirimAcKapa(event)" title="Bildirimler">🔔<span class="bildirim-rozet" id="bildirimRozet"></span></button>
+  <div class="bildirim-panel">
+    <div class="bildirim-head"><span>🔔 BİLDİRİMLER</span><button onclick="bildirimTemizle()">Temizle</button></div>
+    <div class="bildirim-liste" id="bildirimListe"></div>
+  </div>
+</div>
+
 <!-- Not Defteri: sağ altta; küçültülünce alt kenarda sekme olarak durur -->
 <div id="notWrap" style="display:none;">
   <button class="not-tab" onclick="notAcKapa()" title="Not defterini aç">📝 Notlarım<span class="not-sayi" id="notSayiTab"></span></button>
@@ -1210,6 +1254,11 @@ function veriOnar(){
   });
   const g2 = new Set();
   (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
+  // Silinmiş teklife bağlı yetim işler ve sahipsiz plan blokları temizlenir
+  const teklifIdleri = new Set(QUOTES.map(q => q.id));
+  JOBS = JOBS.filter(j => !j.quoteId || teklifIdleri.has(j.quoteId));
+  const isIdleri = new Set(JOBS.map(j => j.id));
+  PLAN_TASKS = PLAN_TASKS.filter(t => !t.jobId || isIdleri.has(t.jobId));
 }
 
 let QUOTES = [
@@ -1362,6 +1411,8 @@ function doLogin(role){
   renderNav(); renderContent(); updateBackBtn();
   document.getElementById('notWrap').style.display = 'block';
   renderNotlar();
+  document.getElementById('bildirimWrap').style.display = 'block';
+  renderBildirimler();
 }
 async function doLogout(){
   await liveSave({ force:true });
@@ -1750,6 +1801,7 @@ function planDrop(e, iso){
     let dk = Math.round((((e.clientY - r.top) / PLAN_SAAT_PX) * 60 + PLAN_BAS_SAAT*60) / PLAN_SNAP_DK) * PLAN_SNAP_DK;
     dk = Math.max(PLAN_BAS_SAAT*60, Math.min(dk, PLAN_BIT_SAAT*60 - PLAN_VARSAYILAN_SURE));
     PLAN_TASKS.push(planBlokIsten(j, iso, dkToSaatMetni(dk), planKisilerIsimden(j.assignees)));
+    bildirimAtama(planKisilerIsimden(j.assignees), `Size iş atandı: ${j.code} · ${j.client} — ${formatDate(iso)} ${dkToSaatMetni(dk)}`);
     renderContent();
     showToast(`${j.code} planlandı → ${formatDate(iso)} ${dkToSaatMetni(dk)}`);
     return;
@@ -1827,6 +1879,7 @@ function planHucreDrop(e, iso, kisiId){
     planSurukleIsId = null;
     if(!j) return;
     PLAN_TASKS.push(planBlokIsten(j, iso, '09:00', [kisiId]));
+    bildirimAtama([kisiId], `Size iş atandı: ${j.code} · ${j.client} — ${formatDate(iso)}`);
     renderContent();
     const p = PERSONELLER.find(x => x.id === kisiId);
     showToast(`${j.code} planlandı → ${p ? p.name : ''} · ${formatDate(iso)}`);
@@ -1835,11 +1888,13 @@ function planHucreDrop(e, iso, kisiId){
   const t = PLAN_TASKS.find(x => x.id === planSurukleId);
   if(!t){ planSurukleKaynakKisi = null; return; }
   const eski = planSurukleKaynakKisi;
+  const yeniAtama = !(t.personelIds || []).includes(kisiId);
   t.date = iso;
   let kisiler = (t.personelIds || []).slice();
   if(eski && eski !== kisiId) kisiler = kisiler.filter(x => x !== eski);
   if(!kisiler.includes(kisiId)) kisiler.push(kisiId);
   t.personelIds = kisiler;
+  if(yeniAtama) bildirimAtama([kisiId], `Size plan atandı: ${t.taskName} (${t.projectName}) — ${formatDate(iso)}`);
   planSurukleId = null; planSurukleKaynakKisi = null;
   renderContent();
   const p = PERSONELLER.find(x => x.id === kisiId);
@@ -2184,8 +2239,11 @@ function submitPlanTask(id){
     personelIds: Array.from(document.querySelectorAll('.pt-kisi:checked')).map(x => x.value),
   };
   const mevcut = id ? PLAN_TASKS.find(x => x.id === id) : null;
+  const oncekiler = mevcut ? (mevcut.personelIds || []) : [];
   if(mevcut) Object.assign(mevcut, veri);
   else PLAN_TASKS.push(Object.assign({ id:'t'+Date.now() }, veri));
+  bildirimAtama(veri.personelIds.filter(x => !oncekiler.includes(x)),
+    `Size plan atandı: ${ad} (${projectName}) — ${formatDate(veri.date)}`);
   closeModal(); renderContent();
   showToast(mevcut ? 'Blok güncellendi.' : 'Blok eklendi.');
 }
@@ -4774,7 +4832,10 @@ function openReassignModal(id){
 }
 function submitReassign(id){
   const j = JOBS.find(x=>x.id===id);
+  const onceki = j.assignees || [];
   j.assignees = Array.from(document.querySelectorAll('.job-assignee-cb:checked')).map(cb=>cb.value);
+  const yeniIdler = PERSONELLER.filter(p => j.assignees.includes(p.name) && !onceki.includes(p.name)).map(p => p.id);
+  bildirimAtama(yeniIdler, `Size iş atandı: ${j.code} · ${j.client}`);
   closeModal();
   openJobDrawer(id);
   renderContent();
@@ -6052,12 +6113,38 @@ function reviseQuote(id){
   duplicateQuote(id);
   showToast('Revize taslağı oluşturuldu — düzenleyip gönderebilirsiniz.');
 }
+// Teklifi bağlı kayıtlarıyla birlikte kaldırır: işe dönüşmüşse iş + plan blokları da silinir
+function teklifSilUygula(id){
+  const q = QUOTES.find(x => x.id === id);
+  if(q && q.jobId){
+    PLAN_TASKS = PLAN_TASKS.filter(t => t.jobId !== q.jobId);
+    JOBS = JOBS.filter(j => j.id !== q.jobId);
+  }
+  QUOTES = QUOTES.filter(x => x.id !== id);
+}
 function deleteQuote(id){
-  if(!confirm('Bu teklifi silmek istediğinize emin misiniz?')) return;
-  QUOTES = QUOTES.filter(q=>q.id!==id);
+  const q = QUOTES.find(x => x.id === id); if(!q) return;
+  hideIslemlerMenu();
+  if(CURRENT_ROLE !== 'YONETICI'){
+    if(BILDIRIMLER.some(b => b.tip === 'silme-istegi' && b.quoteId === id && !b.sonuc)){
+      showToast('Bu teklif için silme isteği zaten yönetici onayında bekliyor.'); return;
+    }
+    const c = CUSTOMERS.find(x => x.id === q.customerId);
+    const kim = (typeof LIVE !== 'undefined' && LIVE.user) ? LIVE.user.name : roleCfg().label;
+    bildirimYoneticilere(
+      `${kim}, ${q.no} numaralı teklifin (${c ? c.name : 'müşteri yok'}) silinmesini istiyor.`,
+      'silme-istegi', { quoteId: id, quoteNo: q.no, isteyen: notKullanici() });
+    showToast('Teklif silinemiyor — yönetici onayı sonrası silinebilir. İsteğiniz yöneticiye iletildi.');
+    return;
+  }
+  const uyari = q.jobId
+    ? 'Bu teklifi ve teklife bağlı işi (plan kayıtlarıyla birlikte) silmek istediğinize emin misiniz?'
+    : 'Bu teklifi silmek istediğinize emin misiniz?';
+  if(!confirm(uyari)) return;
+  teklifSilUygula(id);
   teklifStep = 'list';
   renderContent();
-  showToast('Teklif silindi.');
+  showToast('Teklif ve bağlı kayıtları silindi.');
 }
 function exportQuotePdf(){
   hideIslemlerMenu();
@@ -6186,12 +6273,15 @@ function submitDisAlim(id){
     jobId: document.getElementById('daJob').value || null,
     not: document.getElementById('daNot').value.trim(),
   };
+  let oncekiSorumlu = null;
   if(id){
     const a = DIS_ALIMLAR.find(x => x.id === id);
-    if(a) Object.assign(a, veri);
+    if(a){ oncekiSorumlu = a.sorumluId; Object.assign(a, veri); }
   } else {
-    DIS_ALIMLAR.push(Object.assign({ id:'da' + Date.now(), durum:'bekliyor' }, veri));
+    DIS_ALIMLAR.push(Object.assign({ id: benzersizId('da'), durum:'bekliyor' }, veri));
   }
+  if(veri.sorumluId && veri.sorumluId !== oncekiSorumlu)
+    bildirimAtama([veri.sorumluId], `Size dış alım atandı: ${veri.malzeme}${veri.tedarikci ? ' (' + veri.tedarikci + ')' : ''}${veri.tarih ? ' — ' + formatDate(veri.tarih) : ''}`);
   closeModal(); renderContent();
   showToast(id ? 'Dış alım güncellendi.' : 'Dış alım eklendi.');
 }
@@ -6236,6 +6326,100 @@ function disAlimSeritHtml(){
     </div>`;
 }
 
+// ---------------- BİLDİRİMLER ----------------
+// Kişiye özel bildirimler (buluta kaydedilir; diğer cihazlara 15 sn içinde düşer).
+// Türler: 'atama' (iş/plan/dış alım ataması), 'silme-istegi' (yönetici onayı bekler), 'bilgi'.
+let BILDIRIMLER = [];
+let bildirimAcik = false;
+
+function bildirimEkle(aliciEmail, metin, tip, ekstra){
+  if(!aliciEmail) return;
+  BILDIRIMLER.unshift(Object.assign(
+    { id: benzersizId('b'), alici: aliciEmail, metin: metin, tip: tip || 'bilgi', tarih: Date.now(), okundu: false },
+    ekstra || {}));
+  if(BILDIRIMLER.length > 300) BILDIRIMLER.length = 300;
+  renderBildirimler();
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+function bildirimYoneticilere(metin, tip, ekstra){
+  USERS.filter(u => u.role === 'YONETICI').forEach(u => bildirimEkle(u.email, metin, tip, ekstra));
+}
+// Personel kimliklerinden kullanıcı hesabı olanlara atama bildirimi (kendine bildirim gitmez)
+function bildirimAtama(personelIds, metin){
+  (personelIds || []).forEach(pid => {
+    const p = PERSONELLER.find(x => x.id === pid);
+    if(p && p.kullanici && p.kullanici.email && p.kullanici.email !== notKullanici())
+      bildirimEkle(p.kullanici.email, metin, 'atama');
+  });
+}
+function benimBildirimlerim(){ return BILDIRIMLER.filter(b => b.alici === notKullanici()); }
+function bildirimAcKapa(e){
+  if(e) e.stopPropagation();
+  bildirimAcik = !bildirimAcik;
+  if(bildirimAcik){
+    let degisti = false;
+    benimBildirimlerim().forEach(b => { if(!b.okundu){ b.okundu = true; degisti = true; } });
+    if(degisti && typeof liveMarkDirty === 'function') liveMarkDirty();
+  }
+  renderBildirimler();
+}
+function bildirimTemizle(){
+  const ben = notKullanici();
+  BILDIRIMLER = BILDIRIMLER.filter(b => b.alici !== ben || (b.tip === 'silme-istegi' && !b.sonuc));
+  renderBildirimler();
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+function bildirimSatirHtml(b){
+  const IKON = { atama:'📋', 'silme-istegi':'🗑️', bilgi:'ℹ️' };
+  let aksiyon = '';
+  if(b.tip === 'silme-istegi' && CURRENT_ROLE === 'YONETICI'){
+    if(b.sonuc === 'silindi') aksiyon = '<div class="bildirim-sonuc">✓ Teklif silindi</div>';
+    else if(b.sonuc === 'red') aksiyon = '<div class="bildirim-sonuc">✕ Reddedildi</div>';
+    else if(b.sonuc === 'yok') aksiyon = '<div class="bildirim-sonuc">Teklif zaten silinmiş</div>';
+    else aksiyon = `<div class="bildirim-aksiyon">
+      <button class="onay" onclick="event.stopPropagation(); bildirimSilmeOnayla('${b.id}')">Teklifi Sil</button>
+      <button class="red" onclick="event.stopPropagation(); bildirimSilmeReddet('${b.id}')">Reddet</button></div>`;
+  }
+  return `<div class="bildirim-satir ${b.okundu ? '' : 'yeni'}">
+    <span class="bildirim-ikon">${IKON[b.tip] || '🔔'}</span>
+    <div class="bildirim-metin">${notEsc(b.metin)}${aksiyon}
+      <div class="bildirim-zaman">${notZamanStr(b.tarih)}</div></div>
+  </div>`;
+}
+function renderBildirimler(){
+  const wrap = document.getElementById('bildirimWrap');
+  if(!wrap) return;
+  wrap.classList.toggle('open', bildirimAcik);
+  const benim = benimBildirimlerim();
+  const rozet = document.getElementById('bildirimRozet');
+  if(rozet){ const n = benim.filter(b => !b.okundu).length; rozet.textContent = n ? String(n) : ''; }
+  const el = document.getElementById('bildirimListe');
+  if(el) el.innerHTML = benim.length
+    ? benim.slice(0, 50).map(bildirimSatirHtml).join('')
+    : '<div class="bildirim-bos">Bildirim yok.<br>Size iş atandığında veya onayınız gerektiğinde burada görünür.</div>';
+}
+document.addEventListener('click', e => {
+  if(bildirimAcik && !e.target.closest('#bildirimWrap')){ bildirimAcik = false; renderBildirimler(); }
+});
+// Silme isteği kararları (yalnız yönetici panelinde görünür)
+function bildirimSilmeOnayla(bid){
+  const b = BILDIRIMLER.find(x => x.id === bid); if(!b) return;
+  const q = QUOTES.find(x => x.id === b.quoteId);
+  if(!q){ b.sonuc = 'yok'; renderBildirimler(); showToast('Teklif zaten silinmiş.'); return; }
+  teklifSilUygula(q.id);
+  b.sonuc = 'silindi';
+  if(b.isteyen) bildirimEkle(b.isteyen, `${b.quoteNo} için silme isteğiniz onaylandı — teklif silindi.`, 'bilgi');
+  renderBildirimler(); renderContent();
+  showToast(`${b.quoteNo} ve bağlı kayıtları silindi.`);
+}
+function bildirimSilmeReddet(bid){
+  const b = BILDIRIMLER.find(x => x.id === bid); if(!b || b.sonuc) return;
+  b.sonuc = 'red';
+  if(b.isteyen) bildirimEkle(b.isteyen, `${b.quoteNo} için silme isteğiniz reddedildi.`, 'bilgi');
+  renderBildirimler();
+  showToast('Silme isteği reddedildi.');
+}
+
 // ---------------- NOT DEFTERİ ----------------
 // Kişiye özel hızlı notlar: telefonda konuşurken yazılır, iş gibi işaretlenip kapatılır.
 // NOT_DEFTERI: { kullanıcıAnahtarı: [ {id, metin, tamam, tarih} ] } — buluta kaydedilir.
@@ -6246,7 +6430,8 @@ let notDuzenlenen = null;
 
 function notKullanici(){
   if(typeof LIVE !== 'undefined' && LIVE.user && LIVE.user.email) return LIVE.user.email;
-  return 'demo-' + CURRENT_ROLE;
+  const p = personelByRol(CURRENT_ROLE);   // önizleme modunda: role bağlı hesabın e-postası
+  return (p && p.kullanici && p.kullanici.email) ? p.kullanici.email : ('demo-' + CURRENT_ROLE);
 }
 function notlarim(){
   const k = notKullanici();
@@ -6378,7 +6563,7 @@ function collectState(){
   return {
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
-    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR,
+    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, BILDIRIMLER,
   };
 }
 function applyState(d){
@@ -6396,7 +6581,7 @@ function applyState(d){
   MESAI_RATES = (d.MESAI_RATES && typeof d.MESAI_RATES === 'object') ? d.MESAI_RATES : { normal:50, hafta:100, resmi:100 };
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
-  DIS_ALIMLAR = arr('DIS_ALIMLAR');
+  DIS_ALIMLAR = arr('DIS_ALIMLAR'); BILDIRIMLER = arr('BILDIRIMLER');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   if(typeof veriOnar === 'function') veriOnar();   // eski sayaç hatasından kalan çift kimlikleri ayır
   if(d.AGENCY && typeof d.AGENCY === 'object'){
@@ -6497,6 +6682,7 @@ async function liveTick(){
     LIVE.lastSaved = JSON.stringify(collectState());
     renderNav(); renderContent();
     if(typeof renderNotlar === 'function') renderNotlar();
+    if(typeof renderBildirimler === 'function') renderBildirimler();
     liveSetStatus('ok', 'Güncellendi ' + liveZaman());
   }catch(e){ /* sessiz */ }
 }
