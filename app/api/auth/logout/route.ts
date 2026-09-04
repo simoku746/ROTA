@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { json } from '@/lib/api';
+import { clearSessionCookie } from '@/lib/cookie';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set('rota_session', '', { path: '/', maxAge: 0 });
-  return res;
+  return clearSessionCookie(json({ ok: true }));
 }

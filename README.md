@@ -1,88 +1,56 @@
-# ROTA — Kurulum ve Yayına Alma Rehberi
+# ROTA — Canlı Sürüm
 
-Bu, ROTA projesinin gerçek (demo değil) sürümüdür: gerçek giriş, gerçek veritabanı, rol bazlı erişim sunucu tarafında uygulanıyor.
+Reklam / tabela atölyesi iş akışı: keşif → teklif → tasarım → üretim → montaj → tahsilat.
+Kişiler, teklifler, işler, haftalık plan, ön muhasebe, personel, mesai, araçlar tek uygulamada.
 
-## İçindekiler
-1. Neon'da veritabanı oluşturma
-2. GitHub'a yükleme
-3. Vercel'e bağlama ve yayınlama
-4. Veritabanını hazırlama (tabloları oluşturma + örnek veri)
-5. Demo giriş bilgileri
+## Nasıl çalışır
 
----
+| Parça | Nerede | Ne yapar |
+|---|---|---|
+| Uygulama | `public/rota.html` | Arayüzün tamamı tek dosya. Kök adres (`/`) doğrudan bunu açar. |
+| Giriş | `/login` | E-posta + şifre. Roller: Yönetici, Tasarım, Üretim, Montaj, Muhasebe. |
+| İlk kurulum | `/setup` | Veritabanında hiç kullanıcı yokken açılır; firma adı + ilk yönetici hesabı. |
+| Veri | `AppState` tablosu | Tüm uygulama verisi tek JSON belgesi. Her değişiklik ~1 sn içinde otomatik kaydedilir; 15 sn'de bir diğer cihazların değişiklikleri çekilir. |
+| Hesaplar | `User` tablosu | Şifreler bcrypt ile saklanır. Yönetim → Kullanıcılar ekranından açılır / kaldırılır / şifre belirlenir. |
 
-## 1. Neon'da veritabanı oluşturma
+API uçları: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`,
+`GET|PUT /api/state` (sürüm kontrollü; eski sürümün üstüne yazma 409 ile reddedilir),
+`GET|POST|PATCH|DELETE /api/users` (yönetici), `GET|POST /api/setup` (yalnızca ilk kurulum).
 
-1. **neon.tech** adresine gidin, ücretsiz hesap açın (GitHub ile giriş yapabilirsiniz)
-2. **"Create a project"** deyin, bir proje adı verin (örn. `rota-db`)
-3. Proje oluşunca size bir **bağlantı adresi (connection string)** verilecek — `postgresql://...` ile başlayan uzun bir metin. Bunu bir yere kopyalayın, birazdan lazım olacak.
+## Yayına alma (Vercel + Neon)
 
-## 2. GitHub'a yükleme
-
-Bilgisayarınızda bir terminal (Mac: Terminal, Windows: PowerShell) açın ve bu klasörün içine girin, sonra sırasıyla:
-
-```
-git init
-git add .
-git commit -m "İlk sürüm"
-```
-
-Sonra GitHub'da yeni bir repo (depo) oluşturun:
-1. github.com'da sağ üstteki **"+"** işaretine tıklayın → **"New repository"**
-2. Bir isim verin (örn. `rota-app`), **Private** (özel) seçin — bu önemli, kodunuz herkese açık olmasın
-3. **"Create repository"** deyin
-4. Açılan sayfada size verilen komutları terminalinize kopyalayıp çalıştırın (aşağıdakine benzer olacak, ama GitHub size özel adresi verecek):
+Ortam değişkenleri (Vercel → Settings → Environment Variables):
 
 ```
-git remote add origin https://github.com/KULLANICI_ADINIZ/rota-app.git
-git branch -M main
-git push -u origin main
+DATABASE_URL = postgresql://...   (Neon bağlantı adresi)
+JWT_SECRET   = en az 32 karakter rastgele metin
 ```
 
-## 3. Vercel'e bağlama ve yayınlama
+Yerelde `.env` dosyası aynı iki satırı taşır (`.env.example`'a bakın). `.env` asla commit'lenmez.
 
-1. Vercel dashboard'a girin, **"New Project"** (veya "Add New...") tıklayın
-2. GitHub repo listenizden **rota-app**'i bulup **"Import"** deyin
-3. Karşınıza ayar ekranı çıkacak — **"Environment Variables"** (Ortam Değişkenleri) bölümüne şunları ekleyin:
-   - `DATABASE_URL` → Neon'dan aldığınız bağlantı adresi
-   - `JWT_SECRET` → rastgele, uzun bir metin (örn. tarayıcınızda "random string generator" arayıp 40 karakterlik bir tane üretebilirsiniz)
-4. **"Deploy"** butonuna basın, 1-2 dakika sürer
-5. Bitince size bir adres verilecek (örn. `rota-app.vercel.app`) — siteniz artık canlıda
-
-## 4. Veritabanını hazırlama
-
-İlk yayından sonra veritabanı tabloları henüz boş. Bunu bilgisayarınızdan bir kerelik şu komutlarla dolduracaksınız:
-
-Proje klasörünüzde bir `.env` dosyası oluşturun (`.env.example` dosyasını kopyalayıp adını `.env` yapın), içine Neon'dan aldığınız `DATABASE_URL` ve oluşturduğunuz `JWT_SECRET`'i yapıştırın. Sonra terminalde:
+## Bilgisayarda çalıştırma
 
 ```
 npm install
-npm run db:push
-npm run db:seed
+npx prisma db push --accept-data-loss   # tabloları oluşturur / günceller
+npm run dev                             # http://localhost:3000
 ```
 
-- `db:push` → veritabanında tabloları oluşturur
-- `db:seed` → demo kullanıcıları ve örnek işleri yükler
+## Veritabanını sıfırlama
 
-## 5. Demo giriş bilgileri
+```
+npm run db:reset
+```
 
-Seed işleminden sonra şu hesaplarla giriş yapabilirsiniz (hepsinin şifresi `demo1234`):
+Tüm kullanıcıları ve uygulama verisini siler. Site bir sonraki açılışta `/setup` ekranını gösterir.
 
-| E-posta | Rol |
-|---|---|
-| yonetici@ajans.com | Yönetici |
-| tasarim@ajans.com | Tasarım |
-| uretim@ajans.com | Üretim |
-| montaj@ajans.com | Montaj (Saha) |
-| muhasebe@ajans.com | Muhasebe |
+## Yeni sürüm çıkarma
 
-**Gerçek kullanıma geçerken:** Bu demo hesapları silin/şifrelerini değiştirin, gerçek çalışanlarınız için `prisma/seed.ts` dosyasındaki listeyi kendi ekibinizle güncelleyip tekrar `npm run db:seed` çalıştırın (ya da ileride bir "kullanıcı ekle" ekranı yaparız).
+`public/rota.html` dosyasını güncelleyip `git push` etmek yeterli; Vercel otomatik yayınlar.
+Veri yapısı değişmediği sürece veritabanına dokunmak gerekmez.
 
----
+## Sınırlar (1. faz)
 
-## Bir yerde takılırsanız
-
-Hata mesajının tamamını kopyalayıp bana gösterin, birlikte çözeriz. En sık karşılaşılan sorunlar:
-- `DATABASE_URL` yanlış kopyalanmış olabilir (baştaki/sondaki boşluklara dikkat)
-- Vercel'de environment variable eklemeyi unutmak — eklerseniz "Redeploy" (yeniden yayınla) demeniz gerekir
-- `npm install` sırasında hata — Node.js'in bilgisayarınızda kurulu olması gerekir (nodejs.org'dan indirilebilir)
+- Tüm veri tek belgede tutulur; birkaç MB'a kadar sorunsuz. Büyüdüğünde tablolara bölünecek.
+- İki kişi aynı anda kaydederse ikincisi "çakışma" uyarısı alır ve sayfa yenilenir; o son değişiklik tekrar girilmelidir.
+- Rol yetkileri arayüzde uygulanır; sunucu tarafında yalnızca kullanıcı yönetimi yönetici ile sınırlıdır.

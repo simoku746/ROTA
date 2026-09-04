@@ -15,31 +15,7 @@ enum Role {
   MUHASEBE
 }
 
-enum Stage {
-  KESIF
-  TASARIM
-  URETIM
-  MONTAJ
-  TAHSILAT
-}
-
-enum ApprovalStatus {
-  BEKLIYOR
-  ONAYLANDI
-  REVIZYON
-}
-
-enum PaymentStatus {
-  BEKLIYOR
-  KISMI
-  TAMAMLANDI
-}
-
-enum CustomerType {
-  FIRMA
-  SAHIS
-}
-
+// Giriş hesapları. Şifre asla düz metin tutulmaz (bcrypt hash).
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -49,51 +25,13 @@ model User {
   createdAt    DateTime @default(now())
 }
 
-model Job {
-  id          String          @id @default(cuid())
-  code        String          @unique
-  client      String
-  description String
-  stage       Stage           @default(KESIF)
-  material    String?
-  cost        Float?
-  dueDate     DateTime?
-  overdue     Boolean         @default(false)
-  assignee    String?
-  payStatus   PaymentStatus   @default(BEKLIYOR)
-  approval    ApprovalStatus?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-// Kişiler (Müşteri/Firma) — Teklifler ve Görev Yönetimi bu tabloya bağlanır
-model Customer {
-  id             String       @id @default(cuid())
-  type           CustomerType @default(FIRMA)
-  name           String       // Firma Adı ya da Ad Soyad
-  contact        String?      // Yetkili kişi (firma ise)
-  phone          String?
-  email          String?
-  address        String?
-  kaynak         String?
-  kampanya       String?
-  temsilci       String?
-  sektor         String?
-  etiket         String?
-  kisaAciklama   String?
-  hatirlatma     String?
-  contactRows    Json?        // [{type, value}] - çoklu telefon/e-posta
-  addressRows    Json?        // [{type, country, postal, ilce, sehir, eyalet, detail}]
-  faturaUnvani   String?
-  vergiNo        String?
-  vergiDairesi   String?
-  faturaAdresi   String?
-  fPostaKodu     String?
-  fIlce          String?
-  fSehir         String?
-  fUlke          String?
-  vadeGun        Int?
-  calisanSayisi  Int?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+// Uygulamanın tüm verisi (kişiler, teklifler, işler, plan, ön muhasebe, araçlar…)
+// tek bir JSON belgesinde tutulur. `version` her kayıtta 1 artar; eski bir sürümün
+// üzerine yazma denemesi 409 ile reddedilir (iki cihaz aynı anda kaydederse).
+model AppState {
+  id        String   @id @default("main")
+  data      Json
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
 }

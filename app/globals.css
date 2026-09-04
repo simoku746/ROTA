@@ -1,108 +1,33 @@
+/* Yalnızca /login ve /setup sayfaları için. Uygulamanın kendisi public/rota.html içinde kendi stilini taşır. */
 :root{
-  --bg:#F5F6FA; --sidebar-bg:#FFFFFF; --border:#ECEDF2; --surface:#F0F0F5; --input-bg:#FBFBFD;
-  --text:#1F2333; --text-muted:#8A8FA3;
-  --accent:#6C5DD3; --accent-light:#EFE9FE; --accent-hover:#5B4CC4;
-  --card-bg:#FFFFFF;
-  --green:#2ED47A; --green-light:#E4FBEE;
-  --red:#FF6A55; --red-light:#FFEBE8;
-  --amber:#FFA53E; --amber-light:#FFF3E2;
-  --shadow:0 1px 2px rgba(20,20,40,0.05);
+  --canvas:#F1F5F9; --surface:#FFFFFF; --surface-sunk:#E2E8F0;
+  --line:#CBD5E1; --line-strong:#94A3B8;
+  --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B;
+  --signal:#EA580C; --signal-soft:#FFEDD5;
+  --risk:#DC2626; --risk-soft:#FEE2E2;
+  --ok:#15803D; --ok-soft:#DCFCE7;
+  --font-body:-apple-system,'Segoe UI',Inter,Roboto,sans-serif;
+  --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;}
-html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Inter,sans-serif;}
-a{color:inherit; text-decoration:none;}
+html,body{margin:0; padding:0; background:var(--canvas); color:var(--ink); font-family:var(--font-body); font-size:13.5px; line-height:19px;}
 
-.shell{display:flex; min-height:100vh;}
-.sidebar{width:250px; flex-shrink:0; background:var(--sidebar-bg); border-right:1px solid var(--border); padding:18px 14px; display:flex; flex-direction:column;}
-.brand{display:flex; align-items:center; justify-content:space-between; padding:8px 10px 22px 10px;}
-.brand-left{display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px;}
-.brand-logo{width:32px; height:32px; border-radius:50%; background:conic-gradient(from 180deg, #6C5DD3, #9B7CF6, #6C5DD3); display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px;}
-.nav{display:flex; flex-direction:column; gap:2px; flex:1;}
-.nav a{display:flex; align-items:center; gap:13px; padding:12px 10px; border-radius:11px; font-size:14.5px; font-weight:500; color:var(--text);}
-.nav a.active{background:var(--accent-light); color:var(--accent);}
-.nav a:hover:not(.active){background:var(--surface);}
-.nav-item-icon{width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;}
-.sidebar-foot{border-top:1px solid var(--border); padding-top:14px; margin-top:10px;}
-.sidebar-user{display:flex; align-items:center; gap:9px; padding:6px 10px 10px 10px;}
-.avatar{width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0;}
-.sidebar-user-info{overflow:hidden;}
-.sidebar-user-name{font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.sidebar-user-role{font-size:11.5px; color:var(--text-muted);}
-.logout-link{display:block; padding:9px 12px; font-size:13px; color:var(--text-muted); border-radius:9px; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-family:inherit;}
-.logout-link:hover{background:var(--red-light); color:var(--red);}
+.auth-wrap{min-height:100vh; display:grid; place-items:center; padding:24px;}
+.auth-box{width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:28px 26px;}
+.auth-brand{display:flex; align-items:center; gap:9px; font-weight:800; font-size:17px; letter-spacing:.3px; margin-bottom:4px;}
+.auth-logo{width:26px; height:26px; border-radius:6px; background:var(--ink); color:#fff; display:grid; place-items:center; font-size:12px; font-weight:800;}
+.auth-sub{font-size:12.5px; color:var(--ink-3); margin:0 0 20px 0;}
+.auth-step{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--ink-3); margin:18px 0 8px;}
 
-.content{flex:1; padding:30px 34px; min-width:0;}
-.page-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:10px;}
-.page-title{font-size:22px; font-weight:700; margin:0 0 3px 0;}
-.page-sub{font-size:13px; color:var(--text-muted); margin:0;}
-.primary-btn{background:var(--accent); color:#fff; border:none; padding:10px 16px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
-.primary-btn:hover{background:var(--accent-hover);}
-.note{background:var(--accent-light); border-radius:10px; padding:11px 15px; margin-bottom:18px; font-size:12.5px; color:var(--accent-hover); line-height:1.5;}
+.field{margin-bottom:12px;}
+.field label{display:block; font-size:11.5px; font-weight:600; color:var(--ink-2); margin-bottom:5px;}
+.field input{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:6px; font-size:13.5px; background:var(--surface); color:var(--ink); font-family:inherit;}
+.field input:focus{outline:none; border-color:var(--ink);}
+.field small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:4px;}
 
-.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:13px;}
-.card{background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:15px; box-shadow:var(--shadow);}
-.card .name{font-weight:700; font-size:15px; margin-bottom:6px;}
-.card .line{font-size:12.5px; color:var(--text-muted); margin-bottom:3px; display:flex; gap:6px; align-items:center;}
-
-table{width:100%; border-collapse:collapse; background:var(--card-bg); border-radius:12px; overflow:hidden; box-shadow:var(--shadow);}
-th{text-align:left; font-size:11px; text-transform:uppercase; color:var(--text-muted); padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface);}
-td{padding:13px 14px; border-bottom:1px solid var(--border); font-size:13px;}
-tr:last-child td{border-bottom:none;}
-.tag{display:inline-block; font-size:10.5px; padding:3px 8px; border-radius:3px; margin:0 5px 5px 0; font-family:monospace;}
-.tag.pay-BEKLIYOR{background:var(--red-light); color:var(--red);}
-.tag.pay-KISMI{background:var(--amber-light); color:var(--amber);}
-.tag.pay-TAMAMLANDI{background:var(--green-light); color:var(--green);}
-.tag.appr-BEKLIYOR{background:var(--red-light); color:var(--red);}
-.tag.appr-REVIZYON{background:var(--amber-light); color:var(--amber);}
-.tag.appr-ONAYLANDI{background:var(--green-light); color:var(--green);}
-.tag.cost{background:var(--surface); color:var(--text);}
-.stage-badge{display:inline-block; background:var(--accent-light); color:var(--accent); font-size:10.5px; padding:3px 9px; border-radius:12px; margin-bottom:8px;}
-
-.btns{display:flex; gap:8px; margin-top:10px;}
-.btn{flex:1; padding:9px; border:none; border-radius:7px; font-size:12px; cursor:pointer; color:#fff; font-weight:600;}
-.btn-approve{background:var(--green);}
-.btn-revise{background:var(--amber);}
-.btn-complete{background:var(--accent); width:100%; padding:12px; font-size:13px;}
-.locked{color:var(--red); font-size:11px; margin-top:8px; background:var(--red-light); padding:6px 9px; border-radius:6px;}
-
-.login-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--accent);}
-.login-box{width:100%; max-width:340px; background:#fff; border-radius:16px; padding:30px 26px; box-shadow:0 10px 40px rgba(0,0,0,0.2);}
-.login-box h1{font-size:22px; margin:0 0 4px 0;}
-.login-box p{font-size:12.5px; color:var(--text-muted); margin:0 0 20px 0;}
-.field{margin-bottom:14px;}
-.field label{display:block; font-size:11.5px; font-weight:600; margin-bottom:6px;}
-.field input, .field select, .field textarea{width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:9px; font-size:14px; background:var(--input-bg); color:var(--text); font-family:inherit;}
-.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--accent);}
-.field-row{display:flex; gap:10px;}
-.field-row .field{flex:1;}
-.submit-btn{width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:9px; font-size:14px; cursor:pointer; margin-top:4px; font-weight:600;}
-.error{color:var(--red); font-size:12.5px; margin-top:10px; background:var(--red-light); padding:8px 11px; border-radius:8px;}
-
-/* Kişiler formu */
-.list-page-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
-.form-page{max-width:720px;}
-.form-block{background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:14px;}
-.avatar-upload{display:flex; flex-direction:column; align-items:center; gap:10px; float:left; margin-right:24px; width:120px;}
-.avatar-circle{width:88px; height:88px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:34px; color:var(--text-muted);}
-.form-main-field{overflow:hidden;}
-.form-main-field label{display:block; font-size:12px; font-weight:600; margin-bottom:6px;}
-.form-main-field input{width:100%; padding:11px 13px; border:1.5px solid var(--accent); border-radius:9px; font-size:14px; background:var(--input-bg); color:var(--text);}
-.accordion{border-top:1px solid var(--border);}
-.accordion-head{display:flex; align-items:center; gap:10px; padding:16px 4px; cursor:pointer; font-size:13.5px; font-weight:600;}
-.accordion-plus{width:20px; height:20px; border-radius:50%; background:var(--green-light); color:var(--green); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;}
-.accordion-body{padding:0 4px 18px 4px;}
-.form-page-footer{display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
-.back-btn{width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background:var(--card-bg); color:var(--text); cursor:pointer; font-size:15px;}
-.save-btn{background:var(--green); color:#fff; border:none; padding:11px 22px; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer;}
-.sub-block{margin-bottom:18px;}
-.sub-block-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-.sub-block-head h4{font-size:14px; margin:0;}
-.repeat-row{display:flex; gap:8px; margin-bottom:8px; align-items:center;}
-.repeat-row select{flex:0 0 150px; padding:9px 8px; border:1.5px solid var(--border); border-radius:8px; background:var(--input-bg); color:var(--text); font-size:12.5px;}
-.repeat-row input{flex:1; padding:9px 11px; border:1.5px solid var(--border); border-radius:8px; background:var(--input-bg); color:var(--text); font-size:13px;}
-.row-remove{background:var(--red-light); color:var(--red); border:none; width:30px; height:30px; border-radius:7px; cursor:pointer; flex-shrink:0; font-size:13px;}
-.type-choice{display:flex; gap:16px; max-width:520px; margin:30px auto 0 auto;}
-.type-card{flex:1; background:var(--card-bg); border:1.5px solid var(--border); border-radius:14px; padding:28px 18px; text-align:center; cursor:pointer;}
-.type-card:hover{border-color:var(--accent); background:var(--accent-light);}
-.type-card .emoji{font-size:34px; margin-bottom:10px;}
-.type-card .label{font-weight:700; font-size:15px;}
+.submit-btn{width:100%; padding:10px; background:var(--ink); color:#fff; border:none; border-radius:6px; font-size:13.5px; cursor:pointer; margin-top:6px; font-weight:600; font-family:inherit;}
+.submit-btn:hover{background:#1E293B;}
+.submit-btn:disabled{opacity:.6; cursor:default;}
+.error{color:var(--risk); font-size:12.5px; margin-top:10px; background:var(--risk-soft); padding:8px 11px; border-radius:6px;}
+.auth-foot{margin-top:14px; font-size:11.5px; color:var(--ink-3); text-align:center;}
+.auth-foot a{color:var(--ink-2);}
