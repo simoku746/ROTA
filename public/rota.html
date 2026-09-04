@@ -531,10 +531,11 @@ tr:last-child td{border-bottom:none;}
 .hp-task:hover{box-shadow:var(--shadow-md);z-index:4;}
 .hp-task.suruklenen{opacity:.4;}
 .hp-task.resizing{box-shadow:var(--shadow-md);z-index:6;}
-.hp-resize{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize;border-radius:0 0 6px 6px;}
-.hp-resize::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:2px;
-  width:22px;height:2px;border-radius:2px;background:currentColor;opacity:0;transition:opacity .12s;}
-.hp-task:hover .hp-resize::after,.hp-task.resizing .hp-resize::after{opacity:.5;}
+.hp-resize{position:absolute;left:0;right:0;bottom:0;height:14px;cursor:ns-resize;
+  border-radius:0 0 6px 6px;touch-action:none;}
+.hp-resize::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:3px;
+  width:26px;height:3px;border-radius:3px;background:currentColor;opacity:.35;transition:opacity .12s;}
+.hp-task:hover .hp-resize::after,.hp-task.resizing .hp-resize::after{opacity:.75;}
 .hp-resize-tag{position:fixed;z-index:130;pointer-events:none;background:var(--ink);color:var(--surface);
   font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:5px;box-shadow:var(--shadow-md);}
 .hp-task-proje{font-family:var(--font-display);font-size:11px;font-weight:700;line-height:14px;
@@ -1848,11 +1849,14 @@ function planResizeStart(e, id){
   kart.classList.add('resizing');
   planResize = { id:id, kart:kart, basY:e.clientY, basSure:t.durationMinutes, yeni:t.durationMinutes };
   planResizeEtiket(e, t.durationMinutes);
-  document.addEventListener('mousemove', planResizeMove);
-  document.addEventListener('mouseup', planResizeEnd);
+  try { e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); } catch(err) {}
+  document.addEventListener('pointermove', planResizeMove);
+  document.addEventListener('pointerup', planResizeEnd);
+  document.addEventListener('pointercancel', planResizeEnd);
 }
 function planResizeMove(e){
   if(!planResize) return;
+  if(e.cancelable) e.preventDefault();
   const t = PLAN_TASKS.find(x => x.id === planResize.id); if(!t) return;
   const fark = ((e.clientY - planResize.basY) / PLAN_SAAT_PX) * 60;
   const enFazla = PLAN_BIT_SAAT*60 - saatToDk(t.startTime);       // günün sonunu aşmasın
@@ -1865,8 +1869,9 @@ function planResizeMove(e){
   planResizeEtiket(e, yeni);
 }
 function planResizeEnd(){
-  document.removeEventListener('mousemove', planResizeMove);
-  document.removeEventListener('mouseup', planResizeEnd);
+  document.removeEventListener('pointermove', planResizeMove);
+  document.removeEventListener('pointerup', planResizeEnd);
+  document.removeEventListener('pointercancel', planResizeEnd);
   planResizeEtiketGizle();
   if(!planResize) return;
   const t = PLAN_TASKS.find(x => x.id === planResize.id);
@@ -2072,8 +2077,8 @@ function planSaatView(){
               ${h > 58 ? `<div class="hp-task-alt">
                 <span>${t.cost ? '₺'+t.cost.toLocaleString('tr-TR') : ''}</span>
                 <span class="hp-sure">${dkToSaat(t.durationMinutes)}</span></div>` : ''}
-              ${planYetkili() ? `<div class="hp-resize" title="Süreyi uzatmak için sürükleyin"
-                onmousedown="planResizeStart(event,'${t.id}')"></div>` : ''}
+              ${planYetkili() ? `<div class="hp-resize" title="Süreyi uzatmak/kısaltmak için aşağı-yukarı sürükleyin"
+                onpointerdown="planResizeStart(event,'${t.id}')"></div>` : ''}
             </div>`; }).join('')}
         </div>`; }).join('')}
     </div>
