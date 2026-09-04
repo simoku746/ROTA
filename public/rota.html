@@ -883,7 +883,7 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
   color:var(--canvas);padding:0 18px;height:40px;display:flex;align-items:center;border-radius:8px;
   font-size:13px;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:var(--shadow-md);}
 .toast.show{opacity:1;}
-.top-right-bar{position:fixed;top:16px;right:20px;display:flex;align-items:center;gap:8px;z-index:70;}
+.top-right-bar{position:fixed;bottom:20px;right:20px;display:flex;align-items:center;gap:8px;z-index:70;}
 .preview-flag{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-2);transition:color .2s,border-color .2s;}
 .preview-flag.ok{color:var(--ok);border-color:var(--ok);}
 .preview-flag.saving{color:var(--hold);border-color:var(--hold);}
@@ -2434,6 +2434,7 @@ function odemelerRaporuView(){
     <div class="filter-bar"><span>🔍 Cari</span><span>📅 Vade Tarihi</span><span>⌨️ TL</span><span>⌨️ Belge Tipi</span></div>
     <div class="report-body">
       <div class="group-header"><span>— İleri Tarihli Giderler</span><span>Toplam: ₺${total.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
+      ${rows.length ? '' : '<div class="empty-state">Ödenecek alış faturası yok.</div>'}
       ${rows.map(f => `
         <div class="ledger-row">
           <div><div class="ledger-title" style="color:var(--accent);">${f.client}</div><div class="ledger-sub">${f.tur} No: ${f.no} Tarih: ${f.tarih}</div></div>
@@ -2459,6 +2460,7 @@ function tahsilatlarRaporuView(){
     <div class="filter-bar"><span>🔍 Cari</span><span>📅 Vade Tarihi</span><span>⌨️ TL</span><span>⌨️ Belge Tipi</span></div>
     <div class="report-body">
       <div class="group-header"><span>— İleri Tarihli Gelirler</span><span>Toplam: ₺${totalWithDate.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
+      ${withDate.length ? '' : '<div class="empty-state">Tahsil edilecek satış faturası yok.</div>'}
       ${withDate.map(f => `
         <div class="ledger-row">
           <div><div class="ledger-title" style="color:var(--accent);">${f.client}</div><div class="ledger-sub">${f.tur} No: ${f.no} Tarih: ${f.tarih}</div></div>
@@ -2495,7 +2497,7 @@ function alisSatisRaporuView(kind){
     <div class="list-page-head"><div class="page-title">${isAlis?'Alış Raporu':'Satış Raporu'}</div></div>
     <div class="report-tabs">${tabs.map(t=>`<span class="tab-item ${t[2]?'active':''}">${t[0]} ${t[1]}</span>`).join('')}</div>
     ${chartsHtml}
-    <div class="filter-bar"><span>🔍 Cari</span><span>⌨️ Fatura Numarası</span><span>📅 27.06.2026 - 27.08.2026</span></div>
+    <div class="filter-bar"><span>🔍 Cari</span><span>⌨️ Fatura Numarası</span><span>📅 Tüm kayıtlar</span></div>
     <div class="report-body"><div class="empty-state">Sonuç bulunamadı</div></div>
     <div class="totals-panel">
       <h5>Toplam</h5>
@@ -2507,32 +2509,48 @@ function alisSatisRaporuView(kind){
 }
 
 
+function kdvDonemleri(){
+  const m = new Map();
+  QUOTES.filter(q => q.status === 'Faturalandı' && q.date).forEach(q => {
+    const k = String(q.date).slice(0,7);
+    m.set(k, (m.get(k)||0) + quoteKdvAmount(q));
+  });
+  return [...m.entries()].sort((a,b) => b[0].localeCompare(a[0])).map(([k,kdv]) => {
+    const d = new Date(k + '-01T00:00:00');
+    return { ad: d.toLocaleDateString('tr-TR',{month:'long',year:'numeric'}), kdv };
+  });
+}
 function kdvRaporuView(){
   return `
     <div class="list-page-head"><div class="page-title">KDV Raporu</div></div>
     <div class="warn-banner">⚠️ Bu rapor sadece fikir vermek için hazırlanmıştır. Tutarlar gerçek KDV'den farklı olabilir. Şirketinizin ödemesi gereken KDV tutarını göstermez.</div>
-    <div class="filter-bar" style="border-radius:12px 12px 0 0;"><span>🔍 2026</span></div>
+    <div class="filter-bar" style="border-radius:12px 12px 0 0;"><span>🔍 ${new Date().getFullYear()}</span></div>
     <div class="report-body">
       <div class="kb-row header"><span>Dönem</span><span>Hesaplanan KDV Tutarı</span></div>
-      <div class="kb-row"><span>Ağustos 2026</span><span>360,00 TL &nbsp;&nbsp;&nbsp; İndirilecek: 0,00 TL &nbsp;&nbsp;&nbsp; Net: 360,00 TL</span></div>
+      ${kdvDonemleri().length ? kdvDonemleri().map(d => `<div class="kb-row"><span>${d.ad}</span><span>${tl(d.kdv)} &nbsp;&nbsp;&nbsp; İndirilecek: ${tl(0)} &nbsp;&nbsp;&nbsp; Net: ${tl(d.kdv)}</span></div>`).join('')
+        : '<div class="empty-state">Faturalanmış teklif yok — KDV, durumu "Faturalandı" olan tekliflerden hesaplanır.</div>'}
     </div>
   `;
 }
 
+function kasaBankaHareketleri(){
+  return [...GELIRLER.map(g => ({ ...g, gelir:true })), ...GIDERLER.map(g => ({ ...g, gelir:false }))]
+    .sort((a,b) => trTarihMs(b.tarih) - trTarihMs(a.tarih));
+}
 function kasaBankaRaporuView(){
   return `
     <div class="list-page-head"><div class="page-title">Kasa\\Banka Raporu</div></div>
-    <div class="filter-bar" style="border-radius:12px; margin-bottom:12px;"><span>📅 27.05.2026 - 27.08.2026</span><span>⌨️ TL</span><span>⌨️ Gelir/Gider</span></div>
+    <div class="filter-bar" style="border-radius:12px; margin-bottom:12px;"><span>📅 Tüm kayıtlar</span><span>⌨️ TL</span><span>⌨️ Gelir/Gider</span></div>
     <div class="toggle-row"><button>Günlük</button><button>Haftalık</button><button>Aylık</button><button class="active">Yıllık</button></div>
-    <div class="chart-box">
+    ${kasaBankaHareketleri().length ? `<div class="chart-box">
       <div class="flow-chart"><div class="flow-line"></div><div class="flow-bar"></div></div>
-      <div style="text-align:center; font-size:11px; color:var(--text-muted);">Ağu 2026</div>
-    </div>
+      <div style="text-align:center; font-size:11px; color:var(--text-muted);">${new Date().toLocaleDateString('tr-TR',{month:'short',year:'numeric'})}</div>
+    </div>` : ''}
     <div class="report-body" style="border-top:1px solid var(--border);">
-      <div class="ledger-row"><div><div class="ledger-title" style="color:var(--accent);">Tuna Mobilya</div><div class="ledger-sub">Ödeme</div></div><div class="ledger-amount">-₺1.500,00<span class="kalan">Nakit / Gider · 12.08.2026</span></div></div>
-      <div class="ledger-row"><div><div class="ledger-title" style="color:var(--accent);">Ultra Web Yazılım</div><div class="ledger-sub">Tahsilat</div></div><div class="ledger-amount">₺944,00<span class="odendi">Nakit / Gelir · 12.08.2026</span></div></div>
-      <div class="ledger-row"><div><div class="ledger-title" style="color:var(--accent);">İlke Küçükbey</div><div class="ledger-sub">Çalışana Ödeme</div></div><div class="ledger-amount">-₺15.000,00<span class="kalan">Nakit / Gider · 07.08.2026</span></div></div>
-      <div class="ledger-footer"><span>🔻 Toplam: 3 kayıt</span></div>
+      ${kasaBankaHareketleri().length ? '' : '<div class="empty-state">Henüz gelir ya da gider kaydı yok.</div>'}
+      ${kasaBankaHareketleri().map(h => `
+      <div class="ledger-row"><div><div class="ledger-title" style="color:var(--accent);">${h.client || h.tur}</div><div class="ledger-sub">${h.tur}</div></div><div class="ledger-amount">${h.gelir ? '' : '-'}${tl(h.tutar)}<span class="${h.gelir ? 'odendi' : 'kalan'}">${h.hesap || ''} · ${h.tarih}</span></div></div>`).join('')}
+      <div class="ledger-footer"><span>🔻 Toplam: ${kasaBankaHareketleri().length} kayıt</span></div>
     </div>
   `;
 }
@@ -2557,7 +2575,7 @@ function onMuhasebeView(){
 }
 
 // ---- örnek veri ----
-const FATURALAR = [
+let FATURALAR = [
   { client:'Parlak Sanayi A.Ş.', tur:'Satış Faturası', no:'S102', tarih:'27.08.2026', vade:'26.09.2026 · 30 Gün Kaldı', tutar:1200, kalan:1200 },
   { client:'Tuna Mobilya', tur:'Alış Faturası', no:'P100', tarih:'27.08.2026', vade:'16.09.2026 · 20 Gün Kaldı', tutar:1600, kalan:100 },
   { client:'Ercüment Hukuk Bürosu', tur:'Satış Faturası', no:'S100', tarih:'27.08.2026', vade:'26.09.2026 · 30 Gün Kaldı', tutar:2800, kalan:2800, highlight:true },
@@ -2631,12 +2649,18 @@ let PERSONELLER = [
       hareketler:[] };
   })
 );
-const CARI = [
-  { client:'Ercüment Hukuk Bürosu', bakiye:-2800, durum:'Tahsil Edilecek' },
-  { client:'Parlak Sanayi A.Ş.', bakiye:-1200, durum:'Tahsil Edilecek' },
-  { client:'Tuna Mobilya', bakiye:100, durum:'Ödeme Yapılacak' },
-  { client:'Ultra Web Yazılım', bakiye:-16, durum:'Tahsil Edilecek' },
-];
+// Cari bakiyeleri faturalardan türetilir: satış faturası kalanı = tahsil edilecek (−), alış faturası kalanı = ödeme yapılacak (+)
+function cariBakiyeleri(){
+  const m = new Map();
+  FATURALAR.forEach(f => {
+    const kalan = Number(f.kalan)||0; if(!kalan) return;
+    const yon = /Alış/.test(f.tur||'') ? 1 : -1;
+    m.set(f.client, (m.get(f.client)||0) + yon*kalan);
+  });
+  return [...m.entries()].filter(([,b]) => b !== 0)
+    .map(([client,bakiye]) => ({ client, bakiye, durum: bakiye<0 ? 'Tahsil Edilecek' : 'Ödeme Yapılacak' }))
+    .sort((a,b) => a.client.localeCompare(b.client,'tr'));
+}
 
 function faturalarView(){
   return `
@@ -2645,6 +2669,7 @@ function faturalarView(){
     <div class="ledger-wrap">
       <div class="ledger-main">
         <div class="ledger-search">🔍 Ara</div>
+        ${FATURALAR.length ? '' : '<div class="empty-state">Henüz fatura yok.</div>'}
         ${FATURALAR.map(f => `
           <div class="ledger-row ${f.highlight?'highlight':''}">
             <div>
@@ -3481,6 +3506,7 @@ function saveMesai(){
 }
 
 function cariHareketleriView(){
+  const CARI = cariBakiyeleri();
   const tahsilatlar = CARI.filter(c=>c.bakiye<0).reduce((s,c)=>s+c.bakiye,0);
   const odemeler = CARI.filter(c=>c.bakiye>0).reduce((s,c)=>s+c.bakiye,0);
   return `
@@ -3489,6 +3515,7 @@ function cariHareketleriView(){
       <div class="ledger-main">
         <div class="ledger-search">🔍 Ara</div>
         <div class="ledger-row" style="font-weight:700; color:var(--accent);"><span>Cari ⇅</span><span>Bakiye</span></div>
+        ${CARI.length ? '' : '<div class="empty-state">Henüz cari bakiyesi yok — bakiyeler faturalardan oluşur.</div>'}
         ${CARI.map(c => `
           <div class="ledger-row">
             <div class="ledger-title" style="margin:0;">${c.client}</div>
@@ -5667,7 +5694,7 @@ function collectState(){
   return {
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
-    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES,
+    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR,
   };
 }
 function applyState(d){
@@ -5684,7 +5711,7 @@ function applyState(d){
   KATEGORILER = Array.isArray(d.KATEGORILER) && d.KATEGORILER.length ? d.KATEGORILER : VARSAYILAN_KATEGORILER();
   MESAI_RATES = (d.MESAI_RATES && typeof d.MESAI_RATES === 'object') ? d.MESAI_RATES : { normal:50, hafta:100, resmi:100 };
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
-  VEHICLES = arr('VEHICLES');
+  VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   if(d.AGENCY && typeof d.AGENCY === 'object'){
     // Sunucudan gelen firma bilgileri varsayılanların üzerine yazılır (logo dahil, boş değilse)
     Object.keys(d.AGENCY).forEach(k => { if(d.AGENCY[k] !== undefined && d.AGENCY[k] !== null) AGENCY[k] = d.AGENCY[k]; });
