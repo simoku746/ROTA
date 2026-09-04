@@ -1230,6 +1230,8 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
+window.ROTA_SURUM = 'v2026-09-04d';
+try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
 function benzersizId(on){ return on + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -1243,9 +1245,11 @@ function yeniIsKodu(){
 }
 // Açılışta veri onarımı: geçmişte sayaç hatasıyla oluşmuş çift kimlikleri ayırır
 function veriOnar(){
+  let degisti = false;
   const gorulen = new Set();
   QUOTES.forEach(q => {
     if(gorulen.has(q.id)){
+      degisti = true;
       const eski = q.id;
       q.id = benzersizId('q');
       if(q.jobId){ const j = JOBS.find(x => x.id === q.jobId && x.quoteId === eski); if(j) j.quoteId = q.id; }
@@ -1256,9 +1260,12 @@ function veriOnar(){
   (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
   // Silinmiş teklife bağlı yetim işler ve sahipsiz plan blokları temizlenir
   const teklifIdleri = new Set(QUOTES.map(q => q.id));
+  const isOnce = JOBS.length, planOnce = PLAN_TASKS.length;
   JOBS = JOBS.filter(j => !j.quoteId || teklifIdleri.has(j.quoteId));
   const isIdleri = new Set(JOBS.map(j => j.id));
   PLAN_TASKS = PLAN_TASKS.filter(t => !t.jobId || isIdleri.has(t.jobId));
+  if(JOBS.length !== isOnce || PLAN_TASKS.length !== planOnce) degisti = true;
+  return degisti;
 }
 
 let QUOTES = [
@@ -4770,6 +4777,9 @@ function openJobDrawer(id){
   if(idx > 0){
     actionHtml += `<div class="drawer-footer"><button onclick="revertJobStage('${j.id}')">← Bir Önceki Aşamaya Al</button></div>`;
   }
+  if(CURRENT_ROLE === 'YONETICI'){
+    actionHtml += `<div class="drawer-footer"><button style="color:var(--risk);border-color:var(--risk);" onclick="deleteJob('${j.id}')">🗑️ İşi Sil</button></div>`;
+  }
 
   if(!j.notes) j.notes = {};
   const notesLog = STAGES.filter(s => j.notes[s.key]).map(s => `
@@ -4892,6 +4902,17 @@ function jobAsamaAyarla(j, yeniStage){
   j.stage = yeniStage;
   if(yeniStage === 'TASARIM'){ if(j.approval !== 'REVIZYON') j.approval = 'BEKLIYOR'; }
   else if(yeniStage === 'KESIF'){ j.approval = null; }
+}
+function deleteJob(id){
+  if(CURRENT_ROLE !== 'YONETICI'){ showToast('İş silme yalnızca yönetici yetkisindedir.'); return; }
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  if(!confirm(`${j.code} · ${j.client} işini plan kayıtlarıyla birlikte silmek istediğinize emin misiniz?`)) return;
+  PLAN_TASKS = PLAN_TASKS.filter(t => t.jobId !== id);
+  JOBS = JOBS.filter(x => x.id !== id);
+  const q = j.quoteId ? QUOTES.find(x => x.id === j.quoteId) : (j.id ? QUOTES.find(x => x.jobId === j.id) : null);
+  if(q){ q.jobId = null; }                       // teklif durur, sadece iş bağlantısı kalkar
+  closeDrawer(); renderContent();
+  showToast(`${j.code} silindi${q ? ' — ' + q.no + ' teklifi duruyor, bağlantısı kaldırıldı' : ''}.`);
 }
 function advanceJobStage(id){
   const j = JOBS.find(x=>x.id===id);
@@ -6583,7 +6604,7 @@ function applyState(d){
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   DIS_ALIMLAR = arr('DIS_ALIMLAR'); BILDIRIMLER = arr('BILDIRIMLER');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
-  if(typeof veriOnar === 'function') veriOnar();   // eski sayaç hatasından kalan çift kimlikleri ayır
+  window.__onarimYapildi = (typeof veriOnar === 'function') ? !!veriOnar() : false;   // çift kimlik + yetim kayıt onarımı
   if(d.AGENCY && typeof d.AGENCY === 'object'){
     // Sunucudan gelen firma bilgileri varsayılanların üzerine yazılır (logo dahil, boş değilse)
     Object.keys(d.AGENCY).forEach(k => { if(d.AGENCY[k] !== undefined && d.AGENCY[k] !== null) AGENCY[k] = d.AGENCY[k]; });
@@ -6680,6 +6701,7 @@ async function liveTick(){
     applyState(d.data || {});
     LIVE.version = d.version;
     LIVE.lastSaved = JSON.stringify(collectState());
+    if(window.__onarimYapildi){ LIVE.lastSaved = ''; }
     renderNav(); renderContent();
     if(typeof renderNotlar === 'function') renderNotlar();
     if(typeof renderBildirimler === 'function') renderBildirimler();
@@ -6703,6 +6725,7 @@ async function liveBoot(){
     applyState(d.data || {});
     LIVE.lastSaved = JSON.stringify(collectState());
     LIVE.booted = true;
+    if(window.__onarimYapildi){ LIVE.lastSaved = ''; liveSave(); }   // temizlenen veri sunucuya da yazılsın
 
     document.getElementById('bootScreen').style.display = 'none';
     doLogin(LIVE.user.role);
