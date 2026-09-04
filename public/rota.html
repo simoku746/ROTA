@@ -917,17 +917,14 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
   color:var(--canvas);padding:0 18px;height:40px;display:flex;align-items:center;border-radius:8px;
   font-size:13px;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:var(--shadow-md);}
 .toast.show{opacity:1;}
-.top-right-bar{position:fixed;bottom:24px;left:20px;display:flex;align-items:center;gap:8px;z-index:70;}
+.top-right-bar{position:fixed;bottom:24px;left:20px;display:flex;align-items:center;gap:8px;z-index:70;pointer-events:none;}
 .preview-flag{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-2);transition:color .2s,border-color .2s;}
 .preview-flag.ok{display:none;}
 .preview-flag.saving{color:var(--hold);border-color:var(--hold);}
 .preview-flag.err{color:var(--risk);border-color:var(--risk);}
 .preview-flag.x{
   font-family:var(--font-mono);font-size:10.5px;padding:5px 10px;border-radius:6px;}
-.bottom-left-bar{position:fixed;top:14px;right:66px;z-index:72;display:flex;gap:8px;}
-@media(max-width:760px){ .bottom-left-bar{top:56px;right:58px;} }
-.theme-toggle{width:38px;height:38px;border-radius:999px;border:1px solid var(--line-strong);
-  box-shadow:var(--shadow-sm);
+.theme-toggle{width:34px;height:34px;border-radius:8px;border:1px solid var(--line-strong);
   background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;
   box-shadow:var(--shadow-sm);}
 .theme-toggle:hover{border-color:var(--ink);}
@@ -1017,15 +1014,17 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .da-chip.gecikti{border-color:var(--risk);background:var(--risk-soft);}
 
 /* ---------- Bildirimler (sağ üst çan) ---------- */
-#bildirimWrap{position:fixed;top:14px;right:20px;z-index:72;font-family:var(--font-body);}
-.bildirim-can{position:relative;width:38px;height:38px;border-radius:999px;border:1px solid var(--line-strong);
-  background:var(--surface);font-size:16px;cursor:pointer;box-shadow:var(--shadow-sm);}
-.bildirim-can:hover{border-color:var(--ink);}
-.bildirim-rozet{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;
+.brand-tools{display:flex;align-items:center;gap:2px;}
+.brand-btn{position:relative;width:27px;height:27px;border-radius:6px;border:none;background:none;
+  font-size:13px;cursor:pointer;color:var(--ink-2);display:flex;align-items:center;justify-content:center;padding:0;}
+.brand-btn:hover{background:var(--surface-sunk);color:var(--ink);}
+.brand-btn svg{width:14px;height:14px;fill:var(--ink-2);}
+#bildirimWrap{position:fixed;top:50px;left:10px;z-index:72;font-family:var(--font-body);}
+.bildirim-rozet{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
   border-radius:999px;background:var(--risk);color:#fff;font-family:var(--font-mono);
-  font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+  font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
 .bildirim-rozet:empty{display:none;}
-.bildirim-panel{display:none;position:absolute;top:46px;right:0;width:356px;max-height:460px;
+.bildirim-panel{display:none;width:356px;max-height:460px;
   background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;
   box-shadow:var(--shadow-md);overflow:hidden;flex-direction:column;}
 #bildirimWrap.open .bildirim-panel{display:flex;}
@@ -1049,7 +1048,7 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .bildirim-aksiyon .red{background:var(--surface);color:var(--ink-2);border:1px solid var(--line-strong);}
 .bildirim-sonuc{margin-top:6px;font-size:11px;font-weight:600;color:var(--ink-3);}
 .bildirim-bos{padding:26px 16px;text-align:center;font-size:12px;color:var(--ink-3);}
-@media(max-width:760px){ #bildirimWrap{top:56px;right:12px;} .bildirim-panel{width:calc(100vw - 24px);max-width:356px;} }
+@media(max-width:760px){ #bildirimWrap{top:56px;left:12px;} .bildirim-panel{width:calc(100vw - 24px);max-width:356px;} }
 
 /* ---------- Not Defteri (sağ alt) ---------- */
 #notWrap{position:fixed;bottom:0;right:24px;z-index:55;font-family:var(--font-body);}
@@ -1115,11 +1114,7 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 <div class="top-right-bar">
   <div class="preview-flag" id="saveStatus" title="Değişiklikler otomatik kaydedilir">●&nbsp;Yükleniyor</div>
 </div>
-<div class="bottom-left-bar">
-  <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Koyu / açık tema">
-    <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z"/></svg>
-  </button>
-</div>
+
 </head>
 <body>
 <div id="bootScreen" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--canvas);z-index:200;">
@@ -1139,7 +1134,12 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
   <div class="sidebar">
     <div class="brand">
       <div class="brand-left" style="cursor:pointer;" onclick="goTo('ana-sayfa')" title="Ana Sayfa'ya git"><span class="brand-logo">R</span>ROTA</div>
-      <div class="brand-status" title="Sistem çalışıyor"></div>
+      <div class="brand-tools">
+        <button class="brand-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Koyu / açık tema">
+          <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z"/></svg>
+        </button>
+        <button class="brand-btn" onclick="bildirimAcKapa(event)" title="Bildirimler">🔔<span class="bildirim-rozet" id="bildirimRozet"></span></button>
+      </div>
     </div>
     <div class="nav" id="navList"></div>
     <div class="sidebar-foot">
@@ -1161,9 +1161,8 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 <div class="side-drawer" id="sideDrawer"></div>
 <div class="toast" id="toast"></div>
 
-<!-- Bildirimler: sağ üstte çan -->
-<div id="bildirimWrap" style="display:none;">
-  <button class="bildirim-can" onclick="bildirimAcKapa(event)" title="Bildirimler">🔔<span class="bildirim-rozet" id="bildirimRozet"></span></button>
+<!-- Bildirim paneli (çan sol menüde; panel menünün yanında açılır) -->
+<div id="bildirimWrap">
   <div class="bildirim-panel">
     <div class="bildirim-head"><span>🔔 BİLDİRİMLER</span><button onclick="bildirimTemizle()">Temizle</button></div>
     <div class="bildirim-liste" id="bildirimListe"></div>
@@ -1420,7 +1419,6 @@ function doLogin(role){
   renderNav(); renderContent(); updateBackBtn();
   document.getElementById('notWrap').style.display = 'block';
   renderNotlar();
-  document.getElementById('bildirimWrap').style.display = 'block';
   renderBildirimler();
 }
 async function doLogout(){
