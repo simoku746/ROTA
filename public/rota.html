@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08h';
+window.ROTA_SURUM = 'v2026-09-08i';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4076,7 +4076,8 @@ function mesaiListView(){
             <td><b>${p.name}</b></td>
             <td>${p.unvan || '—'}</td>
             <td>${(d && d.kayitTarihi) ? d.kayitTarihi : '<span style="color:var(--ink-3);">—</span>'}</td>
-            <td style="text-align:right;font-family:var(--font-mono);">${t ? tl0(t) : '<span style="color:var(--ink-3);">—</span>'}</td>
+            <td style="text-align:right;font-family:var(--font-mono);">${t ? tl0(t) : '<span style="color:var(--ink-3);">—</span>'}
+              ${(d && d.kayitTarihi) ? `<span class="mini-islem sil" title="Mesai kaydını sil" onclick="event.stopPropagation();mesaiSil('${p.id}')">✕</span>` : ''}</td>
           </tr>`; }).join('')}
       </tbody>
     </table>`; })()}`;
@@ -4218,9 +4219,19 @@ function mesaiDetayView(){
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:24px;">
       <button class="save-btn" onclick="saveMesai()">Mesaiyi Kaydet</button>
       <button class="btn" style="flex:0 0 auto;" onclick="closeMesai()">Vazgeç</button>
+      ${d.kayitTarihi ? `<button class="btn" style="flex:0 0 auto;color:var(--risk);border-color:var(--risk);" onclick="mesaiSil('${p.id}')">✕ Mesaiyi Sil</button>` : ''}
       ${d.kayitTarihi ? `<span class="due" style="margin-left:auto;">Son kayıt: ${d.kayitTarihi}</span>` : ''}
     </div>
   `;
+}
+function mesaiGiderKategoriId(){
+  // 'Mesai' gider kategorisi yoksa oluşturulur — mesai tutarları her zaman bu kategoriye işlenir
+  let id = kategoriIdByAd('Mesai','gider');
+  if(!id){
+    id = benzersizId('kd');
+    KATEGORILER.push({ id, ad:'Mesai', tip:'gider', sistem:true });
+  }
+  return id;
 }
 function saveMesai(){
   const d = mesaiData(mesaiPersonelId);
@@ -4230,19 +4241,45 @@ function saveMesai(){
   d.kayitTarihi = new Date().toLocaleDateString('tr-TR');
   const gidereIsle = document.getElementById('msGider');
   if(!gidereIsle || gidereIsle.checked){
-    GIDERLER.unshift({
-      client: p ? p.name : null,
-      hesap: BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa',
-      tur: 'Mesai Ücreti',
-      tarih: d.kayitTarihi,
-      tutar: Math.round(toplam),
-      odendi: false,
-      kategoriId: kategoriIdByAd('Mesai','gider'),
-    });
+    const mevcut = d.giderId ? GIDERLER.find(g => g.id === d.giderId) : null;
+    if(mevcut){
+      // aynı personelin mesaisi yeniden kaydedildi → mükerrer satır açma, bağlı gideri güncelle
+      mevcut.tarih = d.kayitTarihi;
+      mevcut.tutar = Math.round(toplam);
+      mevcut.client = p ? p.name : mevcut.client;
+      mevcut.kategoriId = mesaiGiderKategoriId();
+    } else {
+      const gid = benzersizId('gi');
+      GIDERLER.unshift({
+        id: gid,
+        client: p ? p.name : null,
+        hesap: BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa',
+        tur: 'Mesai Ücreti',
+        tarih: d.kayitTarihi,
+        tutar: Math.round(toplam),
+        odendi: false,
+        kategoriId: mesaiGiderKategoriId(),
+      });
+      d.giderId = gid;
+    }
   }
   mesaiPersonelId = null;
   renderContent();
-  showToast(`${p ? p.name : 'Personel'} — ${tl(toplam)} mesai kaydedildi.`);
+  showToast(`${p ? p.name : 'Personel'} — ${tl(toplam)} mesai kaydedildi (Giderler → Mesai).`);
+}
+function mesaiSil(id){
+  const p = PERSONELLER.find(x => x.id === id);
+  const d = MESAI_KAYIT[id];
+  if(!d){ showToast('Silinecek mesai kaydı yok.'); return; }
+  const bagliGider = d.giderId ? GIDERLER.find(g => g.id === d.giderId) : null;
+  const mesaj = `${p ? p.name : 'Personel'} mesai kaydı silinsin mi?` +
+    (bagliGider ? `\n\nGiderler'deki bağlı "Mesai Ücreti" kaydı (${tl0(bagliGider.tutar)}) da silinecek.` : '');
+  if(!confirm(mesaj)) return;
+  if(bagliGider) GIDERLER = GIDERLER.filter(g => g.id !== d.giderId);
+  delete MESAI_KAYIT[id];
+  if(mesaiPersonelId === id) mesaiPersonelId = null;
+  renderContent();
+  showToast(`${p ? p.name : 'Personel'} mesai kaydı silindi.`);
 }
 
 // Cari Hareketleri: şimdilik boş — kurgu netleşince yeniden inşa edilecek
