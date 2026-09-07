@@ -271,6 +271,13 @@ tr:last-child td{border-bottom:none;}
 .ledger-amount{text-align:right;font-family:var(--font-mono);font-size:12.5px;font-weight:600;white-space:nowrap;}
 .ledger-amount .kalan{display:block;margin-top:2px;font-size:11px;font-weight:500;color:var(--risk);}
 .ledger-amount .odendi{display:block;margin-top:2px;font-size:11px;font-weight:500;color:var(--ok);}
+.satir-islem{display:flex;gap:12px;justify-content:flex-end;margin-top:5px;font-size:11px;color:var(--ink-3);font-weight:500;}
+.satir-islem span{cursor:pointer;user-select:none;}
+.satir-islem span:hover{color:var(--ink);text-decoration:underline;}
+.satir-islem .sil:hover{color:var(--risk);}
+.mini-islem{cursor:pointer;color:var(--ink-3);font-size:12px;padding:0 3px;}
+.mini-islem:hover{color:var(--ink);}
+.mini-islem.sil:hover{color:var(--risk);}
 .ledger-footer{padding:10px 16px;font-size:11.5px;color:var(--ink-3);display:flex;
   justify-content:space-between;align-items:center;border-top:1px solid var(--line);}
 .empty-state{padding:22px 16px;font-size:12px;color:var(--ink-3);text-align:center;}
@@ -1231,7 +1238,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-04d';
+window.ROTA_SURUM = 'v2026-09-07a';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1259,6 +1266,14 @@ function veriOnar(){
   });
   const g2 = new Set();
   (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
+  // Eski kayıtlara kimlik ekle — düzenle/sil için gerekli
+  (GELIRLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('ge'); degisti = true; } });
+  (GIDERLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('gi'); degisti = true; } });
+  (CEK_SENET || []).forEach(x => { if(!x.id){ x.id = benzersizId('cs'); degisti = true; } });
+  (PRODUCT_CATALOG || []).forEach(x => { if(!x.id){ x.id = benzersizId('pr'); degisti = true; } });
+  (KASA_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ka'); degisti = true; } });
+  (BANK_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ba'); degisti = true; } });
+  (PERSONELLER || []).forEach(p => (p.hareketler || []).forEach(h => { if(!h.id){ h.id = benzersizId('hr'); degisti = true; } }));
   // Silinmiş teklife bağlı yetim işler ve sahipsiz plan blokları temizlenir
   const teklifIdleri = new Set(QUOTES.map(q => q.id));
   const isOnce = JOBS.length, planOnce = PLAN_TASKS.length;
@@ -1547,29 +1562,45 @@ function urunlerHizmetlerView(){
       ${PRODUCT_CATALOG.map((p,i) => `
         <div class="ledger-row">
           <div class="ledger-title" style="margin:0;">${p.name}</div>
-          <div class="ledger-amount">₺${p.price.toLocaleString('tr-TR')}</div>
+          <div style="text-align:right;">
+            <div class="ledger-amount">₺${p.price.toLocaleString('tr-TR')}</div>
+            <div class="satir-islem">
+              <span onclick="openProductModal('${p.id}')">✎ Düzenle</span>
+              <span class="sil" onclick="deleteProduct('${p.id}')">✕ Sil</span>
+            </div>
+          </div>
         </div>
       `).join('')}
       <div class="ledger-footer"><span>🔻 Toplam: ${PRODUCT_CATALOG.length} kayıt</span></div>
     </div>
   `;
 }
-function openProductModal(){
+function openProductModal(id){
+  const p = id ? PRODUCT_CATALOG.find(x => x.id === id) : null;
   document.getElementById('modalBox').innerHTML = `
-    <div class="modal-head"><h2>Yeni Ürün / Hizmet</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="field"><label>Ürün / Hizmet Adı</label><input id="prodName" placeholder="Örn. Neon Tabela Üretimi"></div>
-    <div class="field"><label>Fiyat</label><input id="prodPrice" type="number" placeholder="0"></div>
-    <button class="modal-submit" onclick="submitProduct()">Kaydet</button>
+    <div class="modal-head"><h2>${p ? 'Ürünü Düzenle' : 'Yeni Ürün / Hizmet'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Ürün / Hizmet Adı</label><input id="prodName" value="${p ? notEsc(p.name) : ''}" placeholder="Örn. Neon Tabela Üretimi"></div>
+    <div class="field"><label>Fiyat</label><input id="prodPrice" type="number" value="${p ? p.price : ''}" placeholder="0"></div>
+    <button class="modal-submit" onclick="submitProduct('${p ? p.id : ''}')">Kaydet</button>
   `;
   showModal();
 }
-function submitProduct(){
+function submitProduct(id){
   const name = document.getElementById('prodName').value.trim();
   if(!name) return;
   const price = Number(document.getElementById('prodPrice').value) || 0;
-  PRODUCT_CATALOG.push({ name, price });
+  const p = id ? PRODUCT_CATALOG.find(x => x.id === id) : null;
+  if(p){ p.name = name; p.price = price; }
+  else PRODUCT_CATALOG.push({ id: benzersizId('pr'), name, price });
   closeModal(); renderContent();
-  showToast(`${name} eklendi — Teklifler'de de görünecek.`);
+  showToast(p ? `${name} güncellendi.` : `${name} eklendi — Teklifler'de de görünecek.`);
+}
+function deleteProduct(id){
+  const p = PRODUCT_CATALOG.find(x => x.id === id); if(!p) return;
+  if(!confirm(`"${p.name}" ürünü listeden silinsin mi? Mevcut tekliflerdeki kalemler etkilenmez.`)) return;
+  PRODUCT_CATALOG = PRODUCT_CATALOG.filter(x => x.id !== id);
+  renderContent();
+  showToast('Ürün silindi.');
 }
 
 function stokHareketleriView(){
@@ -1602,14 +1633,42 @@ function stokHareketleriView(){
 
 function depoView(){
   return `
-    <div class="list-page-head"><div class="page-title">Depo</div><button class="primary-btn" onclick="showToast('Form bir sonraki adımda bağlanacak')">+ Yeni</button></div>
+    <div class="list-page-head"><div class="page-title">Depo</div><button class="primary-btn" onclick="openDepoModal()">+ Yeni</button></div>
     <div class="ledger-main">
       <div class="ledger-search" style="margin:14px 14px 0 14px;">🔍 Ara</div>
       <div class="kb-row header"><span>Depo Adı</span><span>Adres</span></div>
-      ${DEPOLAR.map(d => `<div class="kb-row"><span>${d.name}<br><span style="font-size:11px; color:var(--text-muted); font-weight:400;">${d.urunSayisi} Ürün</span></span><span>${d.adres}</span></div>`).join('')}
+      ${DEPOLAR.map((d,i) => `<div class="kb-row"><span>${d.name}<br><span style="font-size:11px; color:var(--text-muted); font-weight:400;">${d.urunSayisi || 0} Ürün</span></span><span>${d.adres || '—'}
+        <span class="mini-islem" title="Düzenle" onclick="openDepoModal(${i})">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteDepo(${i})">✕</span></span></div>`).join('')}
       <div class="ledger-footer"><span>🔻 Toplam: ${DEPOLAR.length} kayıt</span></div>
     </div>
   `;
+}
+function openDepoModal(i){
+  const d = (i !== undefined && i !== null && i !== '') ? DEPOLAR[i] : null;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${d ? 'Depoyu Düzenle' : 'Yeni Depo'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Depo Adı</label><input id="depoAd" value="${d ? notEsc(d.name) : ''}" placeholder="Örn. Ana Depo"></div>
+    <div class="field"><label>Adres</label><input id="depoAdres" value="${d ? notEsc(d.adres || '') : ''}" placeholder="Adres / konum"></div>
+    <button class="modal-submit" onclick="submitDepo(${d ? i : "''"})">Kaydet</button>
+  `;
+  showModal();
+}
+function submitDepo(i){
+  const name = document.getElementById('depoAd').value.trim();
+  if(!name){ showToast('Depo adı girin.'); return; }
+  const adres = document.getElementById('depoAdres').value.trim();
+  if(i !== '' && DEPOLAR[i]){ DEPOLAR[i].name = name; DEPOLAR[i].adres = adres; }
+  else DEPOLAR.push({ name, adres, urunSayisi: 0 });
+  closeModal(); renderContent();
+  showToast(i !== '' ? 'Depo güncellendi.' : `${name} eklendi.`);
+}
+function deleteDepo(i){
+  const d = DEPOLAR[i]; if(!d) return;
+  if(DEPOLAR.length <= 1){ showToast('En az bir depo kalmalı.'); return; }
+  if(!confirm(`"${d.name}" deposu silinsin mi?`)) return;
+  DEPOLAR.splice(i, 1);
+  renderContent();
+  showToast('Depo silindi.');
 }
 // ---------------- GÖREV YÖNETİMİ ----------------
 let PROJELER_LIST = ['Genel'];
@@ -2414,6 +2473,7 @@ function generalTaskBoardView(project){
                     <button onclick="toggleGtMenu('${t.id}')">⋮</button>
                     <div id="gtMenu-${t.id}" style="display:none; position:absolute; right:0; top:22px; background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow-md); width:170px; z-index:30; overflow:hidden;">
                       ${statuses.filter(s=>s!==t.status).map(s=>`<button class="islem-item" onclick="moveGeneralTask('${t.id}','${s}')">→ ${s}</button>`).join('')}
+                      <button class="islem-item" onclick="openGeneralTaskDuzenle('${t.id}')">✎ Düzenle</button>
                       <button class="islem-item" style="color:var(--risk);" onclick="deleteGeneralTask('${t.id}')">🗑️ Sil</button>
                     </div>
                   </div>
@@ -2490,9 +2550,55 @@ function submitGeneralTask(project){
   const dueRaw = document.getElementById('gtDue').value;
   const due = dueRaw ? new Date(dueRaw).toLocaleDateString('tr-TR',{day:'2-digit',month:'short'}) : 'Tarih yok';
   const overdue = dueRaw ? new Date(dueRaw) < new Date(new Date().toDateString()) : false;
-  GENERAL_TASKS.push({ id: benzersizId('gt'), project, title, status: document.getElementById('gtStatus').value, due, overdue, assignees });
+  GENERAL_TASKS.push({ id: benzersizId('gt'), project, title, status: document.getElementById('gtStatus').value, due, dueIso: dueRaw || '', overdue, assignees });
   closeModal(); renderContent();
   showToast(`"${title}" eklendi${assignees.length ? ' — '+assignees.length+' kişiye atandı' : ''}.`);
+}
+
+function openGeneralTaskDuzenle(id){
+  const t = GENERAL_TASKS.find(x => x.id === id); if(!t) return;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Görevi Düzenle</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Başlık</label><input id="gtTitle" value="${notEsc(t.title)}"></div>
+    <div class="field"><label>Durum</label><select id="gtStatus">
+      <option ${t.status==='Yeni'?'selected':''}>Yeni</option>
+      <option ${t.status==='Üzerinde Çalışıyor'?'selected':''}>Üzerinde Çalışıyor</option>
+      <option ${t.status==='Tamamlandı'?'selected':''}>Tamamlandı</option></select></div>
+    <div class="field">
+      <label>Atanan Kişiler <span style="font-weight:400; color:var(--ink-3);">(birden fazla seçebilirsiniz)</span></label>
+      <div style="border:1px solid var(--line-strong); border-radius:8px; padding:6px; max-height:160px; overflow-y:auto;">
+        ${STAFF.map(s => `
+          <label class="checkbox-row" style="padding:7px 6px;">
+            <input type="checkbox" class="gt-assignee-cb" value="${s}" ${(t.assignees||[]).includes(s)?'checked':''}>
+            ${s}
+          </label>
+        `).join('')}
+      </div>
+    </div>
+    <div class="field"><label>Tarih</label><input type="date" id="gtDue" value="${t.dueIso || ''}"></div>
+    <button class="modal-submit" onclick="submitGeneralTaskDuzenle('${id}')">Kaydet</button>
+  `;
+  showModal();
+}
+function submitGeneralTaskDuzenle(id){
+  const t = GENERAL_TASKS.find(x => x.id === id); if(!t) return;
+  const title = document.getElementById('gtTitle').value.trim();
+  if(!title) return;
+  const onceki = (t.assignees || []).slice();
+  t.title = title;
+  t.status = document.getElementById('gtStatus').value;
+  t.assignees = Array.from(document.querySelectorAll('.gt-assignee-cb:checked')).map(cb => cb.value);
+  const dueRaw = document.getElementById('gtDue').value;
+  t.dueIso = dueRaw || '';
+  t.due = dueRaw ? new Date(dueRaw).toLocaleDateString('tr-TR',{day:'2-digit',month:'short'}) : 'Tarih yok';
+  t.overdue = dueRaw ? (new Date(dueRaw) < new Date(new Date().toDateString()) && t.status !== 'Tamamlandı') : false;
+  const yeniKisiler = t.assignees.filter(a => !onceki.includes(a));
+  if(yeniKisiler.length && typeof bildirimAtama === 'function'){
+    const idler = PERSONELLER.filter(p => yeniKisiler.includes(p.name)).map(p => p.id);
+    if(idler.length) bildirimAtama(idler, `Size görev atandı: ${title}`);
+  }
+  closeModal(); renderContent();
+  showToast('Görev güncellendi.');
 }
 
 function projelerView(){
@@ -2501,25 +2607,50 @@ function projelerView(){
     <div class="ledger-main">
       <div class="ledger-search" style="margin:14px 14px 0 14px;">🔍 Müşteri / Tedarikçi &nbsp;&nbsp; 🔍 Projeler</div>
       <div class="kb-row header"><span>Proje Adı ⇅</span><span></span></div>
-      ${PROJELER_LIST.map((p,i) => `<div class="kb-row" style="${i===0?'background:var(--signal-soft);':''} cursor:pointer;" onclick="openGeneralBoard('${p}')"><span>${p}</span><span style="color:var(--ink-3);">›</span></div>`).join('')}
+      ${PROJELER_LIST.map((p,i) => `<div class="kb-row" style="${i===0?'background:var(--signal-soft);':''} cursor:pointer;" onclick="openGeneralBoard('${p}')"><span>${p}</span><span style="color:var(--ink-3);">
+        ${p === 'Genel' ? '' : `<span class="mini-islem" title="Yeniden adlandır" onclick="event.stopPropagation(); openProjeModal(${i})">✎</span><span class="mini-islem sil" title="Sil" onclick="event.stopPropagation(); deleteProje(${i})">✕</span>`} ›</span></div>`).join('')}
       <div class="ledger-footer"><span>🔻 Toplam: ${PROJELER_LIST.length} kayıt</span></div>
     </div>
   `;
 }
-function openProjeModal(){
+function openProjeModal(i){
+  const eski = (i !== undefined && i !== null && i !== '') ? PROJELER_LIST[i] : null;
   document.getElementById('modalBox').innerHTML = `
-    <div class="modal-head"><h2>Yeni Proje</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="field"><label>Proje Adı</label><input id="projeAdi" placeholder="Örn. Kurumsal İletişim"></div>
-    <button class="modal-submit" onclick="submitProje()">Kaydet</button>
+    <div class="modal-head"><h2>${eski ? 'Projeyi Yeniden Adlandır' : 'Yeni Proje'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Proje Adı</label><input id="projeAdi" value="${eski ? notEsc(eski) : ''}" placeholder="Örn. Kurumsal İletişim"></div>
+    <button class="modal-submit" onclick="submitProje(${eski !== null ? i : "''"})">Kaydet</button>
   `;
   showModal();
 }
-function submitProje(){
+function submitProje(i){
   const name = document.getElementById('projeAdi').value.trim();
   if(!name) return;
-  PROJELER_LIST.push(name);
-  closeModal(); renderContent();
-  showToast(`${name} projesi eklendi.`);
+  if(PROJELER_LIST.includes(name) && PROJELER_LIST[i] !== name){ showToast('Bu isimde bir proje zaten var.'); return; }
+  if(i !== '' && PROJELER_LIST[i] !== undefined){
+    const eski = PROJELER_LIST[i];
+    PROJELER_LIST[i] = name;
+    GENERAL_TASKS.forEach(t => { if(t.project === eski) t.project = name; });
+    if(typeof currentGtProject !== 'undefined' && currentGtProject === eski) currentGtProject = name;
+    closeModal(); renderContent();
+    showToast(`"${eski}" → "${name}" olarak güncellendi.`);
+  } else {
+    PROJELER_LIST.push(name);
+    closeModal(); renderContent();
+    showToast(`${name} projesi eklendi.`);
+  }
+}
+function deleteProje(i){
+  const p = PROJELER_LIST[i];
+  if(!p || p === 'Genel'){ showToast('Genel projesi silinemez.'); return; }
+  const gorevler = GENERAL_TASKS.filter(t => t.project === p).length;
+  const mesaj = gorevler
+    ? `"${p}" projesi silinsin mi? İçindeki ${gorevler} görev "Genel" projesine taşınacak.`
+    : `"${p}" projesi silinsin mi?`;
+  if(!confirm(mesaj)) return;
+  GENERAL_TASKS.forEach(t => { if(t.project === p) t.project = 'Genel'; });
+  PROJELER_LIST.splice(i, 1);
+  renderContent();
+  showToast(gorevler ? `Proje silindi, ${gorevler} görev Genel'e taşındı.` : 'Proje silindi.');
 }
 
 function kontrolListeleriView(){
@@ -2795,6 +2926,7 @@ let KASA_ACCOUNTS = [ { name:'Dolar Kasa', balance:0, currency:'$' }, { name:'Me
 let BANK_ACCOUNTS = [ { name:'Garanti Bankası - Ana Hesap', balance:2944, currency:'TL' } ];
 let CEK_SENET = [];
 let cekSenetStep = 'list';
+let cekSenetDuzenleId = null;
 
 function onMuhasebeView(){
   if(onMuhasebeSub==='kasa-banka') return kasaBankaView();
@@ -2962,7 +3094,13 @@ function gelirlerView(){
             <div class="ledger-sub">${g.hesap} ‹ ${g.tur}</div>
             <div class="ledger-meta">${g.tarih} · Vade tarihi yok${g.kategoriId ? ' · '+kategoriAdi(g.kategoriId) : ''}</div>
           </div>
-          <div class="ledger-amount">₺${g.tutar.toLocaleString('tr-TR',{minimumFractionDigits:2})}</div>
+          <div style="text-align:right;">
+            <div class="ledger-amount">₺${g.tutar.toLocaleString('tr-TR',{minimumFractionDigits:2})}</div>
+            <div class="satir-islem">
+              <span onclick="openGelirDuzenle('${g.id}')">✎ Düzenle</span>
+              <span class="sil" onclick="deleteGelir('${g.id}')">✕ Sil</span>
+            </div>
+          </div>
         </div>
       `).join('')}
       <div class="ledger-footer"><span>🔻 Toplam: ${GELIRLER.length} kayıt</span></div>
@@ -2998,6 +3136,7 @@ function submitTahsilat(){
   const tutar = Number(document.getElementById('tTutar').value) || 0;
   if(!tutar){ showToast('Tutar girin.'); return; }
   GELIRLER.unshift({
+    id: benzersizId('ge'),
     client: cust ? cust.name : 'Müşteri seçilmedi',
     hesap: document.getElementById('tHesap').value,
     tur: document.getElementById('tAciklama').value || 'Tahsilat',
@@ -3008,6 +3147,41 @@ function submitTahsilat(){
   gelirStep = 'list';
   renderContent();
   showToast(`₺${tutar.toLocaleString('tr-TR')} tahsilat kaydedildi.`);
+}
+
+function openGelirDuzenle(id){
+  const g = GELIRLER.find(x => x.id === id); if(!g) return;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Geliri Düzenle</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Müşteri / Başlık</label><input id="geClient" value="${notEsc(g.client || '')}"></div>
+    <div class="field"><label>Tarih</label><input id="geTarih" value="${notEsc(g.tarih || '')}"></div>
+    <div class="field"><label>Hesap</label><select id="geHesap">${hesapSecenekleri()}</select></div>
+    <div class="field"><label>Açıklama</label><input id="geTur" value="${notEsc(g.tur || '')}"></div>
+    <div class="field"><label>Kategori</label>${kategoriSelectHtml('geKategori','gelir', g.kategoriId || '')}</div>
+    <div class="field"><label>Tutar (₺)</label><input id="geTutar" type="number" value="${Number(g.tutar) || 0}"></div>
+    <button class="modal-submit" onclick="submitGelirDuzenle('${id}')">Kaydet</button>`;
+  showModal();
+  const hs = document.getElementById('geHesap'); if(hs && g.hesap) hs.value = g.hesap;
+}
+function submitGelirDuzenle(id){
+  const g = GELIRLER.find(x => x.id === id); if(!g) return;
+  const tutar = Number(document.getElementById('geTutar').value) || 0;
+  if(!tutar){ showToast('Tutar girin.'); return; }
+  g.client = document.getElementById('geClient').value.trim() || g.client;
+  g.tarih = document.getElementById('geTarih').value;
+  g.hesap = document.getElementById('geHesap').value;
+  g.tur = document.getElementById('geTur').value || 'Tahsilat';
+  g.kategoriId = document.getElementById('geKategori').value || null;
+  g.tutar = tutar;
+  closeModal(); renderContent();
+  showToast('Gelir kaydı güncellendi.');
+}
+function deleteGelir(id){
+  const g = GELIRLER.find(x => x.id === id); if(!g) return;
+  if(!confirm(`"${g.client}" — ₺${(Number(g.tutar)||0).toLocaleString('tr-TR')} gelir kaydı silinsin mi?`)) return;
+  GELIRLER = GELIRLER.filter(x => x.id !== id);
+  renderContent();
+  showToast('Gelir kaydı silindi.');
 }
 
 let giderStep = 'list';
@@ -3043,7 +3217,13 @@ function giderlerView(){
             ${g.client ? `<div class="ledger-sub">${g.hesap} ‹ ${g.tur}</div>` : `<div class="ledger-sub">${g.tur}</div>`}
             <div class="ledger-meta">${g.tarih}${g.vade ? ' · '+g.vade : ' · Vade tarihi yok'}${g.kategoriId ? ' · '+kategoriAdi(g.kategoriId) : ''}</div>
           </div>
-          <div class="ledger-amount">₺${g.tutar.toLocaleString('tr-TR',{minimumFractionDigits:2})}${g.odendi ? '<span class="odendi">Ödendi</span>' : ''}</div>
+          <div style="text-align:right;">
+            <div class="ledger-amount">₺${g.tutar.toLocaleString('tr-TR',{minimumFractionDigits:2})}${g.odendi ? '<span class="odendi">Ödendi</span>' : ''}</div>
+            <div class="satir-islem">
+              <span onclick="openGiderDuzenle('${g.id}')">✎ Düzenle</span>
+              <span class="sil" onclick="deleteGider('${g.id}')">✕ Sil</span>
+            </div>
+          </div>
         </div>
       `).join('')}
       <div class="ledger-footer"><span>🔻 Toplam: ${GIDERLER.length} kayıt</span></div>
@@ -3106,6 +3286,7 @@ function submitGider(){
   else if(giderFormTur === 'vergi')        tur = (val('gAltTur') || f.tur) + (val('gDonem') ? ' · ' + val('gDonem') : '');
   const aciklama = val('gAciklama');
   GIDERLER.unshift({
+    id: benzersizId('gi'),
     client: baslik,
     hesap: val('gHesap'),
     tur: aciklama ? tur + ' — ' + aciklama : tur,
@@ -3117,6 +3298,46 @@ function submitGider(){
   giderStep = 'list';
   renderContent();
   showToast(`${f.label} kaydedildi — ₺${tutar.toLocaleString('tr-TR')}`);
+}
+
+function openGiderDuzenle(id){
+  const g = GIDERLER.find(x => x.id === id); if(!g) return;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Gideri Düzenle</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Başlık (tedarikçi / gider adı)</label><input id="giClient" value="${notEsc(g.client || '')}" placeholder="Boş bırakılabilir"></div>
+    <div class="field"><label>Açıklama / Tür</label><input id="giTur" value="${notEsc(g.tur || '')}"></div>
+    <div class="field"><label>Tarih</label><input id="giTarih" value="${notEsc(g.tarih || '')}"></div>
+    <div class="field"><label>Hesap</label><select id="giHesap">${hesapSecenekleri()}</select></div>
+    <div class="field"><label>Kategori</label>${kategoriSelectHtml('giKategori','gider', g.kategoriId || '')}</div>
+    <div class="field"><label>Tutar (₺)</label><input id="giTutar" type="number" value="${Number(g.tutar) || 0}"></div>
+    <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
+      <input type="checkbox" id="giOdendi" ${g.odendi ? 'checked' : ''} style="width:16px;height:16px;">
+      Ödendi olarak işaretle
+    </label>
+    <button class="modal-submit" onclick="submitGiderDuzenle('${id}')">Kaydet</button>`;
+  showModal();
+  const hs = document.getElementById('giHesap'); if(hs && g.hesap) hs.value = g.hesap;
+}
+function submitGiderDuzenle(id){
+  const g = GIDERLER.find(x => x.id === id); if(!g) return;
+  const tutar = Number(document.getElementById('giTutar').value) || 0;
+  if(!tutar){ showToast('Tutar girin.'); return; }
+  g.client = document.getElementById('giClient').value.trim() || null;
+  g.tur = document.getElementById('giTur').value || g.tur;
+  g.tarih = document.getElementById('giTarih').value;
+  g.hesap = document.getElementById('giHesap').value;
+  g.kategoriId = document.getElementById('giKategori').value || null;
+  g.tutar = tutar;
+  g.odendi = document.getElementById('giOdendi').checked;
+  closeModal(); renderContent();
+  showToast('Gider kaydı güncellendi.');
+}
+function deleteGider(id){
+  const g = GIDERLER.find(x => x.id === id); if(!g) return;
+  if(!confirm(`"${g.client || g.tur}" — ₺${(Number(g.tutar)||0).toLocaleString('tr-TR')} gider kaydı silinsin mi?`)) return;
+  GIDERLER = GIDERLER.filter(x => x.id !== id);
+  renderContent();
+  showToast('Gider kaydı silindi.');
 }
 
 // ---------------- KATEGORİLER ----------------
@@ -3172,6 +3393,25 @@ function submitKategori(tip, hedefSelectId){
   }
   showToast(`"${ad}" kategorisi eklendi.`);
 }
+function openKategoriDuzenle(id){
+  const k = KATEGORILER.find(x => x.id === id);
+  if(!k || k.sistem){ showToast('Bu kategori düzenlenemez.'); return; }
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Kategoriyi Yeniden Adlandır</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Kategori Adı</label><input id="ktAd" value="${notEsc(k.ad)}"></div>
+    <button class="modal-submit" onclick="submitKategoriDuzenle('${id}')">Kaydet</button>`;
+  showModal();
+}
+function submitKategoriDuzenle(id){
+  const k = KATEGORILER.find(x => x.id === id); if(!k) return;
+  const ad = document.getElementById('ktAd').value.trim();
+  if(!ad){ showToast('Kategori adı girin.'); return; }
+  const ayni = kategoriIdByAd(ad, k.tip);
+  if(ayni && ayni !== id){ showToast('Bu isimde bir kategori zaten var.'); return; }
+  k.ad = ad;
+  closeModal(); renderContent();
+  showToast('Kategori güncellendi.');
+}
 function deleteKategori(id){
   const k = KATEGORILER.find(x => x.id === id);
   if(!k || k.sistem){ showToast('Bu kategori silinemez.'); return; }
@@ -3195,8 +3435,9 @@ function kategorilerView(){
           <td><b>${k.ad}</b>${k.sistem ? ' <span class="due">· sistem</span>' : ''}</td>
           <td style="text-align:right;">${kayitlar.length}</td>
           <td style="text-align:right;font-family:var(--font-mono);">${tlSigned(toplam)}</td>
-          <td style="text-align:right;width:34px;">${k.sistem ? ''
-            : `<span style="cursor:pointer;color:var(--ink-3);" title="Sil" onclick="deleteKategori('${k.id}')">✕</span>`}</td>
+          <td style="text-align:right;width:64px;white-space:nowrap;">${k.sistem ? ''
+            : `<span class="mini-islem" title="Yeniden adlandır" onclick="openKategoriDuzenle('${k.id}')">✎</span>
+               <span class="mini-islem sil" title="Sil" onclick="deleteKategori('${k.id}')">✕</span>`}</td>
         </tr>`; }).join('')}</tbody></table>`
       : `<div class="note">Henüz kategori yok.</div>`}`;
   return `
@@ -3307,7 +3548,7 @@ function personelDetayView(){
 
     ${rows.length ? `<table style="margin-bottom:16px;">
       <thead><tr><th>İşlem Türü</th><th>Ödeme Tarihi</th><th>Açıklama</th>
-        <th style="text-align:right;">Tutar</th><th style="text-align:right;">Bakiye</th></tr></thead>
+        <th style="text-align:right;">Tutar</th><th style="text-align:right;">Bakiye</th><th></th></tr></thead>
       <tbody>
         ${rows.map((r,i) => `<tr>
           <td><b>${r.tur}</b></td>
@@ -3315,6 +3556,9 @@ function personelDetayView(){
           <td style="color:#555;">${r.aciklama || '—'}</td>
           <td style="text-align:right;font-family:var(--font-mono);color:${r.tutar < 0 ? 'var(--risk)' : 'var(--ink)'};">${tlSigned(r.tutar)}</td>
           <td style="text-align:right;font-family:var(--font-mono);">${tlSigned(r.bakiye)}</td>
+          <td style="text-align:right;white-space:nowrap;width:52px;">
+            <span class="mini-islem" title="Düzenle" onclick="openHareketDuzenle('${r.id}')">✎</span>
+            <span class="mini-islem sil" title="Sil" onclick="deleteHareket('${r.id}')">✕</span></td>
         </tr>`).join('')}
       </tbody>
     </table>
@@ -3354,6 +3598,7 @@ function submitHareket(kind){
   const tutar = Number(document.getElementById('hrTutar').value) || 0;
   if(!tutar){ showToast('Tutar girin.'); return; }
   p.hareketler.push({
+    id: benzersizId('hr'),
     tur: k.tur,
     tarih: document.getElementById('hrTarih').value || bugunTR(),
     aciklama: document.getElementById('hrAciklama').value.trim(),
@@ -3362,6 +3607,7 @@ function submitHareket(kind){
   const gidereIsle = document.getElementById('hrGider');
   if(!gidereIsle || gidereIsle.checked){
     GIDERLER.unshift({
+      id: benzersizId('gi'),
       client: p.name,
       hesap: BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa',
       tur: k.tur,
@@ -3373,6 +3619,38 @@ function submitHareket(kind){
   }
   closeModal(); renderContent();
   showToast(`${k.tur} eklendi — ${tlSigned(tutar * k.isaret)}`);
+}
+function openHareketDuzenle(hid){
+  const p = personelById(personelSecili); if(!p) return;
+  const h = (p.hareketler || []).find(x => x.id === hid); if(!h) return;
+  const isaret = Number(h.tutar) < 0 ? -1 : 1;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${h.tur} — Düzenle</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Ödeme Tarihi</label><input id="hrTarih" value="${notEsc(h.tarih || '')}"></div>
+    <div class="field"><label>Açıklama</label><input id="hrAciklama" value="${notEsc(h.aciklama || '')}"></div>
+    <div class="field"><label>Tutar (₺)</label><input id="hrTutar" type="number" min="0" value="${Math.abs(Number(h.tutar) || 0)}"></div>
+    <div class="hint" style="margin:-6px 0 10px;">Bu düzenleme yalnızca personel ekstresini günceller; Giderler'e işlenmiş kayıt varsa onu Giderler ekranından ayrıca düzenleyin.</div>
+    <button class="modal-submit" onclick="submitHareketDuzenle('${hid}', ${isaret})">Kaydet</button>`;
+  showModal();
+}
+function submitHareketDuzenle(hid, isaret){
+  const p = personelById(personelSecili); if(!p) return;
+  const h = (p.hareketler || []).find(x => x.id === hid); if(!h) return;
+  const tutar = Number(document.getElementById('hrTutar').value) || 0;
+  if(!tutar){ showToast('Tutar girin.'); return; }
+  h.tarih = document.getElementById('hrTarih').value || h.tarih;
+  h.aciklama = document.getElementById('hrAciklama').value.trim();
+  h.tutar = tutar * isaret;
+  closeModal(); renderContent();
+  showToast('Hareket güncellendi.');
+}
+function deleteHareket(hid){
+  const p = personelById(personelSecili); if(!p) return;
+  const h = (p.hareketler || []).find(x => x.id === hid); if(!h) return;
+  if(!confirm(`${h.tur} — ${tlSigned(h.tutar)} hareketi silinsin mi? Giderler'e işlenmiş kayıt varsa onu Giderler ekranından ayrıca silmelisiniz.`)) return;
+  p.hareketler = p.hareketler.filter(x => x.id !== hid);
+  renderContent();
+  showToast('Hareket silindi.');
 }
 function togglePersonelArsiv(id){
   const p = personelById(id); if(!p) return;
@@ -3788,11 +4066,13 @@ function kasaBankaView(){
     <div class="kb-columns">
       <div class="kb-main">
         <div class="kb-row header"><span>Kasa Hesap Adı ⇅</span><span>Bakiye</span></div>
-        ${KASA_ACCOUNTS.map(a => `<div class="kb-row"><span>${a.name}</span><span>${a.balance.toLocaleString('tr-TR',{minimumFractionDigits:2})}${a.currency}</span></div>`).join('')}
+        ${KASA_ACCOUNTS.map(a => `<div class="kb-row"><span>${a.name}</span><span>${a.balance.toLocaleString('tr-TR',{minimumFractionDigits:2})}${a.currency}
+          <span class="mini-islem" title="Düzenle" onclick="openAccountModal('kasa','${a.id}')">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteAccount('kasa','${a.id}')">✕</span></span></div>`).join('')}
         <div class="kb-row total"><span>$ Kasa Toplamı</span><span>${kasaUsd.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
         <div class="kb-row total"><span>TL Kasa Toplamı</span><span>${kasaTl.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
         <div class="kb-row header" style="margin-top:4px;"><span>Hesap Adı ⇅</span><span>Bakiye</span></div>
-        ${BANK_ACCOUNTS.map(a => `<div class="kb-row"><span>${a.name}</span><span>${a.balance.toLocaleString('tr-TR',{minimumFractionDigits:2})}${a.currency}</span></div>`).join('')}
+        ${BANK_ACCOUNTS.map(a => `<div class="kb-row"><span>${a.name}</span><span>${a.balance.toLocaleString('tr-TR',{minimumFractionDigits:2})}${a.currency}
+          <span class="mini-islem" title="Düzenle" onclick="openAccountModal('banka','${a.id}')">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteAccount('banka','${a.id}')">✕</span></span></div>`).join('')}
         <div class="kb-row total"><span>TL Banka Toplamı</span><span>${bankTl.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
       </div>
       <div class="kb-side">
@@ -3803,28 +4083,47 @@ function kasaBankaView(){
     </div>
   `;
 }
-function openAccountModal(){
+function hesapBul(tur, id){ return (tur === 'kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS).find(x => x.id === id); }
+function openAccountModal(tur, id){
+  const a = id ? hesapBul(tur, id) : null;
   document.getElementById('modalBox').innerHTML = `
-    <div class="modal-head"><h2>Yeni Hesap</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="field"><label>Hesap Adı</label><input id="accName" placeholder="Örn. Merkez Kasa"></div>
+    <div class="modal-head"><h2>${a ? 'Hesabı Düzenle' : 'Yeni Hesap'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Hesap Adı</label><input id="accName" value="${a ? notEsc(a.name) : ''}" placeholder="Örn. Merkez Kasa"></div>
     <div class="field-row">
-      <div class="field"><label>Tür</label><select id="accType"><option value="kasa">Kasa</option><option value="banka">Banka</option></select></div>
-      <div class="field"><label>Para Birimi</label><select id="accCurrency"><option value="TL">TL</option><option value="$">$</option></select></div>
+      <div class="field"><label>Tür</label><select id="accType" ${a ? 'disabled' : ''}>
+        <option value="kasa" ${tur === 'kasa' ? 'selected' : ''}>Kasa</option>
+        <option value="banka" ${tur === 'banka' ? 'selected' : ''}>Banka</option></select></div>
+      <div class="field"><label>Para Birimi</label><select id="accCurrency">
+        <option value="TL" ${a && a.currency === 'TL' ? 'selected' : ''}>TL</option>
+        <option value="$" ${a && a.currency === '$' ? 'selected' : ''}>$</option></select></div>
     </div>
-    <div class="field"><label>Başlangıç Bakiyesi</label><input id="accBalance" type="number" value="0"></div>
-    <button class="modal-submit" onclick="submitAccount()">Hesabı Ekle</button>
+    <div class="field"><label>${a ? 'Bakiye' : 'Başlangıç Bakiyesi'}</label><input id="accBalance" type="number" value="${a ? a.balance : 0}"></div>
+    <button class="modal-submit" onclick="submitAccount('${tur || ''}','${a ? a.id : ''}')">${a ? 'Kaydet' : 'Hesabı Ekle'}</button>
   `;
   showModal();
 }
-function submitAccount(){
+function submitAccount(tur, id){
   const name = document.getElementById('accName').value.trim();
   if(!name) return;
-  const type = document.getElementById('accType').value;
   const currency = document.getElementById('accCurrency').value;
   const balance = Number(document.getElementById('accBalance').value) || 0;
-  (type==='kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS).push({ name, balance, currency });
+  const a = id ? hesapBul(tur, id) : null;
+  if(a){ a.name = name; a.currency = currency; a.balance = balance; }
+  else {
+    const type = document.getElementById('accType').value;
+    (type === 'kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS).push({ id: benzersizId(type === 'kasa' ? 'ka' : 'ba'), name, balance, currency });
+  }
   closeModal(); renderContent();
-  showToast(`${name} eklendi.`);
+  showToast(a ? `${name} güncellendi.` : `${name} eklendi.`);
+}
+function deleteAccount(tur, id){
+  const a = hesapBul(tur, id); if(!a) return;
+  const uyari = a.balance ? ` Hesapta ${a.balance.toLocaleString('tr-TR')}${a.currency} bakiye görünüyor.` : '';
+  if(!confirm(`"${a.name}" hesabı silinsin mi?${uyari} Geçmiş gelir/gider kayıtları silinmez.`)) return;
+  if(tur === 'kasa') KASA_ACCOUNTS = KASA_ACCOUNTS.filter(x => x.id !== id);
+  else BANK_ACCOUNTS = BANK_ACCOUNTS.filter(x => x.id !== id);
+  renderContent();
+  showToast('Hesap silindi.');
 }
 
 function cekSenetList(){
@@ -3835,46 +4134,64 @@ function cekSenetList(){
     </div>
     ${CEK_SENET.length===0 ? '<div class="note">Henüz kayıtlı çek/senet yok.</div>' : `
       <table>
-        <thead><tr><th>Tip</th><th>Tedarikçi</th><th>Belge No</th><th>Vade Tarihi</th><th>Tutar</th></tr></thead>
+        <thead><tr><th>Tip</th><th>Tedarikçi</th><th>Belge No</th><th>Vade Tarihi</th><th>Tutar</th><th></th></tr></thead>
         <tbody>
           ${CEK_SENET.map(c => {
             const cust = CUSTOMERS.find(x=>x.id===c.tedarikci);
-            return `<tr><td>${c.belgeTipi}</td><td>${cust?cust.name:'—'}</td><td>${c.belgeNo}</td><td>${formatDate(c.vadeTarihi)}</td><td>${Number(c.tutar).toLocaleString('tr-TR')} ${c.paraBirimi}</td></tr>`;
+            return `<tr><td>${c.belgeTipi}</td><td>${cust?cust.name:'—'}</td><td>${c.belgeNo}</td><td>${formatDate(c.vadeTarihi)}</td><td>${Number(c.tutar).toLocaleString('tr-TR')} ${c.paraBirimi}</td>
+              <td style="text-align:right;white-space:nowrap;">
+                <span class="mini-islem" title="Düzenle" onclick="openCekSenetDuzenle('${c.id}')">✎</span>
+                <span class="mini-islem sil" title="Sil" onclick="deleteCekSenet('${c.id}')">✕</span></td></tr>`;
           }).join('')}
         </tbody>
       </table>
     `}
   `;
 }
+function openCekSenetDuzenle(id){
+  cekSenetDuzenleId = id;
+  cekSenetStep = 'form';
+  renderContent();
+}
+function deleteCekSenet(id){
+  const c = CEK_SENET.find(x => x.id === id); if(!c) return;
+  if(!confirm(`${c.belgeTipi} · ${c.belgeNo || 'belge'} — ${Number(c.tutar).toLocaleString('tr-TR')} ${c.paraBirimi} kaydı silinsin mi?`)) return;
+  CEK_SENET = CEK_SENET.filter(x => x.id !== id);
+  renderContent();
+  showToast('Çek/Senet kaydı silindi.');
+}
 function cekSenetForm(){
-  const custOptions = '<option value="">Seçiniz..</option>' + CUSTOMERS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const e = cekSenetDuzenleId ? CEK_SENET.find(x => x.id === cekSenetDuzenleId) : null;
+  const custOptions = '<option value="">Seçiniz..</option>' + CUSTOMERS.map(c=>`<option value="${c.id}" ${e && e.tedarikci===c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+  const tipOpt = t => `<option ${e && e.belgeTipi===t ? 'selected' : ''}>${t}</option>`;
+  const pbOpt = t => `<option ${e && e.paraBirimi===t ? 'selected' : ''}>${t}</option>`;
   return `
-    <div class="page-title" style="margin-bottom:16px;">Çek / Senet Ekle</div>
+    <div class="page-title" style="margin-bottom:16px;">${e ? 'Çek / Senet Düzenle' : 'Çek / Senet Ekle'}</div>
     <div class="form-page">
       <div class="form-block">
         <div class="field"><label>Belge Tipi</label>
-          <select id="csTip"><option>Verilen Çek</option><option>Alınan Çek</option><option>Verilen Senet</option><option>Alınan Senet</option></select>
+          <select id="csTip">${['Verilen Çek','Alınan Çek','Verilen Senet','Alınan Senet'].map(tipOpt).join('')}</select>
         </div>
         <div class="field"><label>Tedarikçi</label><select id="csTedarikci">${custOptions}</select></div>
-        <div class="field"><label>Belge No</label><input id="csBelgeNo" placeholder="Belge numarası"></div>
-        <div class="field"><label>İşlem Tarihi</label><input type="date" id="csIslemTarihi"></div>
-        <div class="field"><label>Vade Tarihi</label><input type="date" id="csVadeTarihi"></div>
+        <div class="field"><label>Belge No</label><input id="csBelgeNo" value="${e ? notEsc(e.belgeNo || '') : ''}" placeholder="Belge numarası"></div>
+        <div class="field"><label>İşlem Tarihi</label><input type="date" id="csIslemTarihi" value="${e ? (e.islemTarihi || '') : ''}"></div>
+        <div class="field"><label>Vade Tarihi</label><input type="date" id="csVadeTarihi" value="${e ? (e.vadeTarihi || '') : ''}"></div>
         <div class="field-row">
-          <div class="field" style="flex:2;"><label>Tutar</label><input type="number" id="csTutar" placeholder="0"></div>
-          <div class="field"><label>&nbsp;</label><select id="csParaBirimi"><option>TL</option><option>$</option><option>€</option></select></div>
+          <div class="field" style="flex:2;"><label>Tutar</label><input type="number" id="csTutar" value="${e ? (e.tutar || '') : ''}" placeholder="0"></div>
+          <div class="field"><label>&nbsp;</label><select id="csParaBirimi">${['TL','$','€'].map(pbOpt).join('')}</select></div>
         </div>
-        <div class="field"><label>Açıklama</label><input id="csAciklama" placeholder="Açıklama"></div>
+        <div class="field"><label>Açıklama</label><input id="csAciklama" value="${e ? notEsc(e.aciklama || '') : ''}" placeholder="Açıklama"></div>
         <div class="field"><label>Etiketler</label><input id="csEtiket" placeholder="Kendi Etiketini Ekle"></div>
       </div>
       <div class="form-page-footer">
-        <button class="back-btn" onclick="cekSenetStep='list'; renderContent();">←</button>
+        <button class="back-btn" onclick="cekSenetDuzenleId=null; cekSenetStep='list'; renderContent();">←</button>
         <button class="save-btn" onclick="submitCekSenet()">Kaydet</button>
       </div>
     </div>
   `;
 }
 function submitCekSenet(){
-  CEK_SENET.push({
+  const veri = {
     belgeTipi: document.getElementById('csTip').value,
     tedarikci: document.getElementById('csTedarikci').value,
     belgeNo: document.getElementById('csBelgeNo').value,
@@ -3883,7 +4200,14 @@ function submitCekSenet(){
     tutar: document.getElementById('csTutar').value || 0,
     paraBirimi: document.getElementById('csParaBirimi').value,
     aciklama: document.getElementById('csAciklama').value,
-  });
+  };
+  if(cekSenetDuzenleId){
+    const c = CEK_SENET.find(x => x.id === cekSenetDuzenleId);
+    if(c) Object.assign(c, veri);
+    cekSenetDuzenleId = null;
+  } else {
+    CEK_SENET.push(Object.assign({ id: benzersizId('cs') }, veri));
+  }
   cekSenetStep = 'list';
   renderContent();
   showToast('Çek/Senet kaydedildi.');
