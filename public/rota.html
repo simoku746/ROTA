@@ -386,11 +386,18 @@ tr:last-child td{border-bottom:none;}
 .type-card .label{font-family:var(--font-display);font-weight:600;font-size:14px;}
 
 /* ---------- Teklif satırları ---------- */
-.tf-table-head{display:grid;grid-template-columns:1fr 70px 78px 100px 70px 98px 38px;gap:7px;
+.tf-table-head{display:grid;grid-template-columns:1fr 70px 78px 100px 70px 98px 30px 24px;gap:7px;
   font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
   letter-spacing:.7px;color:var(--ink-3);padding:0 2px 8px;}
-.tf-row{display:grid;grid-template-columns:1fr 70px 78px 100px 70px 98px 38px;gap:7px;align-items:center;
+.tf-row{display:grid;grid-template-columns:1fr 70px 78px 100px 70px 98px 30px 24px;gap:7px;align-items:center;
   padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
+.tf-row.li-tasinan{opacity:.45;}
+.tf-row.li-hedef{outline:2px dashed var(--signal);outline-offset:1px;}
+.li-drag{cursor:grab;color:var(--ink-3);text-align:center;user-select:none;font-size:15px;line-height:1;
+  padding:6px 0;border-radius:5px;touch-action:none;}
+.li-drag:hover{color:var(--ink);background:var(--surface);}
+.li-drag:active{cursor:grabbing;}
+.li-detail{margin-top:4px;height:26px !important;font-size:11.5px !important;color:var(--ink-2);}
 .tf-row input,.tf-row select{height:29px;padding:0 8px;border:1px solid var(--line-strong);
   border-radius:6px;background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
 .tf-row input:focus,.tf-row select:focus{outline:none;border-color:var(--ink);}
@@ -1261,7 +1268,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07l';
+window.ROTA_SURUM = 'v2026-09-07m';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -6580,14 +6587,15 @@ function renderLineItems(){
   if(!box) return;
   const head = document.getElementById('lineItemsHead');
   if(head) head.innerHTML = `<span>Ürün\\Hizmet</span><span>Miktar</span><span>Birim</span>`
-    + `<span>Birim Fiyat</span><span>KDV</span><span>Tutar</span><span></span>`;
+    + `<span>Birim Fiyat</span><span>KDV</span><span>Tutar</span><span></span><span></span>`;
   box.innerHTML = quoteLineItems.map((it,idx)=>{
     const u = lineUnit(it);
     return `
-    <div class="tf-row">
+    <div class="tf-row" ondragover="liDragOver(event,${idx})" ondragleave="liDragLeave(event)" ondrop="liDrop(event,${idx})">
       <div class="ac-wrap">
         <input value="${it.title}" placeholder="Hizmet veya Ürün Seçin" oninput="onLineTitleInput(${idx},this.value)" onfocus="onLineTitleInput(${idx},this.value)" onblur="setTimeout(()=>hideAc(${idx}),150)">
         <div class="ac-list" id="acList${idx}"></div>
+        <input class="li-detail" value="${notEsc(it.detail || '')}" placeholder="Açıklama — müşteri belgesindeki Açıklama sütununda görünür" oninput="updateLine(${idx},'detail',this.value)">
       </div>
       <input type="number" value="${it.qty}" min="1" oninput="updateLine(${idx},'qty',this.value)">
       <select id="liUnit${idx}" onchange="updateLine(${idx},'unit',this.value)">
@@ -6599,6 +6607,8 @@ function renderLineItems(){
       </select>
       <input id="rowTotal${idx}" readonly value="${CURRENCY_SYMBOLS[quoteCurrency]}${Math.round(lineNet(it)).toLocaleString('tr-TR')}">
       <button class="li-remove" onclick="removeLine(${idx})">✕</button>
+      <span class="li-drag" draggable="true" title="Sırayı değiştirmek için basılı tutup aşağı/yukarı sürükleyin"
+        ondragstart="liDragStart(event,${idx})" ondragend="liDragEnd()">⠿</span>
       ${dimLineHtml(idx)}
     </div>`;
   }).join('');
@@ -6671,11 +6681,39 @@ function hideAc(idx){ const l = document.getElementById('acList'+idx); if(l) l.c
 function updateLine(idx, field, value){
   // Sadece o satırın toplamını ve genel toplamı güncelle — input'ları yeniden oluşturma,
   // yoksa yazarken fokus kayboluyor (kullanıcı tekrar tıklamak zorunda kalıyordu).
-  quoteLineItems[idx][field] = (field==='title' || field==='unit')
+  quoteLineItems[idx][field] = (field==='title' || field==='unit' || field==='detail')
     ? value
     : Number(String(value).replace(',', '.')) || 0;
   if(field === 'unit') refreshDimLine(idx);
   syncRow(idx);
+}
+let liSurukleIdx = null;
+function liDragStart(e, idx){
+  liSurukleIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(idx)); } catch(err) {}
+  const row = e.target.closest('.tf-row');
+  if(row) row.classList.add('li-tasinan');
+}
+function liDragEnd(){
+  document.querySelectorAll('.tf-row').forEach(r => r.classList.remove('li-tasinan','li-hedef'));
+  liSurukleIdx = null;
+}
+function liDragOver(e, idx){
+  if(liSurukleIdx === null || idx === liSurukleIdx) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#lineItemsBox .tf-row').forEach((r, i) => r.classList.toggle('li-hedef', i === idx));
+}
+function liDragLeave(e){ const r = e.currentTarget; if(r) r.classList.remove('li-hedef'); }
+function liDrop(e, idx){
+  if(liSurukleIdx === null) return;
+  e.preventDefault();
+  const tasinan = quoteLineItems.splice(liSurukleIdx, 1)[0];
+  quoteLineItems.splice(idx, 0, tasinan);
+  liSurukleIdx = null;
+  renderLineItems();
+  showToast('Satır sırası güncellendi.');
 }
 function blankLine(){ return { title:'', detail:'', qty:1, price:0, kdv:20, unit:'adet', w:0, h:0 }; }
 function addLineItem(){ quoteLineItems.push(blankLine()); renderLineItems(); }
