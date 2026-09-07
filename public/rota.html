@@ -222,7 +222,7 @@ button,input,select,textarea{font-family:inherit;}
 
 /* ---------- Pano (kanban) ---------- */
 .board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
-.board-col{min-width:226px;flex:0 0 226px;background:var(--surface-sunk);border:1px solid var(--line);border-radius:8px;padding:9px;}
+.board-col{min-width:200px;flex:1 1 226px;background:var(--surface-sunk);border:1px solid var(--line);border-radius:8px;padding:9px;}
 .board-col.drop{background:var(--surface);box-shadow:inset 0 0 0 2px var(--ink-3);}
 .kcard.suruklenen{opacity:.4;}
 .kcard[draggable="true"]{cursor:grab;}
@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07z';
+window.ROTA_SURUM = 'v2026-09-08a';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2524,11 +2524,12 @@ function gorevlerimView(){
     ${tahsilatIsleri.length ? `
     <div class="group-header" style="margin:4px 0 10px;"><span>— Tahsilat Bekleyen İşler (${tahsilatIsleri.length})</span></div>
     <table style="margin-bottom:16px;">
-      <thead><tr><th>İş</th><th>Müşteri</th><th style="text-align:right;">Tutar</th><th style="text-align:right;"></th></tr></thead>
+      <thead><tr><th>İş</th><th>Müşteri</th><th style="text-align:right;">Tutar</th><th>Sorumlu</th><th style="text-align:right;"></th></tr></thead>
       <tbody>${tahsilatIsleri.map(j => `<tr>
         <td style="cursor:pointer;" onclick="openJobDrawer('${j.id}')"><b>${j.code}</b> · ${j.desc}</td>
         <td>${notEsc(j.client)}</td>
         <td style="text-align:right;font-family:var(--font-mono);">${j.tutar ? '₺' + Number(j.tutar).toLocaleString('tr-TR') : '—'}</td>
+        <td>${tahsilatSorumluHtml(j)}</td>
         <td style="text-align:right;"><button class="btn" style="height:26px;font-size:11.5px;padding:0 10px;" onclick="gorevdenTahsilat('${j.customerId || ''}')">Tahsilat Ekle</button></td>
       </tr>`).join('')}</tbody>
     </table>` : ''}
@@ -3239,6 +3240,35 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.new-menu').forEach(m => m.classList.remove('show'));
 });
 
+function tahsilatUstlen(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  if(j.tahsilatSorumlusu){ showToast('Bu tahsilat az önce üstlenildi: ' + j.tahsilatSorumlusu); renderContent(); return; }
+  const p = benimPersonelim();
+  if(!p){ showToast('Hesabınıza bağlı personel kartı bulunamadı.'); return; }
+  j.tahsilatSorumlusu = p.name;
+  bildirimRole('MUHASEBE', `${p.name} tahsilatı üstlendi: ${j.code} · ${j.client}`, { jobId: j.id });
+  bildirimYoneticilere(`${p.name} tahsilatı üstlendi: ${j.code} · ${j.client}`, 'bilgi', { jobId: j.id });
+  renderContent();
+  showToast(`${j.code} tahsilatı sizde.`);
+}
+function tahsilatBirak(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  const p = benimPersonelim();
+  if(CURRENT_ROLE !== 'YONETICI' && (!p || j.tahsilatSorumlusu !== p.name)){ showToast('Yalnız üstlenen kişi veya yönetici bırakabilir.'); return; }
+  const eski = j.tahsilatSorumlusu;
+  j.tahsilatSorumlusu = '';
+  bildirimRole('MUHASEBE', `Tahsilat havuza geri bırakıldı: ${j.code} · ${j.client}`, { jobId: j.id });
+  renderContent();
+  showToast('Tahsilat havuza bırakıldı.');
+}
+function tahsilatSorumluHtml(j){
+  const p = benimPersonelim();
+  if(!j.tahsilatSorumlusu)
+    return `<button class="btn" style="height:26px;font-size:11.5px;padding:0 10px;color:var(--signal);border-color:var(--signal);" onclick="tahsilatUstlen('${j.id}')">🖐 Üstlen</button>`;
+  const benim = p && j.tahsilatSorumlusu === p.name;
+  return `<span style="font-weight:600;">${notEsc(j.tahsilatSorumlusu)}</span>${(benim || CURRENT_ROLE === 'YONETICI')
+    ? ` <span class="mini-islem" title="Havuza bırak" onclick="tahsilatBirak('${j.id}')" style="text-decoration:underline;font-size:11px;">bırak</span>` : ''}`;
+}
 function gorevdenTahsilat(customerId){
   pushHistory();
   currentPage = 'on-muhasebe'; onMuhasebeSub = 'gelirler'; openSubmenu = 'on-muhasebe';
@@ -3259,6 +3289,7 @@ function gelirlerView(){
       ${tahsilatIsleri.map(j => `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">
         <span style="cursor:pointer;text-decoration:underline;" onclick="openJobDrawer('${j.id}')">${j.code} · ${notEsc(j.client)}</span>
         <span style="display:flex;align-items:center;gap:10px;">
+          ${tahsilatSorumluHtml(j)}
           ${j.tutar ? `<b>₺${Number(j.tutar).toLocaleString('tr-TR')}</b>` : ''}
           <button class="btn" style="height:26px;font-size:11.5px;padding:0 10px;" onclick="tahsilatBaslat('${j.customerId || ''}')">Tahsilat Ekle</button>
         </span>
