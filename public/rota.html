@@ -1260,7 +1260,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07d';
+window.ROTA_SURUM = 'v2026-09-07e';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5166,12 +5166,270 @@ function openJobDrawer(id){
       </span>
     </div>
     <div class="drawer-row"><span class="k">Teslim Tarihi</span><span class="v">${j.due||'—'}</span></div>
+    <div class="drawer-footer" style="margin-top:14px;"><button onclick="closeDrawer(); openIsEmri('${j.id}')">🖨️ İş Emri — Üretim Formu</button></div>
     ${actionHtml}
     ${notesHtml}
   `;
   document.getElementById('drawerOverlay').classList.add('show');
   document.getElementById('sideDrawer').classList.add('show');
 }
+// ---------------- İŞ EMRİ (standart üretim formu) ----------------
+function ieVarsayilan(j){
+  if(!j.isEmri) j.isEmri = {};
+  const e = j.isEmri;
+  if(e.projeAdi === undefined)   e.projeAdi = j.desc || '';
+  if(e.yetkili === undefined)    e.yetkili = '';
+  if(e.satinalmaNo === undefined)e.satinalmaNo = '';
+  if(e.siparisAdet === undefined)e.siparisAdet = '';
+  if(e.teslimTarihi === undefined) e.teslimTarihi = '';
+  if(e.montajTarihi === undefined) e.montajTarihi = '';
+  if(e.montajYeri === undefined) e.montajYeri = '';
+  if(e.grafiker === undefined)   e.grafiker = '';
+  if(e.aciklama === undefined)   e.aciklama = '';
+  if(e.malzemeler === undefined) e.malzemeler = j.material || '';
+  if(e.tedarikci === undefined)  e.tedarikci = '';
+  if(e.tedarikNot === undefined) e.tedarikNot = '';
+  if(!Array.isArray(e.kalemler)) e.kalemler = [];
+  if(!Array.isArray(e.gorseller)) e.gorseller = [];
+  return e;
+}
+function ieKirli(){ if(typeof liveMarkDirty === 'function') liveMarkDirty(); }
+function openIsEmri(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  ieVarsayilan(j);
+  if(!window.__iePasteKurulu){
+    window.__iePasteKurulu = true;
+    document.addEventListener('paste', (ev) => {
+      if(!window.__ieAcikJob) return;
+      const items = (ev.clipboardData && ev.clipboardData.items) || [];
+      for(const it of items){
+        if(it.type && it.type.startsWith('image/')){
+          ev.preventDefault();
+          ieGorselIsle(window.__ieAcikJob, it.getAsFile());
+          return;
+        }
+      }
+    });
+  }
+  window.__ieAcikJob = id;
+  ieRender(id);
+}
+function ieKapat(){ window.__ieAcikJob = null; ieKirli(); closeModal(); }
+function ieRender(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  const e = ieVarsayilan(j);
+  const alan = (etiket, girdi) => `<div class="field" style="margin-bottom:9px;"><label>${etiket}</label>${girdi}</div>`;
+  const txt = (ad, deger, ph) => `<input value="${notEsc(deger || '')}" placeholder="${ph || ''}" onchange="ieAlan('${id}','${ad}',this.value)">`;
+  const tarih = (ad, deger) => `<input type="date" value="${deger || ''}" onchange="ieAlan('${id}','${ad}',this.value)">`;
+  const per = PERSONELLER.filter(p => !p.arsiv);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>🖨️ İş Emri — ${notEsc(j.client)} <span style="color:var(--ink-3);font-weight:400;">${j.code}</span></h2>
+      <button class="modal-close" onclick="ieKapat()">✕</button></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      ${alan('Proje Adı', txt('projeAdi', e.projeAdi, 'Örn. Tav Bodrum + Antalya lightbox'))}
+      ${alan('Yetkili Kişi (müşteri)', txt('yetkili', e.yetkili, 'Örn. Özge Hanım'))}
+      ${alan('Satınalma No', txt('satinalmaNo', e.satinalmaNo, 'Sipariş / PO numarası'))}
+      ${alan('Sipariş Adet', txt('siparisAdet', e.siparisAdet, 'Örn. 1+1 adet'))}
+      ${alan('Teslim Tarihi', tarih('teslimTarihi', e.teslimTarihi))}
+      ${alan('Montaj Tarihi', tarih('montajTarihi', e.montajTarihi))}
+      ${alan('Montaj Yeri', txt('montajYeri', e.montajYeri, 'Örn. Bodrum + Antalya Havalimanı'))}
+      ${alan('Çalışmayı Yapan Grafiker', `<select onchange="ieAlan('${id}','grafiker',this.value)">
+        <option value="">— Seçiniz —</option>
+        ${per.map(p => `<option ${e.grafiker === p.name ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('')}
+        ${e.grafiker && !per.some(p => p.name === e.grafiker) ? `<option selected>${notEsc(e.grafiker)}</option>` : ''}
+      </select>`)}
+    </div>
+    ${alan('Sipariş Açıklama', `<textarea rows="2" onchange="ieAlan('${id}','aciklama',this.value)" placeholder="Örn. Light box baskıları — görsel değişimi">${notEsc(e.aciklama)}</textarea>`)}
+    ${alan('Kullanılacak Malzemeler', txt('malzemeler', e.malzemeler, 'Örn. Backlit baskı, 3M folyo'))}
+
+    <div class="group-header" style="margin:12px 0 8px;"><span>— Ölçüler ve Kalemler</span></div>
+    <table style="margin-bottom:6px;">
+      <thead><tr><th style="width:34%;">Tanım / Konum</th><th>En (cm)</th><th>Boy (cm)</th><th>Adet</th><th>Malzeme / Baskı</th><th style="width:26px;"></th></tr></thead>
+      <tbody>
+        ${e.kalemler.map((k, i) => `<tr>
+          <td><input value="${notEsc(k.tanim || '')}" placeholder="Örn. Bagaj alım salonu yan alınlık" onchange="ieKalem('${id}',${i},'tanim',this.value)"></td>
+          <td><input type="number" value="${k.en || ''}" placeholder="0" onchange="ieKalem('${id}',${i},'en',this.value)"></td>
+          <td><input type="number" value="${k.boy || ''}" placeholder="0" onchange="ieKalem('${id}',${i},'boy',this.value)"></td>
+          <td><input type="number" value="${k.adet || ''}" placeholder="1" onchange="ieKalem('${id}',${i},'adet',this.value)"></td>
+          <td><input value="${notEsc(k.malzeme || '')}" placeholder="Örn. Backlit" onchange="ieKalem('${id}',${i},'malzeme',this.value)"></td>
+          <td style="text-align:center;"><span class="mini-islem sil" onclick="ieKalemSil('${id}',${i})">✕</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <button class="btn" style="height:32px;margin-bottom:14px;" onclick="ieKalemEkle('${id}')">+ Kalem Ekle</button>
+
+    <div class="group-header" style="margin:4px 0 8px;"><span>— Tedarik</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      ${alan('Tedarikçi (baskı/malzeme nereden)', `<input value="${notEsc(e.tedarikci)}" list="ieTedList" placeholder="Firma adı" onchange="ieAlan('${id}','tedarikci',this.value)">
+        <datalist id="ieTedList">${CUSTOMERS.map(c => `<option value="${notEsc(c.name)}">`).join('')}</datalist>`)}
+      ${alan('Tedarik Notu', txt('tedarikNot', e.tedarikNot, 'Örn. sipariş verildi, Perşembe teslim'))}
+    </div>
+
+    <div class="group-header" style="margin:4px 0 8px;"><span>— Görseller (onaylı çalışmalar)</span></div>
+    <div id="ieGorselAlan" style="border:1.5px dashed var(--line-strong);border-radius:8px;padding:12px;text-align:center;color:var(--ink-3);font-size:12px;margin-bottom:10px;">
+      📋 Ekran görüntüsünü kopyalayıp bu pencere açıkken <b>Ctrl+V</b> ile yapıştırın
+      &nbsp;veya&nbsp; <label style="text-decoration:underline;cursor:pointer;color:var(--ink-2);">dosya seçin<input type="file" accept="image/*" multiple style="display:none;" onchange="Array.from(this.files).forEach(f=>ieGorselIsle('${id}',f)); this.value='';"></label>
+    </div>
+    ${e.gorseller.length ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      ${e.gorseller.map((g, i) => `<div style="border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+        <img src="${g.src}" style="width:100%;display:block;">
+        <div style="display:flex;gap:6px;align-items:center;padding:6px;">
+          <input value="${notEsc(g.not || '')}" placeholder="Görsel açıklaması" style="flex:1;height:28px;font-size:11.5px;" onchange="ieGorselNot('${id}',${i},this.value)">
+          <span class="mini-islem sil" onclick="ieGorselSil('${id}',${i})">✕</span>
+        </div>
+      </div>`).join('')}
+    </div>` : ''}
+
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn" style="flex:1;height:38px;" onclick="ieKapat()">Kaydet ve Kapat</button>
+      <button class="modal-submit" style="flex:1;margin:0;" onclick="isEmriYazdir('${id}')">🖨️ Yazdır</button>
+    </div>
+  `;
+  const mb = document.getElementById('modalBox');
+  mb.classList.add('wide');
+  mb.style.maxWidth = '840px';
+  showModal();
+}
+function ieAlan(id, ad, deger){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  ieVarsayilan(j)[ad] = deger;
+  ieKirli();
+}
+function ieKalem(id, i, ad, deger){
+  const j = JOBS.find(x => x.id === id); if(!j || !j.isEmri.kalemler[i]) return;
+  j.isEmri.kalemler[i][ad] = deger;
+  ieKirli();
+}
+function ieKalemEkle(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  ieVarsayilan(j).kalemler.push({ tanim:'', en:'', boy:'', adet:'', malzeme:'' });
+  ieRender(id); ieKirli();
+}
+function ieKalemSil(id, i){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  j.isEmri.kalemler.splice(i, 1);
+  ieRender(id); ieKirli();
+}
+function ieGorselIsle(id, file){
+  if(!file || !file.type || !file.type.startsWith('image/')) return;
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  ieVarsayilan(j);
+  if(j.isEmri.gorseller.length >= 8){ showToast('Bir iş emrine en fazla 8 görsel eklenebilir.'); return; }
+  const fr = new FileReader();
+  fr.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 900;
+      const olcek = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * olcek));
+      c.height = Math.max(1, Math.round(img.height * olcek));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      j.isEmri.gorseller.push({ src: c.toDataURL('image/jpeg', 0.72), not: '' });
+      ieRender(id); ieKirli();
+      showToast('Görsel eklendi.');
+    };
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+function ieGorselNot(id, i, deger){
+  const j = JOBS.find(x => x.id === id); if(!j || !j.isEmri.gorseller[i]) return;
+  j.isEmri.gorseller[i].not = deger;
+  ieKirli();
+}
+function ieGorselSil(id, i){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  j.isEmri.gorseller.splice(i, 1);
+  ieRender(id); ieKirli();
+}
+function isEmriPrintHtml(j){
+  const e = ieVarsayilan(j);
+  const tr = t => (t === undefined || t === null || t === '') ? '—' : notEsc(String(t));
+  const trh = t => t ? formatDate(t) : '—';
+  const bugun = new Date().toLocaleDateString('tr-TR');
+  const bilgi = (k, v) => `<td class="k">${k}</td><td class="v">${v}</td>`;
+  return `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>İş Emri — ${notEsc(j.code)}</title>
+  <style>
+    @page{size:A4;margin:12mm;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:11.5px;color:#0F172A;padding:4px;}
+    .ust{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0F172A;padding-bottom:10px;margin-bottom:12px;}
+    .marka{font-size:21px;font-weight:800;letter-spacing:-.4px;}
+    .marka small{display:block;font-size:9.5px;font-weight:400;color:#64748B;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+    .firma-detay{font-size:9px;color:#64748B;margin-top:6px;line-height:1.5;}
+    .rozet{text-align:right;}
+    .rozet .ie{display:inline-block;background:#0F172A;color:#fff;font-weight:700;font-size:14px;letter-spacing:2px;padding:6px 16px;border-radius:4px;}
+    .rozet .tarih{font-size:10.5px;color:#334155;margin-top:6px;}
+    .rozet .kod{font-family:Consolas,monospace;font-size:11px;color:#0F172A;margin-top:3px;font-weight:700;}
+    table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+    .bilgi td{border:1px solid #CBD5E1;padding:5px 8px;}
+    .bilgi .k{width:16%;background:#F1F5F9;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#334155;}
+    .bilgi .v{width:34%;}
+    h3{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:#334155;border-bottom:1.5px solid #CBD5E1;padding-bottom:4px;margin:14px 0 8px;}
+    .kalem th{background:#0F172A;color:#fff;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;text-align:left;}
+    .kalem td{border:1px solid #CBD5E1;padding:6px 8px;}
+    .kalem td.s{text-align:center;font-family:Consolas,monospace;}
+    .gorseller{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .gorsel{border:1px solid #CBD5E1;border-radius:4px;overflow:hidden;page-break-inside:avoid;}
+    .gorsel img{width:100%;display:block;}
+    .gorsel .not{padding:5px 8px;font-size:10px;color:#334155;background:#F8FAFC;border-top:1px solid #E2E8F0;}
+    .imzalar{display:flex;gap:14px;margin-top:22px;page-break-inside:avoid;}
+    .imza{flex:1;border:1px solid #CBD5E1;border-radius:4px;padding:8px 10px 34px;}
+    .imza b{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:#334155;margin-bottom:2px;}
+    .imza span{font-size:10.5px;color:#64748B;}
+    .alt{margin-top:14px;text-align:center;font-size:8.5px;color:#94A3B8;letter-spacing:.5px;}
+    @media print{.yazdirma-notu{display:none;}}
+    .yazdirma-notu{background:#FFEDD5;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#9A3412;}
+  </style></head><body>
+  <div class="yazdirma-notu">Yazdırma penceresi otomatik açılır; açılmazsa <b>Ctrl+P</b> ile yazdırın.</div>
+  <div class="ust">
+    <div>
+      <div class="marka">${notEsc(AGENCY.name)}<small>${notEsc(AGENCY.slogan || '')}</small></div>
+      <div class="firma-detay">${notEsc(AGENCY.address || '')}<br>T. ${notEsc(AGENCY.phone || '')} · ${notEsc(AGENCY.web || '')}</div>
+    </div>
+    <div class="rozet">
+      <span class="ie">İŞ EMRİ</span>
+      <div class="tarih">Tarih: <b>${bugun}</b></div>
+      <div class="kod">${notEsc(j.code)}${j.quoteNo ? ' · Teklif ' + notEsc(j.quoteNo) : ''}</div>
+    </div>
+  </div>
+  <table class="bilgi">
+    <tr>${bilgi('Firma Adı', tr(j.client))}${bilgi('Proje Adı', tr(e.projeAdi))}</tr>
+    <tr>${bilgi('Yetkili Kişi', tr(e.yetkili))}${bilgi('Satınalma No', tr(e.satinalmaNo))}</tr>
+    <tr>${bilgi('Sipariş Adet', tr(e.siparisAdet))}${bilgi('Teslim Tarihi', trh(e.teslimTarihi))}</tr>
+    <tr>${bilgi('Montaj Tarihi', trh(e.montajTarihi))}${bilgi('Montaj Yeri', tr(e.montajYeri))}</tr>
+    <tr>${bilgi('Grafiker', tr(e.grafiker))}${bilgi('Sorumlu', tr((j.assignees || []).join(', ')))}</tr>
+    <tr>${bilgi('Sipariş Açıklama', tr(e.aciklama))}${bilgi('Kullanılacak Malzemeler', tr(e.malzemeler))}</tr>
+    <tr>${bilgi('Tedarikçi', tr(e.tedarikci))}${bilgi('Tedarik Notu', tr(e.tedarikNot))}</tr>
+  </table>
+  ${e.kalemler.length ? `<h3>Ölçüler ve Kalemler</h3>
+  <table class="kalem">
+    <thead><tr><th style="width:24px;">#</th><th>Tanım / Konum</th><th style="width:64px;">En (cm)</th><th style="width:64px;">Boy (cm)</th><th style="width:48px;">Adet</th><th>Malzeme / Baskı</th></tr></thead>
+    <tbody>${e.kalemler.map((k, i) => `<tr>
+      <td class="s">${i + 1}</td><td>${tr(k.tanim)}</td><td class="s">${tr(k.en)}</td><td class="s">${tr(k.boy)}</td><td class="s">${tr(k.adet)}</td><td>${tr(k.malzeme)}</td>
+    </tr>`).join('')}</tbody>
+  </table>` : ''}
+  ${e.gorseller.length ? `<h3>Onaylı Görseller</h3>
+  <div class="gorseller">${e.gorseller.map((g, i) => `<div class="gorsel"><img src="${g.src}"><div class="not">${i + 1}. ${notEsc(g.not || 'Onaylı çalışma')}</div></div>`).join('')}</div>` : ''}
+  <div class="imzalar">
+    <div class="imza"><b>Hazırlayan</b><span>Ad / İmza / Tarih</span></div>
+    <div class="imza"><b>Üretim Sorumlusu</b><span>Ad / İmza / Tarih</span></div>
+    <div class="imza"><b>Koordinatör Teslim</b><span>Ad / İmza / Tarih</span></div>
+  </div>
+  <div class="alt">Bu iş emri ROTA üzerinden oluşturuldu · ${notEsc(j.code)} · ${bugun}</div>
+  </body></html>`;
+}
+function isEmriYazdir(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
+  w.document.write(isEmriPrintHtml(j));
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch(err) {} }, 400);
+}
+
 function openReassignModal(id){
   const j = JOBS.find(x=>x.id===id);
   closeDrawer();
@@ -6914,7 +7172,9 @@ function renderNotlar(){
 
 // ---------------- MODAL / TOAST HELPERS ----------------
 function showModal(){ document.getElementById('overlay').classList.add('show'); document.getElementById('modalBox').className = 'modal wide'; }
-function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+function closeModal(){
+  const mb = document.getElementById('modalBox');
+  if(mb){ mb.classList.remove('wide'); mb.style.maxWidth = ''; } document.getElementById('overlay').classList.remove('show'); }
 document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
 function showToast(msg){
   const t = document.getElementById('toast');
