@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07o';
+window.ROTA_SURUM = 'v2026-09-07p';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5345,7 +5345,7 @@ function ieKapat(){
       const e = j.isEmri;
       const doldu = (e.kalemler && e.kalemler.length) || e.dosyaAdi || e.genelAciklama || (e.gorseller && e.gorseller.length);
       if(doldu && !e.koordBildirildi && typeof bildirimYoneticilere === 'function'){
-        bildirimYoneticilere(`İş emri hazırlandı — montaj planlaması ve çıktı bekleniyor: ${e.emriNo} · ${j.client}`);
+        bildirimYoneticilere(`İş emri hazırlandı — montaj planlaması ve çıktı bekleniyor: ${e.emriNo} · ${j.client}`, 'bilgi', { jobId: id });
         e.koordBildirildi = true;
       }
     }
@@ -5798,9 +5798,14 @@ function jobTasi(id, hedef){
 //  • Üretim'den Tasarım'a geri alınan iş yeniden onay bekler
 //  • Keşif'e dönen işin onayı sıfırlanır
 function jobAsamaAyarla(j, yeniStage){
+  const eski = j.stage;
   j.stage = yeniStage;
   if(yeniStage === 'TASARIM'){ if(j.approval !== 'REVIZYON') j.approval = 'BEKLIYOR'; }
   else if(yeniStage === 'KESIF'){ j.approval = null; }
+  // Üretim / Montaj'a geçen iş: koordinatöre planlama bildirimi
+  if(eski !== yeniStage && (yeniStage === 'URETIM' || yeniStage === 'MONTAJ')){
+    bildirimYoneticilere(`${j.code} · ${j.client} — ${STAGE_LABELS_TR[yeniStage]} aşamasına geçti, ${yeniStage === 'URETIM' ? 'üretim' : 'montaj'} planlaması gerekiyor.`, 'bilgi', { jobId: j.id });
+  }
 }
 function deleteJob(id){
   if(CURRENT_ROLE !== 'YONETICI'){ showToast('İş silme yalnızca yönetici yetkisindedir.'); return; }
@@ -5839,7 +5844,7 @@ function setJobApproval(id, status){
   const j = JOBS.find(x=>x.id===id);
   if(j.stage !== 'TASARIM'){ showToast('Onay yalnızca Tasarım aşamasındaki iş için verilir.'); return; }
   j.approval = status;
-  if(status==='ONAYLANDI') j.stage = 'URETIM';
+  if(status==='ONAYLANDI') jobAsamaAyarla(j, 'URETIM');
   closeDrawer();
   renderContent();
   showToast(status==='ONAYLANDI' ? `${j.client} — onaylandı, Üretim aşamasına taşındı.` : `${j.client} için revizyon istendi.`);
@@ -6067,7 +6072,8 @@ function kisilerForm(){
         <div class="field"><label>Standart Grafiker <span style="font-weight:400;color:var(--ink-3);">(bu müşterinin işleri hep aynı grafikere gidiyorsa)</span></label>
           <select id="pStandartGrafiker">
             <option value="">— Yok, işler havuzdan üstlenilir —</option>
-            ${PERSONELLER.filter(p=>!p.arsiv).map(p=>`<option value="${p.id}" ${editing && editing.standartGrafikerId===p.id?'selected':''}>${p.name}${p.unvan?' · '+p.unvan:''}</option>`).join('')}
+            ${(() => { let per = PERSONELLER.filter(p => !p.arsiv && (p.departman === 'Tasarım' || (p.kullanici && p.kullanici.rol === 'TASARIM'))); if(!per.length) per = PERSONELLER.filter(p => !p.arsiv);
+              return per.map(p=>`<option value="${p.id}" ${editing && editing.standartGrafikerId===p.id?'selected':''}>${p.name}${p.unvan?' · '+p.unvan:''}</option>`).join(''); })()}
           </select></div>
       </div>
 
@@ -6784,6 +6790,14 @@ function submitQuote(){
   const girisMetni = document.getElementById('qGiris').value;
   const notlar = document.getElementById('qNotlar') ? document.getElementById('qNotlar').value : DEFAULT_NOTES;
   const items = quoteLineItems.filter(i=>i.title);
+  // Teklifte yazılan yeni ürünler kataloğa eklenir — sonraki tekliflerde ilk harften otomatik tamamlanır
+  items.forEach(it => {
+    const ad = String(it.title).trim();
+    if(!ad) return;
+    if(!PRODUCT_CATALOG.some(pr => pr.name.toLowerCase() === ad.toLowerCase())){
+      PRODUCT_CATALOG.push({ id: benzersizId('pr'), name: ad, price: Number(it.price) || 0 });
+    }
+  });
 
   let targetId;
   if(editingQuoteId){
@@ -7028,13 +7042,15 @@ function benimPersonelim(){
   }
   return (typeof personelByRol === 'function' ? personelByRol(CURRENT_ROLE) : null) || null;
 }
-function bildirimRole(rol, metin){
-  USERS.filter(u => u.role === rol).forEach(u => bildirimEkle(u.email, metin));
+function bildirimRole(rol, metin, ekstra){
+  const benimEmail = notKullanici();
+  USERS.filter(u => u.role === rol && u.email !== benimEmail).forEach(u => bildirimEkle(u.email, metin, 'bilgi', ekstra));
 }
 function openIsAcModal(qid){
   const q = QUOTES.find(x => x.id === qid); if(!q) return;
   const c = CUSTOMERS.find(x => x.id === q.customerId);
-  const per = PERSONELLER.filter(p => !p.arsiv);
+  let per = PERSONELLER.filter(p => !p.arsiv && (p.departman === 'Tasarım' || (p.kullanici && p.kullanici.rol === 'TASARIM')));
+  if(!per.length) per = PERSONELLER.filter(p => !p.arsiv);   // tasarım personeli tanımlı değilse tümü
   const standart = c && c.standartGrafikerId ? per.find(p => p.id === c.standartGrafikerId) : null;
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>İş Aç — ${q.no}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
@@ -7053,6 +7069,8 @@ function openIsAcModal(qid){
         <option value="KESIF" ${standart ? '' : 'selected'}>Keşif — önce ölçü / yerinde inceleme</option>
         <option value="TASARIM" ${standart ? 'selected' : ''}>Tasarım — doğrudan grafikere</option>
       </select></div>
+    <div class="field"><label>Keşif Notu <span style="font-weight:400;color:var(--ink-3);">(isteğe bağlı)</span></label>
+      <textarea id="iaNot" rows="2" placeholder="Örn. mevcut lightbox ölçüleri alınacak, gece girişi gerekiyor"></textarea></div>
     <button class="modal-submit" onclick="submitIsAc('${qid}')">İşi Aç</button>`;
   showModal();
 }
@@ -7061,16 +7079,18 @@ function submitIsAc(qid){
   const j = ensureJobForQuote(q);
   const asama = document.getElementById('iaAsama').value;
   j.stage = asama;
+  const kesifNotu = (document.getElementById('iaNot') || { value:'' }).value.trim();
+  if(kesifNotu){ if(!j.notes) j.notes = {}; j.notes.KESIF = kesifNotu; }
   const pid = document.getElementById('iaGrafiker').value;
   if(pid){
     const p = PERSONELLER.find(x => x.id === pid);
     j.assignees = p ? [p.name] : [];
-    if(p) bildirimAtama([p.id], `Size yeni iş atandı: ${j.code} · ${j.client} (${STAGE_LABELS_TR[asama]})`);
+    if(p) bildirimAtama([p.id], `Size yeni iş atandı: ${j.code} · ${j.client} (${STAGE_LABELS_TR[asama]})`, { jobId: j.id });
     closeModal(); renderContent();
     showToast(`${j.code} açıldı — ${p ? p.name : 'sorumlu'} atandı, ${STAGE_LABELS_TR[asama]} aşamasında.`);
   } else {
     j.assignees = [];
-    bildirimRole('TASARIM', `Havuza yeni iş düştü: ${j.code} · ${j.client} — Görev Yönetimi'nden üstlenebilirsiniz.`);
+    bildirimRole('TASARIM', `Havuza yeni iş düştü: ${j.code} · ${j.client} — Görev Yönetimi'nden üstlenebilirsiniz.`, { jobId: j.id });
     closeModal(); renderContent();
     showToast(`${j.code} açıldı — havuzda, grafikerlerden biri üstlenecek.`);
   }
@@ -7084,7 +7104,7 @@ function isiUstlen(id){
   const p = benimPersonelim();
   if(!p){ showToast('Hesabınıza bağlı personel kartı bulunamadı — atamayı yönetici yapabilir.'); return; }
   j.assignees = [p.name];
-  bildirimYoneticilere(`${p.name} işi üstlendi: ${j.code} · ${j.client}`);
+  bildirimYoneticilere(`${p.name} işi üstlendi: ${j.code} · ${j.client}`, 'bilgi', { jobId: j.id });
   renderContent();
   showToast(`${j.code} artık sizde — kolay gelsin!`);
 }
@@ -7095,8 +7115,8 @@ function isiHavuzaBirak(id){
   if(!yetkili){ showToast('İşi yalnız sorumlusu veya yönetici havuza bırakabilir.'); return; }
   const eski = (j.assignees || []).join(', ');
   j.assignees = [];
-  bildirimRole('TASARIM', `İş havuza geri bırakıldı: ${j.code} · ${j.client} — üstlenebilirsiniz.`);
-  bildirimYoneticilere(`${eski || 'Sorumlu'} işi havuza bıraktı: ${j.code} · ${j.client}`);
+  bildirimRole('TASARIM', `İş havuza geri bırakıldı: ${j.code} · ${j.client} — üstlenebilirsiniz.`, { jobId: j.id });
+  bildirimYoneticilere(`${eski || 'Sorumlu'} işi havuza bıraktı: ${j.code} · ${j.client}`, 'bilgi', { jobId: j.id });
   closeDrawer(); renderContent();
   showToast('İş havuza bırakıldı.');
 }
@@ -7379,14 +7399,16 @@ function bildirimEkle(aliciEmail, metin, tip, ekstra){
   if(typeof liveMarkDirty === 'function') liveMarkDirty();
 }
 function bildirimYoneticilere(metin, tip, ekstra){
-  USERS.filter(u => u.role === 'YONETICI').forEach(u => bildirimEkle(u.email, metin, tip, ekstra));
+  const benimEmail = notKullanici();
+  USERS.filter(u => u.role === 'YONETICI' && u.email !== benimEmail)
+       .forEach(u => bildirimEkle(u.email, metin, tip, ekstra));
 }
 // Personel kimliklerinden kullanıcı hesabı olanlara atama bildirimi (kendine bildirim gitmez)
-function bildirimAtama(personelIds, metin){
+function bildirimAtama(personelIds, metin, ekstra){
   (personelIds || []).forEach(pid => {
     const p = PERSONELLER.find(x => x.id === pid);
     if(p && p.kullanici && p.kullanici.email && p.kullanici.email !== notKullanici())
-      bildirimEkle(p.kullanici.email, metin, 'atama');
+      bildirimEkle(p.kullanici.email, metin, 'atama', ekstra);
   });
 }
 function benimBildirimlerim(){ return BILDIRIMLER.filter(b => b.alici === notKullanici()); }
@@ -7417,11 +7439,21 @@ function bildirimSatirHtml(b){
       <button class="onay" onclick="event.stopPropagation(); bildirimSilmeOnayla('${b.id}')">Teklifi Sil</button>
       <button class="red" onclick="event.stopPropagation(); bildirimSilmeReddet('${b.id}')">Reddet</button></div>`;
   }
-  return `<div class="bildirim-satir ${b.okundu ? '' : 'yeni'}">
+  return `<div class="bildirim-satir ${b.okundu ? '' : 'yeni'}"${b.jobId ? ` style="cursor:pointer;" title="İşi aç" onclick="bildirimIseGit('${b.jobId}')"` : ''}>
     <span class="bildirim-ikon">${IKON[b.tip] || '🔔'}</span>
     <div class="bildirim-metin">${notEsc(b.metin)}${aksiyon}
       <div class="bildirim-zaman">${notZamanStr(b.tarih)}</div></div>
   </div>`;
+}
+function bildirimIseGit(jobId){
+  const j = JOBS.find(x => x.id === jobId);
+  if(!j){ showToast('Bu iş artık bulunamıyor (silinmiş olabilir).'); return; }
+  bildirimAcik = false; renderBildirimler();
+  pushHistory();
+  currentPage = 'gorev-yonetimi'; gorevSub = 'tum-isler'; boardFilterStage = null; openSubmenu = 'gorev-yonetimi';
+  renderNav(); renderContent();
+  if(typeof menuDaralt === 'function') menuDaralt(true);
+  openJobDrawer(jobId);
 }
 function renderBildirimler(){
   const wrap = document.getElementById('bildirimWrap');
