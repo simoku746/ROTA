@@ -121,21 +121,26 @@ button,input,select,textarea{font-family:inherit;}
 .sidebar{transition:width .18s ease,padding .18s ease;}
 /* Daraltılmış menü (yalnız masaüstü): ikon şeridi */
 @media (min-width:881px){
-  .shell.menu-dar .sidebar{width:56px;padding:14px 6px;cursor:pointer;}
-  .shell.menu-dar .brand{flex-direction:column;gap:10px;padding:2px 0 12px;}
-  .shell.menu-dar .brand-ad{display:none;}
-  .shell.menu-dar .brand-tools{flex-direction:column;gap:6px;}
+  /* Daraltılmış modda menü sabit şerittir; fare üzerine gelince içeriği itmeden üstte açılır */
+  .shell.menu-dar{padding-left:56px;}
+  .shell.menu-dar .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:95;overflow-y:auto;overflow-x:hidden;}
+  .shell.menu-dar .sidebar:hover{box-shadow:var(--shadow-md);}
   .shell.menu-dar #menuDarBtn{display:none;}
-  .shell.menu-dar .nav button{justify-content:center;padding:0;gap:0;height:34px;}
-  .shell.menu-dar .nav-item-label,.shell.menu-dar .nav-chevron,.shell.menu-dar .badge-new{display:none;}
-  .shell.menu-dar .nav-item-icon{width:auto;font-size:15px;opacity:.9;}
-  .shell.menu-dar .nav button.active::before{left:-6px;}
-  .shell.menu-dar .subnav{display:none !important;}
-  .shell.menu-dar .sidebar-foot{align-items:center;}
-  .shell.menu-dar .sidebar-user{justify-content:center;}
-  .shell.menu-dar .sidebar-user > div:last-child{display:none;}
-  .shell.menu-dar .logout-link{display:none;}
-  .shell.menu-dar .sidebar:hover{background:var(--surface-sunk);}
+  .shell.menu-dar .sidebar:not(:hover){width:56px;padding:14px 6px;}
+  .shell.menu-dar .sidebar:not(:hover) .brand{flex-direction:column;gap:10px;padding:2px 0 12px;}
+  .shell.menu-dar .sidebar:not(:hover) .brand-ad{display:none;}
+  .shell.menu-dar .sidebar:not(:hover) .brand-tools{flex-direction:column;gap:6px;}
+  .shell.menu-dar .sidebar:not(:hover) .nav button{justify-content:center;padding:0;gap:0;height:34px;}
+  .shell.menu-dar .sidebar:not(:hover) .nav-item-label,
+  .shell.menu-dar .sidebar:not(:hover) .nav-chevron,
+  .shell.menu-dar .sidebar:not(:hover) .badge-new{display:none;}
+  .shell.menu-dar .sidebar:not(:hover) .nav-item-icon{width:auto;font-size:15px;opacity:.9;}
+  .shell.menu-dar .sidebar:not(:hover) .nav button.active::before{left:-6px;}
+  .shell.menu-dar .sidebar:not(:hover) .subnav{display:none !important;}
+  .shell.menu-dar .sidebar:not(:hover) .sidebar-foot{align-items:center;}
+  .shell.menu-dar .sidebar:not(:hover) .sidebar-user{justify-content:center;}
+  .shell.menu-dar .sidebar:not(:hover) .sidebar-user > div:last-child{display:none;}
+  .shell.menu-dar .sidebar:not(:hover) .logout-link{display:none;}
 }
 .nav{display:flex;flex-direction:column;gap:1px;}
 .nav button{display:flex;align-items:center;gap:9px;height:31px;padding:0 9px;
@@ -1258,7 +1263,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07b';
+window.ROTA_SURUM = 'v2026-09-07c';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1486,16 +1491,9 @@ function menuDarMi(){ return document.getElementById('appRoot').classList.contai
 function menuDaralt(dar){
   if(dar && window.innerWidth <= 880){ return; }   // mobilde hamburger düzeni geçerli (genişletme her zaman serbest)
   document.getElementById('appRoot').classList.toggle('menu-dar', !!dar);
-  const sb = document.querySelector('.sidebar');
-  if(sb) sb.title = dar ? 'Menüyü açmak için tıklayın' : '';
 }
-// Daraltılmış şeride tıklanınca önce menü açılır (gezinme o tıklamada çalışmaz)
-document.querySelector('.sidebar').addEventListener('click', function(e){
-  if(!menuDarMi()) return;
-  e.stopPropagation();
-  e.preventDefault();
-  menuDaralt(false);
-}, true);
+// Daraltılmış menü fare üzerine gelince kendiliğinden açılır (CSS :hover),
+// fare ayrılınca kapanır; tıklamalar doğrudan çalışır.
 
 function toggleMobileSidebar(){
   document.querySelector('.sidebar').classList.toggle('mobile-open');
