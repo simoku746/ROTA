@@ -199,6 +199,9 @@ button,input,select,textarea{font-family:inherit;}
 .btn-revise{background:var(--surface);color:var(--ink-2);}
 .btn-complete{width:100%;height:34px;background:var(--ink);color:var(--surface);border:none;
   border-radius:6px;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:12px;}
+.ustlen-btn{width:100%;margin-top:8px;height:28px;border:1.5px dashed var(--signal);border-radius:6px;
+  background:var(--signal-soft);color:var(--signal);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+.ustlen-btn:hover{background:var(--signal);color:#fff;}
 .add-task-btn,.add-line-btn{width:100%;height:30px;background:none;border:1px dashed var(--line-strong);
   border-radius:6px;color:var(--ink-3);font-size:12.5px;cursor:pointer;font-family:inherit;}
 .add-task-btn:hover,.add-line-btn:hover{border-color:var(--ink-3);color:var(--ink);}
@@ -1268,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07m';
+window.ROTA_SURUM = 'v2026-09-07n';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5100,6 +5103,7 @@ function planlamaView(){
                 <span class="due">${j.due||''}</span>
                 <span style="display:flex;">${(j.assignees||[]).slice(0,3).map(a=>`<span class="mini-avatar" title="${a}" style="margin-left:-6px; border:2px solid var(--surface-sunk);">${initials(a)}</span>`).join('') || '<span class="mini-avatar">?</span>'}${(j.assignees||[]).length>3 ? `<span class="mini-avatar" style="margin-left:-6px; border:2px solid var(--surface-sunk);">+${j.assignees.length-3}</span>` : ''}</span>
               </div>
+              ${(!j.assignees || !j.assignees.length) ? `<button class="ustlen-btn" onclick="event.stopPropagation(); isiUstlen('${j.id}')">🖐 İşi Üstlen</button>` : ''}
               ${j.stage==='TASARIM' && j.approval!=='ONAYLANDI' ? `<div class="locked">🔒 ${j.approval==='REVIZYON' ? 'Revizyon istendi' : 'Onay bekliyor'}</div>` : ''}
               ${(() => { const b = planBlogu(j); return b ? `<div class="plan-rozet" title="Haftalık planda">📅 ${planBlogMetni(b)}</div>` : ''; })()}
             </div>
@@ -5195,6 +5199,7 @@ function openJobDrawer(id){
       <span class="v" style="text-align:right;">
         ${(j.assignees&&j.assignees.length) ? j.assignees.join(', ') : 'Atanmadı'}<br>
         <button onclick="openReassignModal('${j.id}')" style="background:none; border:none; color:var(--ink-2); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:2px 0;">Değiştir</button>
+        ${(j.assignees && j.assignees.length) ? `<button onclick="isiHavuzaBirak('${j.id}')" style="background:none; border:none; color:var(--ink-3); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:2px 0 2px 10px;">Havuza bırak</button>` : ''}
       </span>
     </div>
     <div class="drawer-row"><span class="k">Teslim Tarihi</span><span class="v">${j.due||'—'}</span></div>
@@ -6012,6 +6017,11 @@ function kisilerForm(){
           <div class="field"><label>Kampanya</label><input id="pKampanya" value="${editing?.kampanya||''}" placeholder="Varsa kampanya adı"></div>
         </div>
         <div class="field"><label>Temsilci</label><select id="pTemsilci">${staffOptions}</select></div>
+        <div class="field"><label>Standart Grafiker <span style="font-weight:400;color:var(--ink-3);">(bu müşterinin işleri hep aynı grafikere gidiyorsa)</span></label>
+          <select id="pStandartGrafiker">
+            <option value="">— Yok, işler havuzdan üstlenilir —</option>
+            ${PERSONELLER.filter(p=>!p.arsiv).map(p=>`<option value="${p.id}" ${editing && editing.standartGrafikerId===p.id?'selected':''}>${p.name}${p.unvan?' · '+p.unvan:''}</option>`).join('')}
+          </select></div>
       </div>
 
       <div class="form-block">
@@ -6150,6 +6160,7 @@ function submitPersonForm(){
     kaynak: document.getElementById('pKaynak').value,
     kampanya: document.getElementById('pKampanya').value,
     temsilci: document.getElementById('pTemsilci').value,
+    standartGrafikerId: (document.getElementById('pStandartGrafiker') || {}).value || '',
     sektor: document.getElementById('pSektor').value,
     durum: document.getElementById('pDurum').value,
     etiket: document.getElementById('pEtiket').value,
@@ -6953,15 +6964,94 @@ function changeQuoteStatus(id, status){
   q.status = status;
   if(status === 'Kabul Edildi' || status === 'Faturalandı'){
     q.sonuc = 'Kazanıldı';
-    const j = ensureJobForQuote(q);
+    if(!q.jobId){ renderContent(); openIsAcModal(q.id); return; }
     renderContent();
-    showToast(j.yeni ? `Teklif kabul edildi — ${j.code} işi Keşif aşamasında açıldı.` : `Durum "${status}" olarak güncellendi.`);
+    showToast(`Durum "${status}" olarak güncellendi.`);
     return;
   }
   if(status === 'Reddedildi') q.sonuc = 'Kaybedildi';
   else q.sonuc = 'Sonuçlandırılmamış';
   renderContent();
   showToast(`Durum "${status}" olarak güncellendi.`);
+}
+// ---- İş Aç penceresi: grafiker ata veya havuza bırak ----
+function benimPersonelim(){
+  if(typeof LIVE !== 'undefined' && LIVE.user){
+    return PERSONELLER.find(p => p.kullanici && p.kullanici.email === LIVE.user.email) || null;
+  }
+  return (typeof personelByRol === 'function' ? personelByRol(CURRENT_ROLE) : null) || null;
+}
+function bildirimRole(rol, metin){
+  USERS.filter(u => u.role === rol).forEach(u => bildirimEkle(u.email, metin));
+}
+function openIsAcModal(qid){
+  const q = QUOTES.find(x => x.id === qid); if(!q) return;
+  const c = CUSTOMERS.find(x => x.id === q.customerId);
+  const per = PERSONELLER.filter(p => !p.arsiv);
+  const standart = c && c.standartGrafikerId ? per.find(p => p.id === c.standartGrafikerId) : null;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>İş Aç — ${q.no}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="note" style="margin-bottom:12px;"><b>${c ? notEsc(c.name) : 'Müşteri seçilmedi'}</b> · ₺${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}<br>
+      <span style="color:var(--ink-3);">${notEsc(q.items.map(i => i.title).filter(Boolean).join(', '))}</span></div>
+    <div class="field"><label>Grafiker / Sorumlu</label>
+      <select id="iaGrafiker">
+        <option value="">— Havuza bırak: grafiker işi kendisi üstlensin —</option>
+        ${per.map(p => `<option value="${p.id}" ${standart && standart.id === p.id ? 'selected' : ''}>${notEsc(p.name)}${p.unvan ? ' · ' + notEsc(p.unvan) : ''}</option>`).join('')}
+      </select>
+      ${standart ? `<div class="hint" style="margin-top:5px;">${notEsc(c.name)} için standart grafiker: <b>${notEsc(standart.name)}</b> — önseçili geldi.</div>`
+                 : `<div class="hint" style="margin-top:5px;">Bu müşterinin standart grafikeri yok. Müşteri kartından tanımlarsanız bir dahaki sefere önseçili gelir.</div>`}
+    </div>
+    <div class="field"><label>Başlangıç Aşaması</label>
+      <select id="iaAsama">
+        <option value="KESIF" ${standart ? '' : 'selected'}>Keşif — önce ölçü / yerinde inceleme</option>
+        <option value="TASARIM" ${standart ? 'selected' : ''}>Tasarım — doğrudan grafikere</option>
+      </select></div>
+    <button class="modal-submit" onclick="submitIsAc('${qid}')">İşi Aç</button>`;
+  showModal();
+}
+function submitIsAc(qid){
+  const q = QUOTES.find(x => x.id === qid); if(!q) return;
+  const j = ensureJobForQuote(q);
+  const asama = document.getElementById('iaAsama').value;
+  j.stage = asama;
+  const pid = document.getElementById('iaGrafiker').value;
+  if(pid){
+    const p = PERSONELLER.find(x => x.id === pid);
+    j.assignees = p ? [p.name] : [];
+    if(p) bildirimAtama([p.id], `Size yeni iş atandı: ${j.code} · ${j.client} (${STAGE_LABELS_TR[asama]})`);
+    closeModal(); renderContent();
+    showToast(`${j.code} açıldı — ${p ? p.name : 'sorumlu'} atandı, ${STAGE_LABELS_TR[asama]} aşamasında.`);
+  } else {
+    j.assignees = [];
+    bildirimRole('TASARIM', `Havuza yeni iş düştü: ${j.code} · ${j.client} — Görev Yönetimi'nden üstlenebilirsiniz.`);
+    closeModal(); renderContent();
+    showToast(`${j.code} açıldı — havuzda, grafikerlerden biri üstlenecek.`);
+  }
+}
+function isiUstlen(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  if(j.assignees && j.assignees.length){
+    showToast('Bu iş az önce üstlenildi: ' + j.assignees.join(', '));
+    renderContent(); return;
+  }
+  const p = benimPersonelim();
+  if(!p){ showToast('Hesabınıza bağlı personel kartı bulunamadı — atamayı yönetici yapabilir.'); return; }
+  j.assignees = [p.name];
+  bildirimYoneticilere(`${p.name} işi üstlendi: ${j.code} · ${j.client}`);
+  renderContent();
+  showToast(`${j.code} artık sizde — kolay gelsin!`);
+}
+function isiHavuzaBirak(id){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  const p = benimPersonelim();
+  const yetkili = CURRENT_ROLE === 'YONETICI' || (p && (j.assignees || []).includes(p.name));
+  if(!yetkili){ showToast('İşi yalnız sorumlusu veya yönetici havuza bırakabilir.'); return; }
+  const eski = (j.assignees || []).join(', ');
+  j.assignees = [];
+  bildirimRole('TASARIM', `İş havuza geri bırakıldı: ${j.code} · ${j.client} — üstlenebilirsiniz.`);
+  bildirimYoneticilere(`${eski || 'Sorumlu'} işi havuza bıraktı: ${j.code} · ${j.client}`);
+  closeDrawer(); renderContent();
+  showToast('İş havuza bırakıldı.');
 }
 // Teklif için iş yoksa açar, varsa mevcut olanı döndürür (idempotent)
 function ensureJobForQuote(q){
@@ -6974,7 +7064,7 @@ function ensureJobForQuote(q){
     desc: q.items.map(i => i.title).filter(Boolean).join(', ') || 'Teklif kapsamındaki iş',
     material: q.items.map(i => i.detail).filter(Boolean).join(' · '),
     stage:'KESIF', approval:null,
-    assignees: q.repName ? [q.repName] : [],
+    assignees: [],
     due: q.gecerlilik ? formatDate(q.gecerlilik) : '',
     tutar: Math.round(quoteTotal(q)),
     quoteId: q.id, quoteNo: q.no,
@@ -6986,7 +7076,8 @@ function ensureJobForQuote(q){
 }
 function openJobFromQuote(qid){
   const q = QUOTES.find(x => x.id === qid);
-  if(!q || !q.jobId){ showToast('Bu teklif için henüz iş açılmadı.'); return; }
+  if(!q) return;
+  if(!q.jobId){ openIsAcModal(qid); return; }
   pushHistory();
   currentPage = 'gorev-yonetimi'; gorevSub = 'tum-isler'; openSubmenu = 'gorev-yonetimi';
   renderNav(); renderContent();
