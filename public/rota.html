@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07u';
+window.ROTA_SURUM = 'v2026-09-07v';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5412,11 +5412,15 @@ function ieRender(id){
   const cbGrup = (grup, liste) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin-bottom:10px;">
     ${liste.map(([k, ad]) => `<label class="checkbox-row" style="padding:5px 4px;font-size:12px;">
       <input type="checkbox" ${e[grup][k] ? 'checked' : ''} onchange="ieCheck('${id}','${grup}','${k}',this.checked)"> ${ad}</label>`).join('')}</div>`;
-  const per = PERSONELLER.filter(p => !p.arsiv);
-  const perSec = (ad, deger) => `<select onchange="ieAlan('${id}','${ad}',this.value)">
+  const aktif = PERSONELLER.filter(p => !p.arsiv);
+  const listeYaDaHepsi = f => { const l = aktif.filter(f); return l.length ? l : aktif; };
+  const tasarimcilar = listeYaDaHepsi(p => p.departman === 'Tasarım' || (p.kullanici && p.kullanici.rol === 'TASARIM'));
+  const yoneticiler  = listeYaDaHepsi(p => p.kullanici && p.kullanici.rol === 'YONETICI');
+  const sahacilar    = listeYaDaHepsi(p => p.departman === 'Üretim' || p.departman === 'Montaj' || (p.kullanici && (p.kullanici.rol === 'URETIM' || p.kullanici.rol === 'MONTAJ')));
+  const perSecL = (liste, ad, deger) => `<select onchange="ieAlan('${id}','${ad}',this.value)">
     <option value="">— Seçiniz —</option>
-    ${per.map(p => `<option ${deger === p.name ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('')}
-    ${deger && !per.some(p => p.name === deger) ? `<option selected>${notEsc(deger)}</option>` : ''}</select>`;
+    ${liste.map(p => `<option ${deger === p.name ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('')}
+    ${deger && !liste.some(p => p.name === deger) ? `<option selected>${notEsc(deger)}</option>` : ''}</select>`;
 
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head" style="margin-bottom:12px;">
@@ -5437,8 +5441,8 @@ function ieRender(id){
       ${alan('Sipariş Adet', txt('siparisAdet', e.siparisAdet, 'Örn. 1+1 adet'))}
       ${alan('Teslim Tarihi', tarih('teslimTarihi', e.teslimTarihi))}
       ${alan('Montaj Tarihi', tarih('montajTarihi', e.montajTarihi))}
-      ${alan('Koordinatör', perSec('koordinator', e.koordinator))}
-      ${alan('Grafiker', perSec('grafiker', e.grafiker))}
+      ${alan('Koordinatör', perSecL(yoneticiler, 'koordinator', e.koordinator))}
+      ${alan('Grafiker', perSecL(tasarimcilar, 'grafiker', e.grafiker))}
     </div>
     ${alan('İşin Genel Açıklaması', `<textarea rows="2" onchange="ieAlan('${id}','genelAciklama',this.value)" placeholder="Örn. TAV Bodrum iç hatlar bagaj alım salonundaki mevcut lightbox görselinin değiştirilmesi">${notEsc(e.genelAciklama)}</textarea>`)}
 
@@ -5493,7 +5497,7 @@ function ieRender(id){
       ${alan('Montaj Yeri / Lokasyon', txt('montajYeri', e.montajYeri, 'Örn. TAV Bodrum Havalimanı'))}
       ${alan('Alan / Bölüm', txt('montajAlan', e.montajAlan, 'Örn. İç hatlar bagaj alım salonu'))}
       ${alan('Montaj Saati', `<input type="time" value="${e.montajSaati || ''}" onchange="ieAlan('${id}','montajSaati',this.value)">`)}
-      ${alan('Ekip Lideri', perSec('ekipLideri', e.ekipLideri))}
+      ${alan('Ekip Lideri', perSecL(sahacilar, 'ekipLideri', e.ekipLideri))}
       ${alan('Saha Yetkilisi Telefonu', txt('sahaTelefon', e.sahaTelefon, '05xx xxx xx xx'))}
       ${alan('Montaj Öncesi Ölçü', txt('montajOncesiOlcu', e.montajOncesiOlcu, 'Örn. 6500 × 1800 mm — yerinde doğrulandı'))}
       ${alan('İSG / Giriş Belgesi', sec('isg', e.isg, [['gerekli','Gerekli'],['tamam','Gerekli — tamamlandı'],['gerekmez','Gerekmez']]))}
@@ -5533,11 +5537,8 @@ function ieRender(id){
 
     ${bolum('H','Montaj Sonu Kapanış')}
     ${cbGrup('kapanis', IE_KAPANIS)}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
-      ${alan('Eksik / Sorun / Not', txt('eksikNot', e.eksikNot, 'Varsa yazın'))}
-      ${alan('Montajı Yapan', perSec('montajYapan', e.montajYapan))}
-      ${alan('Kontrol Eden', perSec('kontrolEden', e.kontrolEden))}
-    </div>
+    ${alan('Eksik / Sorun / Not', txt('eksikNot', e.eksikNot, 'Varsa yazın'))}
+    <div class="hint" style="margin:-2px 0 8px;">Montaj sonu kapanışı sahada, yazdırılan form üzerinde elle doldurulur — "Montajı Yapan" ve "Kontrol Eden" için kağıtta boş alan bırakılır.</div>
 
     <div style="display:flex;gap:8px;margin-top:10px;">
       <button class="btn" style="flex:1;height:38px;" onclick="ieKapat()">Kaydet ve Kapat</button>
@@ -5801,14 +5802,14 @@ function isEmriPrintHtml(j){
 
   ${bolum('H','Montaj Sonu Kapanış', `<div class="cb-alan" style="border-bottom:1px solid #D1D5DB;">${IE_KAPANIS.map(([k, ad]) => kut(!!e.kapanis[k], ad)).join('')}</div>
   <table class="bilgi" style="margin-top:-1px;">
-    ${bilgiSat([[ 'Eksik / Sorun', esc(e.eksikNot)], ['Montajı Yapan', esc(e.montajYapan)]])}
+    ${bilgiSat([[ 'Eksik / Sorun', e.eksikNot ? esc(e.eksikNot) : '&nbsp;'], ['Montajı Yapan', '&nbsp;']])}
   </table>`)}
 
   <div class="imzalar">
     <div class="imza"><b>Hazırlayan</b><span>Ad / İmza / Tarih</span></div>
     <div class="imza"><b>Üretim Sorumlusu</b><span>Ad / İmza / Tarih</span></div>
     <div class="imza"><b>Montaj Ekip Lideri</b><span>Ad / İmza / Tarih</span></div>
-    <div class="imza"><b>Koordinatör Teslim${e.kontrolEden ? ' — ' + notEsc(e.kontrolEden) : ''}</b><span>Ad / İmza / Tarih</span></div>
+    <div class="imza"><b>Koordinatör Teslim</b><span>Ad / İmza / Tarih</span></div>
   </div>
   <div class="alt"><span>${notEsc(AGENCY.name)} · ${notEsc(AGENCY.address || '')}</span><span>${notEsc(e.emriNo)} · ${notEsc(j.code)} · ROTA ile oluşturuldu · ${bugun}</span></div>
   </body></html>`;
