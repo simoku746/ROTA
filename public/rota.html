@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07x';
+window.ROTA_SURUM = 'v2026-09-07y';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1299,6 +1299,16 @@ function veriOnar(){
   });
   const g2 = new Set();
   (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
+  // Teklif geçerliliği yanlışlıkla teslim tarihi olarak kopyalanmış işler temizlenir
+  (JOBS || []).forEach(j => {
+    if(!j.quoteId || !j.due) return;
+    const q = QUOTES.find(x => x.id === j.quoteId);
+    if(q && q.gecerlilik && j.due === formatDate(q.gecerlilik)){
+      const e = j.isEmri;
+      j.due = (e && e.teslimTarihi) ? formatDate(e.teslimTarihi) : '';
+      degisti = true;
+    }
+  });
   // Teklife müşteri adı notu: cari silinse bile teklifte ad görünsün
   (QUOTES || []).forEach(q => {
     if(!q.musteriAdi){
@@ -5575,6 +5585,7 @@ function ieRender(id){
 function ieAlan(id, ad, deger){
   const j = JOBS.find(x => x.id === id); if(!j) return;
   ieVarsayilan(j)[ad] = deger;
+  if(ad === 'teslimTarihi') j.due = deger ? formatDate(deger) : '';   // kartlarda görünen teslim tarihi
   ieKirli();
 }
 function ieCheck(id, grup, ad, deger){
@@ -7273,7 +7284,7 @@ function ensureJobForQuote(q){
     material: q.items.map(i => i.detail).filter(Boolean).join(' · '),
     stage:'KESIF', approval:null,
     assignees: [],
-    due: q.gecerlilik ? formatDate(q.gecerlilik) : '',
+    due: '',   // teslim tarihi İş Emri'nden gelir; teklif geçerliliğiyle karıştırılmaz
     tutar: Math.round(quoteTotal(q)),
     quoteId: q.id, quoteNo: q.no,
     yeni: true,
