@@ -118,6 +118,25 @@ button,input,select,textarea{font-family:inherit;}
   display:flex;align-items:center;justify-content:center;font-size:13px;}
 .brand-status{width:6px;height:6px;border-radius:999px;background:var(--ok);}
 
+.sidebar{transition:width .18s ease,padding .18s ease;}
+/* Daraltılmış menü (yalnız masaüstü): ikon şeridi */
+@media (min-width:881px){
+  .shell.menu-dar .sidebar{width:56px;padding:14px 6px;cursor:pointer;}
+  .shell.menu-dar .brand{flex-direction:column;gap:10px;padding:2px 0 12px;}
+  .shell.menu-dar .brand-ad{display:none;}
+  .shell.menu-dar .brand-tools{flex-direction:column;gap:6px;}
+  .shell.menu-dar #menuDarBtn{display:none;}
+  .shell.menu-dar .nav button{justify-content:center;padding:0;gap:0;height:34px;}
+  .shell.menu-dar .nav-item-label,.shell.menu-dar .nav-chevron,.shell.menu-dar .badge-new{display:none;}
+  .shell.menu-dar .nav-item-icon{width:auto;font-size:15px;opacity:.9;}
+  .shell.menu-dar .nav button.active::before{left:-6px;}
+  .shell.menu-dar .subnav{display:none !important;}
+  .shell.menu-dar .sidebar-foot{align-items:center;}
+  .shell.menu-dar .sidebar-user{justify-content:center;}
+  .shell.menu-dar .sidebar-user > div:last-child{display:none;}
+  .shell.menu-dar .logout-link{display:none;}
+  .shell.menu-dar .sidebar:hover{background:var(--surface-sunk);}
+}
 .nav{display:flex;flex-direction:column;gap:1px;}
 .nav button{display:flex;align-items:center;gap:9px;height:31px;padding:0 9px;
   border-radius:6px;font-family:var(--font-body);font-size:12.5px;font-weight:500;
@@ -1140,8 +1159,9 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
   <div class="sidebar">
     <div class="brand">
-      <div class="brand-left" style="cursor:pointer;" onclick="goTo('ana-sayfa')" title="Ana Sayfa'ya git"><span class="brand-logo">R</span>ROTA</div>
+      <div class="brand-left" style="cursor:pointer;" onclick="goTo('ana-sayfa')" title="Ana Sayfa'ya git"><span class="brand-logo">R</span><span class="brand-ad">ROTA</span></div>
       <div class="brand-tools">
+        <button class="brand-btn" id="menuDarBtn" onclick="menuDaralt(true)" title="Menüyü daralt" style="font-size:13px;">«</button>
         <button class="brand-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Koyu / açık tema">
           <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z"/></svg>
         </button>
@@ -1238,7 +1258,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07a';
+window.ROTA_SURUM = 'v2026-09-07b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1445,7 +1465,7 @@ function renderNav(){
     let html = `
       <button class="${isActiveParent && !p.hasSub ?'active':''}" onclick="${clickHandler}">
         <span class="nav-item-icon">${p.icon}</span>
-        ${p.label}
+        <span class="nav-item-label">${p.label}</span>
         ${p.isNew ? '<span class="badge-new">YENİ</span>' : ''}
         ${p.hasSub ? `<span class="nav-chevron ${openSubmenu===p.key?'rot':''}">›</span>` : ''}
       </button>
@@ -1462,6 +1482,21 @@ function renderNav(){
     return html;
   }).join('');
 }
+function menuDarMi(){ return document.getElementById('appRoot').classList.contains('menu-dar'); }
+function menuDaralt(dar){
+  if(dar && window.innerWidth <= 880){ return; }   // mobilde hamburger düzeni geçerli (genişletme her zaman serbest)
+  document.getElementById('appRoot').classList.toggle('menu-dar', !!dar);
+  const sb = document.querySelector('.sidebar');
+  if(sb) sb.title = dar ? 'Menüyü açmak için tıklayın' : '';
+}
+// Daraltılmış şeride tıklanınca önce menü açılır (gezinme o tıklamada çalışmaz)
+document.querySelector('.sidebar').addEventListener('click', function(e){
+  if(!menuDarMi()) return;
+  e.stopPropagation();
+  e.preventDefault();
+  menuDaralt(false);
+}, true);
+
 function toggleMobileSidebar(){
   document.querySelector('.sidebar').classList.toggle('mobile-open');
   document.getElementById('sidebarBackdrop').classList.toggle('show');
@@ -1512,11 +1547,13 @@ function selectSub(parentKey, subKey){
   if(parentKey==='gorev-yonetimi'){ gtAssigneeFilter = ''; gtSearchQuery = ''; }
   renderNav(); renderContent();
   closeMobileSidebar();
+  menuDaralt(true);
 }
 function goTo(key){
   if(key !== currentPage) pushHistory();
   if(key === 'ana-sayfa' && currentPage !== 'ana-sayfa' && sozSirasi !== null) sozSirasi++;
   currentPage = key; kisilerStep = 'list'; editingCustomerId = null; teklifStep = 'list'; boardFilterStage = null; gtAssigneeFilter = ''; gtSearchQuery = ''; if(!SUBMENUS[key]) openSubmenu = null; renderNav(); renderContent(); closeMobileSidebar();
+  menuDaralt(true);
 }
 
 function renderContent(){
