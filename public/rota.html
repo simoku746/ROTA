@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07r';
+window.ROTA_SURUM = 'v2026-09-07s';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1299,6 +1299,15 @@ function veriOnar(){
   });
   const g2 = new Set();
   (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
+  // Teklife müşteri adı notu: cari silinse bile teklifte ad görünsün
+  (QUOTES || []).forEach(q => {
+    if(!q.musteriAdi){
+      const c = CUSTOMERS.find(x => x.id === q.customerId);
+      const j = q.jobId ? JOBS.find(x => x.id === q.jobId) : null;
+      const ad = (c && c.name) || (j && j.client && j.client !== 'Müşteri seçilmedi' ? j.client : '');
+      if(ad){ q.musteriAdi = ad; degisti = true; }
+    }
+  });
   // Eski kayıtlara kimlik ekle — düzenle/sil için gerekli
   (GELIRLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('ge'); degisti = true; } });
   (GIDERLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('gi'); degisti = true; } });
@@ -6031,7 +6040,12 @@ function closeDrawer(){
 function deleteCustomer(id){
   const c = CUSTOMERS.find(x=>x.id===id);
   if(!c) return;
-  if(!confirm(`${c.name} kalıcı olarak silinecek. Emin misiniz?`)) return;
+  const teklifSayisi = QUOTES.filter(q => q.customerId === id).length;
+  const isSayisi = JOBS.filter(j => j.customerId === id).length;
+  const uyari = (teklifSayisi || isSayisi)
+    ? `\n\nDİKKAT: Bu cariye bağlı ${teklifSayisi} teklif ve ${isSayisi} iş var. Kayıtlar silinmez ama cari bağlantıları "(silinmiş cari)" olarak görünür.`
+    : '';
+  if(!confirm(`${c.name} kalıcı olarak silinecek. Emin misiniz?${uyari}`)) return;
   CUSTOMERS = CUSTOMERS.filter(x=>x.id!==id);
   closeDrawer();
   renderContent();
@@ -6299,6 +6313,12 @@ function teklifYanFiltre(alan, deger){
   teklifFiltre[alan] = (teklifFiltre[alan] === deger) ? '' : deger;
   renderContent();
 }
+function teklifMusteriAdi(q){
+  const c = CUSTOMERS.find(x => x.id === q.customerId);
+  if(c) return c.name;
+  if(q.musteriAdi) return q.musteriAdi + ' (silinmiş cari)';
+  return 'Müşteri seçilmedi';
+}
 function teklifGecerlilikDurumu(q){
   if(!q.gecerlilik) return '';
   const n = daysLeft(q.gecerlilik);
@@ -6386,8 +6406,7 @@ function teklifListView(){
     <div class="tk-wrap">
       <div class="tk-list">
         ${liste.length ? liste.map(q => {
-          const cust = CUSTOMERS.find(c => c.id === q.customerId);
-          const ad = cust ? cust.name : 'Müşteri seçilmedi';
+          const ad = teklifMusteriAdi(q);
           const g = teklifGecerlilikDurumu(q);
           return `<div class="tk-row" onclick="openQuoteView('${q.id}')">
             <div class="tk-av">${initialsOf(ad)}</div>
@@ -6822,6 +6841,7 @@ function submitQuote(){
   if(editingQuoteId){
     const q = QUOTES.find(x=>x.id===editingQuoteId);
     q.customerId = customerId; q.repName = repName; q.girisMetni = girisMetni; q.notlar = notlar; q.items = items; q.currency = quoteCurrency;
+    q.musteriAdi = (CUSTOMERS.find(c => c.id === customerId) || {}).name || q.musteriAdi;
     targetId = q.id;
     showToast(`Teklif No: ${q.no} güncellendi.`);
   } else {
@@ -6832,6 +6852,7 @@ function submitQuote(){
       status:'Taslak', girisMetni, notlar, items,
       tur:'Satış Teklifi', sonuc:'Sonuçlandırılmamış', etiketler:[],
       gecerlilik: isoPlus(60),
+      musteriAdi: (CUSTOMERS.find(c => c.id === customerId) || {}).name || '',
     };
     QUOTES.push(q);
     targetId = q.id;
@@ -6891,7 +6912,7 @@ function maliyetView(id){
       <div style="display:flex; gap:12px; align-items:center;">
         <button class="back-btn" onclick="teklifStep='view'; renderContent();">←</button>
         <div><div class="page-title">Maliyet Hesabı</div>
-        <div class="page-sub">${q.no} · ${c ? c.name : 'Müşteri seçilmedi'} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
+        <div class="page-sub">${q.no} · ${teklifMusteriAdi(q)} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
       </div>
     </div>
     <div class="body-two" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
@@ -7073,7 +7094,7 @@ function openIsAcModal(qid){
   const standart = c && c.standartGrafikerId ? per.find(p => p.id === c.standartGrafikerId) : null;
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>İş Aç — ${q.no}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="note" style="margin-bottom:12px;"><b>${c ? notEsc(c.name) : 'Müşteri seçilmedi'}</b> · ₺${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}<br>
+    <div class="note" style="margin-bottom:12px;"><b>${notEsc(teklifMusteriAdi(q))}</b> · ₺${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}<br>
       <span style="color:var(--ink-3);">${notEsc(q.items.map(i => i.title).filter(Boolean).join(', '))}</span></div>
     <div class="field"><label>Grafiker / Sorumlu</label>
       <select id="iaGrafiker">
@@ -7146,7 +7167,7 @@ function ensureJobForQuote(q){
   const c = CUSTOMERS.find(x => x.id === q.customerId);
   j = {
     id:'j'+Date.now(), code:yeniIsKodu(),
-    client: c ? c.name : 'Müşteri seçilmedi', customerId: q.customerId || null,
+    client: c ? c.name : (q.musteriAdi || 'Müşteri seçilmedi'), customerId: q.customerId || null,
     desc: q.items.map(i => i.title).filter(Boolean).join(', ') || 'Teklif kapsamındaki iş',
     material: q.items.map(i => i.detail).filter(Boolean).join(' · '),
     stage:'KESIF', approval:null,
