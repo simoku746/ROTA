@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08i';
+window.ROTA_SURUM = 'v2026-09-08j';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2161,6 +2161,117 @@ function planTipGoster(e, id){
 }
 function planTipGizle(){ const t = document.getElementById('hpTip'); if(t) t.style.display = 'none'; }
 
+// ---- Yazdırma: alan seç, A4/A3 yatay, tek sayfaya otomatik sığdır ----
+function openPlanYazdir(){
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Haftalık Planı Yazdır</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Alan</label>
+      <select id="pyAlan">${Object.keys(PLAN_DEPARTMANLAR).map(x =>
+        `<option ${planDepartman === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Kağıt</label>
+      <select id="pyKagit"><option value="A4">A4 Yatay</option><option value="A3">A3 Yatay</option></select></div>
+    <div class="hint" style="margin-top:0;">Seçilen alanın tüm personeli görüntülenen haftayla birlikte
+      <b>tek sayfaya</b> sığdırılır; yazı boyu kişi sayısına göre otomatik ölçeklenir.</div>
+    <button class="modal-submit" onclick="planYazdir()">Yazdır</button>`;
+  showModal();
+}
+function planYazdir(){
+  const alan = document.getElementById('pyAlan').value;
+  const kagit = document.getElementById('pyKagit').value;
+  closeModal();
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
+  w.document.write(planYazdirHtml(alan, kagit));
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch(err) {} }, 400);
+}
+const PLAN_YAZDIR_HEX = ['#FDE68A','#BFDBFE','#BBF7D0','#FECACA','#DDD6FE','#FED7AA','#A5F3FC','#F5D0FE','#D9F99D','#E2E8F0'];
+function planYazdirRenk(ad){
+  let hsh = 0; const t = String(ad || '');
+  for(let i = 0; i < t.length; i++) hsh = (hsh * 31 + t.charCodeAt(i)) >>> 0;
+  return PLAN_YAZDIR_HEX[hsh % PLAN_YAZDIR_HEX.length];
+}
+function planYazdirHtml(alan, kagit){
+  const sec = PLAN_DEPARTMANLAR[alan] || PLAN_DEPARTMANLAR['Tümü'];
+  const ekip = PERSONELLER.filter(p => !p.arsiv && (!sec.deps || sec.deps.includes(p.departman || '')));
+  const gunler = planHaftaGunleri();
+  const bugunIso = planIso(new Date());
+  // Kullanılabilir alan (mm): sayfa − 7mm kenar boşlukları
+  const W = kagit === 'A3' ? 406 : 283;
+  const H = kagit === 'A3' ? 283 : 196;
+  const rowH = (H - 12 - 2 - 9) / Math.max(ekip.length, 1);   // başlık 12mm, boşluk 2mm, gün başlığı 9mm
+  const mod = rowH >= 24 ? 'genis' : (rowH >= 15 ? 'orta' : 'dar');
+  const maxChip = mod === 'genis' ? 5 : (mod === 'orta' ? 3 : 2);
+  const baslik = alan === 'Tümü' ? 'Haftalık Program' : alan + ' Haftalık Programı';
+  const aralik = `${gunler[0].getDate()} ${PLAN_AYLAR[gunler[0].getMonth()]} – ${gunler[6].getDate()} ${PLAN_AYLAR[gunler[6].getMonth()]} ${gunler[6].getFullYear()}`;
+  const satirlar = ekip.map(p => {
+    const hafta = planKisiHaftaDk(p.id, gunler);
+    return `
+      <div class="hucre ad"><b>${notEsc(p.name)}</b><i>${notEsc(p.unvan || p.departman || '')}</i><u>${hafta ? dkToSaat(hafta) : '—'}</u></div>
+      ${gunler.map(d => { const iso = planIso(d);
+        const isler = planKisiGorevleri(p.id, iso);
+        const gorunen = isler.slice(0, maxChip);
+        const kalan = isler.length - gorunen.length;
+        return `<div class="hucre ${iso === bugunIso ? 'bugun' : ''}">
+          ${gorunen.map(t => `<div class="chip" style="background:${planYazdirRenk(t.projectName)};">
+            <b>${notEsc(t.taskName)}</b><i>${notEsc(t.projectName)}</i><u>${t.startTime} · ${dkToSaat(t.durationMinutes)}</u>
+          </div>`).join('')}
+          ${kalan > 0 ? `<div class="fazla">+${kalan} iş daha</div>` : ''}
+        </div>`; }).join('')}`;
+  }).join('');
+  return `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${baslik}</title><style>
+    @page{size:${kagit} landscape;margin:7mm;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1E293B;}
+    .alan{width:${W}mm;height:${H}mm;overflow:hidden;display:flex;flex-direction:column;}
+    .bas{height:12mm;flex:0 0 12mm;display:flex;justify-content:space-between;align-items:center;
+      border-bottom:2px solid #DC2626;margin-bottom:2mm;}
+    .bas img{height:9mm;}
+    .bas .orta{text-align:center;}
+    .bas h1{font-size:13pt;letter-spacing:.3px;}
+    .bas .aralik{font-size:8.5pt;color:#64748B;}
+    .bas .sag{font-size:7.5pt;color:#94A3B8;text-align:right;}
+    .tablo{flex:1;display:grid;grid-template-columns:34mm repeat(7,1fr);
+      grid-template-rows:9mm repeat(${Math.max(ekip.length,1)},1fr);
+      border:1px solid #94A3B8;overflow:hidden;}
+    .gunbas,.hucre{border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;overflow:hidden;}
+    .gunbas{background:#1E293B;color:#fff;display:flex;flex-direction:column;justify-content:center;
+      padding:0 2mm;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+    .gunbas span{font-weight:400;font-size:7pt;color:#CBD5E1;text-transform:none;}
+    .gunbas.bugun{background:#DC2626;}
+    .hucre{padding:1mm;}
+    .hucre.bugun{background:#FFF7ED;}
+    .hucre.ad{background:#F1F5F9;display:flex;flex-direction:column;justify-content:center;padding:1mm 2mm;}
+    .hucre.ad i{font-style:normal;color:#64748B;}
+    .hucre.ad u{text-decoration:none;color:#334155;font-weight:700;}
+    .chip{border:0.3mm solid #94A3B8;border-radius:1mm;padding:0.6mm 1mm;margin-bottom:0.7mm;line-height:1.25;}
+    .chip b{display:block;}
+    .chip i{display:block;font-style:normal;color:#334155;}
+    .chip u{text-decoration:none;color:#475569;}
+    .fazla{font-weight:700;color:#DC2626;}
+    body.genis .hucre.ad b{font-size:9pt;} body.genis .hucre.ad i,body.genis .hucre.ad u{font-size:7pt;}
+    body.genis .chip{font-size:7.5pt;} body.genis .chip u,body.genis .fazla{font-size:6.5pt;}
+    body.orta .hucre.ad b{font-size:8pt;} body.orta .hucre.ad i,body.orta .hucre.ad u{font-size:6.5pt;}
+    body.orta .chip{font-size:6.5pt;} body.orta .chip u,body.orta .fazla{font-size:6pt;}
+    body.dar .hucre.ad b{font-size:7pt;} body.dar .hucre.ad i,body.dar .hucre.ad u{font-size:5.8pt;}
+    body.dar .chip{font-size:5.8pt;} body.dar .chip i{display:none;} body.dar .chip u,body.dar .fazla{font-size:5.4pt;}
+  </style></head><body class="${mod}">
+    <div class="alan">
+      <div class="bas">
+        <img src="${AGENCY.logo}" alt="">
+        <div class="orta"><h1>${baslik}</h1><div class="aralik">${aralik}</div></div>
+        <div class="sag">${ekip.length} personel · ${kagit} yatay<br>Yazdırma: ${new Date().toLocaleDateString('tr-TR')}</div>
+      </div>
+      <div class="tablo">
+        <div class="gunbas">Personel<span>${ekip.length} kişi</span></div>
+        ${gunler.map(d => { const iso = planIso(d);
+          return `<div class="gunbas ${iso === bugunIso ? 'bugun' : ''}">${PLAN_GUNLER[(d.getDay()+6)%7]}<span>${d.getDate()} ${PLAN_AYLAR[d.getMonth()]}</span></div>`; }).join('')}
+        ${satirlar || '<div style="grid-column:1/-1;padding:6mm;text-align:center;color:#64748B;">Bu alanda personel yok.</div>'}
+      </div>
+    </div>
+  </body></html>`;
+}
+
 // ---- Görünüm ----
 function haftalikPlanView(){
   return planGorunum === 'ekip' ? planEkipView() : planSaatView();
@@ -2187,6 +2298,7 @@ function planUstBar(gunler, ekstra){
       <button class="hp-nav" onclick="planHaftaOfset--; renderContent();" title="Önceki hafta">‹</button>
       <button class="hp-nav" onclick="planHaftaOfset++; renderContent();" title="Sonraki hafta">›</button>
       <button class="btn" style="flex:0 0 auto;" onclick="planHaftaOfset=0; renderContent();">Bu hafta</button>
+      <button class="btn" style="flex:0 0 auto;" onclick="openPlanYazdir()">🖨 Yazdır</button>
       <span class="hp-hafta">${gunler[0].getDate()} ${PLAN_AYLAR[gunler[0].getMonth()]} – ${gunler[6].getDate()} ${PLAN_AYLAR[gunler[6].getMonth()]} ${gunler[6].getFullYear()}</span>
       ${ekstra || ''}
       <span style="margin-left:auto;font-family:var(--font-mono);font-size:11.5px;color:var(--ink-2);">
