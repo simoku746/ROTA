@@ -121,10 +121,7 @@ button,input,select,textarea{font-family:inherit;}
 .sidebar{transition:width .18s ease,padding .18s ease;}
 /* Daraltılmış menü (yalnız masaüstü): ikon şeridi */
 @media (min-width:881px){
-  /* Daraltılmış modda menü sabit şerittir; fare üzerine gelince içeriği itmeden üstte açılır */
-  .shell.menu-dar{padding-left:56px;}
-  .shell.menu-dar .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:95;overflow-y:auto;overflow-x:hidden;}
-  .shell.menu-dar .sidebar:hover{box-shadow:var(--shadow-md);}
+  /* Daraltılmış modda menü şerittir; fare üzerine gelince yana açılır, içerik menünün yanında kalır */
   .shell.menu-dar #menuDarBtn{display:none;}
   .shell.menu-dar .sidebar:not(:hover){width:56px;padding:14px 6px;}
   .shell.menu-dar .sidebar:not(:hover) .brand{flex-direction:column;gap:10px;padding:2px 0 12px;}
@@ -1263,7 +1260,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07c';
+window.ROTA_SURUM = 'v2026-09-07d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
