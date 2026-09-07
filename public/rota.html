@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07n';
+window.ROTA_SURUM = 'v2026-09-07o';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2468,13 +2468,60 @@ function completeMontaj(code){
 }
 
 function gorevlerimView(){
+  const me = benimPersonelim();
+  const adim = me ? me.name : null;
+  const isler = adim ? JOBS.filter(j => (j.assignees || []).includes(adim)) : [];
+  const acikIsler = isler.filter(j => j.stage !== 'TAHSILAT');
+  const bitenIsler = isler.length - acikIsler.length;
+  const gorevlerim = adim ? GENERAL_TASKS.filter(t => (t.assignees || []).includes(adim)) : [];
+  const acikGorevler = gorevlerim.filter(t => t.status !== 'Tamamlandı');
+  const alimlarim = me ? DIS_ALIMLAR.filter(a => a.sorumluId === me.id && a.durum !== 'tamam') : [];
+  const GT_DURUM_RENK = { 'Yeni':'var(--ink-3)', 'Üzerinde Çalışıyor':'var(--hold, var(--signal))', 'Tamamlandı':'var(--ok)' };
   return `
-    <div class="page-head"><div><div class="page-title">Projeler</div></div></div>
-    <div class="grid">
-      <div class="card" style="background:var(--signal-soft); cursor:pointer;" onclick="openGeneralBoard('Genel')"><div class="name">Görevlerim</div><div class="line">Sorumlu olduğum tüm görevler</div></div>
-      <div class="card" style="cursor:pointer;" onclick="openGeneralBoard('Genel')"><div class="name">Takip Ettiğim Görevler</div><div class="line">Takip ettiğim tüm görevler</div></div>
-      <div class="card" style="cursor:pointer;" onclick="openGeneralBoard('Genel')"><div class="name">Genel</div><div class="line">${GENERAL_TASKS.length} Görevler</div></div>
-    </div>
+    <div class="page-head"><div><div class="page-title">Görevlerim</div>
+      <div class="page-sub">${adim ? adim + ' — üzerinizdeki işler, görevler ve dış alımlar' : 'Üzerinizdeki işler ve görevler'}</div></div></div>
+    ${!me ? `<div class="note">Hesabınıza bağlı bir personel kartı bulunamadı. Yönetici, Ön Muhasebe → Personeller'den kartınızı açıp Yönetim → Kullanıcılar'dan hesabınıza bağlayabilir; sonrasında size atanan her şey burada görünür.</div>` : ''}
+
+    <div class="group-header" style="margin:4px 0 10px;"><span>— Üzerimdeki İşler (${acikIsler.length})</span>
+      ${bitenIsler ? `<span style="color:var(--ink-3);font-weight:400;">${bitenIsler} iş tahsilatta/bitti</span>` : ''}</div>
+    ${acikIsler.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));">
+      ${acikIsler.map(j => `
+        <div class="kcard" style="cursor:pointer;margin-bottom:0;" onclick="openJobDrawer('${j.id}')">
+          <div class="code">${j.code}</div>
+          <div class="client">${j.client}</div>
+          <div class="desc">${j.desc}</div>
+          ${railHtml(j.stage)}
+          <div class="meta-row">
+            <span class="due">${j.due || ''}</span>
+            <span style="font-size:10.5px;font-weight:700;color:var(--signal);">${STAGE_LABELS_TR[j.stage] || ''}</span>
+          </div>
+          ${j.stage === 'TASARIM' && j.approval !== 'ONAYLANDI' ? `<div class="locked">🔒 ${j.approval === 'REVIZYON' ? 'Revizyon istendi' : 'Onay bekliyor'}</div>` : ''}
+        </div>`).join('')}
+    </div>` : `<div class="note">Üzerinizde açık iş yok. Havuzdaki işleri <span style="cursor:pointer;text-decoration:underline;" onclick="selectSub('gorev-yonetimi','tum-isler')">Tüm İşler</span>'den üstlenebilirsiniz.</div>`}
+
+    <div class="group-header" style="margin:18px 0 10px;"><span>— Genel Görevlerim (${acikGorevler.length})</span>
+      <span style="cursor:pointer;text-decoration:underline;color:var(--ink-3);font-weight:400;" onclick="openGeneralBoard('Genel')">Genel panoya git →</span></div>
+    ${acikGorevler.length ? `<table style="margin-bottom:4px;">
+      <thead><tr><th>Görev</th><th>Proje</th><th>Durum</th><th>Tarih</th></tr></thead>
+      <tbody>${acikGorevler.map(t => `<tr style="cursor:pointer;" onclick="openGeneralBoard('${t.project}')">
+        <td><b>${t.title}</b></td>
+        <td>${t.project}</td>
+        <td style="color:${GT_DURUM_RENK[t.status] || 'var(--ink)'};font-weight:600;">${t.status}</td>
+        <td class="${t.overdue ? '' : ''}" style="${t.overdue ? 'color:var(--risk);font-weight:600;' : ''}">${t.due}${t.overdue ? ' ⚠️' : ''}</td>
+      </tr>`).join('')}</tbody>
+    </table>` : `<div class="note">Size atanmış açık genel görev yok.</div>`}
+
+    ${alimlarim.length ? `
+    <div class="group-header" style="margin:18px 0 10px;"><span>— Dış Alımlarım (${alimlarim.length})</span></div>
+    <table>
+      <thead><tr><th>Malzeme / Sipariş</th><th>Tedarikçi</th><th>Tarih</th><th>Tür</th></tr></thead>
+      <tbody>${alimlarim.map(a => `<tr style="cursor:pointer;" onclick="openDisAlimModal('${a.id}')">
+        <td><b>${notEsc(a.malzeme || '—')}</b></td>
+        <td>${notEsc(a.tedarikci || '—')}</td>
+        <td>${a.tarih ? formatDate(a.tarih) : '—'}</td>
+        <td>${a.tur === 'toplama' ? '🚚 Araçla toplanacak' : '📦 Teslimat bekleniyor'}</td>
+      </tr>`).join('')}</tbody>
+    </table>` : ''}
   `;
 }
 
