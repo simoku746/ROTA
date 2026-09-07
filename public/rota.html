@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07y';
+window.ROTA_SURUM = 'v2026-09-07z';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2514,12 +2514,24 @@ function gorevlerimView(){
   const gorevlerim = adim ? GENERAL_TASKS.filter(t => (t.assignees || []).includes(adim)) : [];
   const acikGorevler = gorevlerim.filter(t => t.status !== 'Tamamlandı');
   const alimlarim = me ? DIS_ALIMLAR.filter(a => a.sorumluId === me.id && a.durum !== 'tamam') : [];
+  const tahsilatIsleri = CURRENT_ROLE === 'MUHASEBE' ? JOBS.filter(j => j.stage === 'TAHSILAT') : [];
   const GT_DURUM_RENK = { 'Yeni':'var(--ink-3)', 'Üzerinde Çalışıyor':'var(--hold, var(--signal))', 'Tamamlandı':'var(--ok)' };
   return `
     <div class="page-head"><div><div class="page-title">Görevlerim</div>
       <div class="page-sub">${adim ? adim + ' — üzerinizdeki işler, görevler ve dış alımlar' : 'Üzerinizdeki işler ve görevler'}</div></div></div>
     ${!me ? `<div class="note">Hesabınıza bağlı bir personel kartı bulunamadı. Yönetici, Ön Muhasebe → Personeller'den kartınızı açıp Yönetim → Kullanıcılar'dan hesabınıza bağlayabilir; sonrasında size atanan her şey burada görünür.</div>` : ''}
 
+    ${tahsilatIsleri.length ? `
+    <div class="group-header" style="margin:4px 0 10px;"><span>— Tahsilat Bekleyen İşler (${tahsilatIsleri.length})</span></div>
+    <table style="margin-bottom:16px;">
+      <thead><tr><th>İş</th><th>Müşteri</th><th style="text-align:right;">Tutar</th><th style="text-align:right;"></th></tr></thead>
+      <tbody>${tahsilatIsleri.map(j => `<tr>
+        <td style="cursor:pointer;" onclick="openJobDrawer('${j.id}')"><b>${j.code}</b> · ${j.desc}</td>
+        <td>${notEsc(j.client)}</td>
+        <td style="text-align:right;font-family:var(--font-mono);">${j.tutar ? '₺' + Number(j.tutar).toLocaleString('tr-TR') : '—'}</td>
+        <td style="text-align:right;"><button class="btn" style="height:26px;font-size:11.5px;padding:0 10px;" onclick="gorevdenTahsilat('${j.customerId || ''}')">Tahsilat Ekle</button></td>
+      </tr>`).join('')}</tbody>
+    </table>` : ''}
     <div class="group-header" style="margin:4px 0 10px;"><span>— Üzerimdeki İşler (${acikIsler.length})</span>
       ${bitenIsler ? `<span style="color:var(--ink-3);font-weight:400;">${bitenIsler} iş tahsilatta/bitti</span>` : ''}</div>
     ${acikIsler.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));">
@@ -3227,6 +3239,12 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.new-menu').forEach(m => m.classList.remove('show'));
 });
 
+function gorevdenTahsilat(customerId){
+  pushHistory();
+  currentPage = 'on-muhasebe'; onMuhasebeSub = 'gelirler'; openSubmenu = 'on-muhasebe';
+  renderNav();
+  tahsilatBaslat(customerId);
+}
 function tahsilatBaslat(customerId){
   window.__tahsilatOnMusteri = customerId || '';
   gelirStep = 'form';
