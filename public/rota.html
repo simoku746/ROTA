@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07v';
+window.ROTA_SURUM = 'v2026-09-07w';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3217,9 +3217,25 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.new-menu').forEach(m => m.classList.remove('show'));
 });
 
+function tahsilatBaslat(customerId){
+  window.__tahsilatOnMusteri = customerId || '';
+  gelirStep = 'form';
+  renderContent();
+}
 function gelirlerView(){
   if(gelirStep === 'form') return tahsilatEkleForm();
+  const tahsilatIsleri = JOBS.filter(j => j.stage === 'TAHSILAT');
   return `
+    ${tahsilatIsleri.length ? `<div class="note" style="border-left-color:var(--ok);margin-bottom:14px;">
+      <b>💰 Tahsilat bekleyen ${tahsilatIsleri.length} iş</b> — montajı biten işler buraya düşer.
+      ${tahsilatIsleri.map(j => `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">
+        <span style="cursor:pointer;text-decoration:underline;" onclick="openJobDrawer('${j.id}')">${j.code} · ${notEsc(j.client)}</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          ${j.tutar ? `<b>₺${Number(j.tutar).toLocaleString('tr-TR')}</b>` : ''}
+          <button class="btn" style="height:26px;font-size:11.5px;padding:0 10px;" onclick="tahsilatBaslat('${j.customerId || ''}')">Tahsilat Ekle</button>
+        </span>
+      </div>`).join('')}
+    </div>` : ''}
     <div class="list-page-head"><div class="page-title">Gelirler</div>
       <div class="new-menu-wrap">
         <button class="primary-btn" data-newmenu onclick="toggleNewMenu(event,'gelirMenu')">+ Yeni ⌄</button>
@@ -3251,8 +3267,10 @@ function gelirlerView(){
 }
 
 function tahsilatEkleForm(){
+  const onSecim = window.__tahsilatOnMusteri || '';
+  window.__tahsilatOnMusteri = '';
   const custOptions = '<option value="">Seçiniz..</option>' +
-    CUSTOMERS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    CUSTOMERS.map(c => `<option value="${c.id}" ${onSecim === c.id ? 'selected' : ''}>${c.name}</option>`).join('');
   return `
     <div class="page-title" style="margin-bottom:16px;">Tahsilat Ekle</div>
     <div class="form-page">
@@ -5278,7 +5296,9 @@ function openJobDrawer(id){
       </span>
     </div>
     <div class="drawer-row"><span class="k">Teslim Tarihi</span><span class="v">${j.due||'—'}</span></div>
-    <div class="drawer-footer" style="margin-top:14px;"><button onclick="closeDrawer(); openIsEmri('${j.id}')">🖨️ İş Emri — Üretim Formu</button></div>
+    ${j.stage !== 'KESIF'
+      ? `<div class="drawer-footer" style="margin-top:14px;"><button onclick="closeDrawer(); openIsEmri('${j.id}')">🖨️ İş Emri — Üretim Formu</button></div>`
+      : `<div class="hint" style="margin-top:14px;">🖨️ İş Emri, iş <b>Tasarım</b> aşamasına geçince aktifleşir. Keşif bulgularını (ölçü, konum, notlar) aşağıdaki departman notuna yazın — iş emrine oradan taşınır.</div>`}
     ${actionHtml}
     ${notesHtml}
   `;
@@ -5910,6 +5930,10 @@ function jobAsamaAyarla(j, yeniStage){
   // Üretim / Montaj'a geçen iş: koordinatöre planlama bildirimi
   if(eski !== yeniStage && (yeniStage === 'URETIM' || yeniStage === 'MONTAJ')){
     bildirimYoneticilere(`${j.code} · ${j.client} — ${STAGE_LABELS_TR[yeniStage]} aşamasına geçti, ${yeniStage === 'URETIM' ? 'üretim' : 'montaj'} planlaması gerekiyor.`, 'bilgi', { jobId: j.id });
+  }
+  if(eski !== yeniStage && yeniStage === 'TAHSILAT'){
+    bildirimRole('MUHASEBE', `İş tahsilata geçti: ${j.code} · ${j.client}${j.tutar ? ' — ₺' + Number(j.tutar).toLocaleString('tr-TR') : ''}. Fatura/tahsilat takibi Gelirler ekranında.`, { jobId: j.id });
+    bildirimYoneticilere(`${j.code} · ${j.client} tahsilat aşamasına geçti.`, 'bilgi', { jobId: j.id });
   }
 }
 function deleteJob(id){
@@ -7566,10 +7590,12 @@ function bildirimIseGit(jobId){
   const j = JOBS.find(x => x.id === jobId);
   if(!j){ showToast('Bu iş artık bulunamıyor (silinmiş olabilir).'); return; }
   bildirimAcik = false; renderBildirimler();
-  pushHistory();
-  currentPage = 'gorev-yonetimi'; gorevSub = 'tum-isler'; boardFilterStage = null; openSubmenu = 'gorev-yonetimi';
-  renderNav(); renderContent();
-  if(typeof menuDaralt === 'function') menuDaralt(true);
+  if(roleCfg().tabs.includes('gorev-yonetimi')){
+    pushHistory();
+    currentPage = 'gorev-yonetimi'; gorevSub = 'tum-isler'; boardFilterStage = null; openSubmenu = 'gorev-yonetimi';
+    renderNav(); renderContent();
+    if(typeof menuDaralt === 'function') menuDaralt(true);
+  }
   openJobDrawer(jobId);
 }
 function renderBildirimler(){
