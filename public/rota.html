@@ -1261,7 +1261,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07k';
+window.ROTA_SURUM = 'v2026-09-07l';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2227,6 +2227,26 @@ function planSaatView(){
       ${gunler.map(d => { const iso = planIso(d);
         const gorevler = PLAN_TASKS.filter(t => t.date === iso)
           .sort((a,b) => saatToDk(a.startTime) - saatToDk(b.startTime));
+        // Aynı saat aralığında çakışan bloklar üst üste değil YAN YANA yerleşir
+        const yerlesim = {};
+        let kume = [], kumeSonu = -1, aktif = [];
+        const kumeBitir = () => {
+          if(!kume.length) return;
+          const n = Math.max.apply(null, kume.map(x => yerlesim[x.id].sut)) + 1;
+          kume.forEach(x => { yerlesim[x.id].toplam = n; });
+          kume = [];
+        };
+        gorevler.forEach(t => {
+          const bas = saatToDk(t.startTime), bit = bas + (Number(t.durationMinutes) || 0);
+          if(kume.length && bas >= kumeSonu){ kumeBitir(); aktif = []; }
+          aktif = aktif.filter(a => saatToDk(a.startTime) + (Number(a.durationMinutes) || 0) > bas);
+          const dolu = new Set(aktif.map(a => yerlesim[a.id].sut));
+          let sut = 0; while(dolu.has(sut)) sut++;
+          yerlesim[t.id] = { sut: sut, toplam: 1 };
+          aktif.push(t); kume.push(t);
+          kumeSonu = Math.max(kumeSonu, bit);
+        });
+        kumeBitir();
         return `<div class="hp-col" style="height:${yukseklik}px;"
           ondragover="planDragOver(event)" ondragleave="planDragLeave(event)" ondrop="planDrop(event,'${iso}')">
           ${saatCizgileri}
@@ -2235,8 +2255,12 @@ function planSaatView(){
             const c = planProjeRengi(t);
             const top = ((saatToDk(t.startTime) - PLAN_BAS_SAAT*60) / 60) * PLAN_SAAT_PX;
             const h = Math.max((t.durationMinutes / 60) * PLAN_SAAT_PX - 3, 22);
+            const yer = yerlesim[t.id] || { sut: 0, toplam: 1 };
+            const yanYana = yer.toplam > 1
+              ? `left:calc(${(yer.sut * 100 / yer.toplam).toFixed(3)}% + 2px);width:calc(${(100 / yer.toplam).toFixed(3)}% - 5px);right:auto;`
+              : '';
             return `<div class="hp-task" draggable="${planYetkili()}"
-              style="top:${top}px;height:${h}px;background:var(--${c});border-color:var(--${c}b);color:var(--${c}f);"
+              style="top:${top}px;height:${h}px;${yanYana}background:var(--${c});border-color:var(--${c}b);color:var(--${c}f);"
               ondragstart="planDragStart(event,'${t.id}')" ondragend="planDragEnd(event)"
               onmouseenter="planTipGoster(event,'${t.id}')" onmouseleave="planTipGizle()"
               onclick="planKartTikla('${t.id}')">
@@ -5251,7 +5275,24 @@ function openIsEmri(id){
   window.__ieAcikJob = id;
   ieRender(id);
 }
-function ieKapat(){ window.__ieAcikJob = null; ieKirli(); closeModal(); }
+function ieKoordinator(){ return typeof CURRENT_ROLE === 'undefined' || CURRENT_ROLE === 'YONETICI'; }
+function ieKapat(){
+  const id = window.__ieAcikJob;
+  window.__ieAcikJob = null;
+  // Grafiker/diğer roller formu doldurup kapatınca koordinatöre bir kez bildirim düşer
+  if(id && !ieKoordinator()){
+    const j = JOBS.find(x => x.id === id);
+    if(j && j.isEmri){
+      const e = j.isEmri;
+      const doldu = (e.kalemler && e.kalemler.length) || e.dosyaAdi || e.genelAciklama || (e.gorseller && e.gorseller.length);
+      if(doldu && !e.koordBildirildi && typeof bildirimYoneticilere === 'function'){
+        bildirimYoneticilere(`İş emri hazırlandı — montaj planlaması ve çıktı bekleniyor: ${e.emriNo} · ${j.client}`);
+        e.koordBildirildi = true;
+      }
+    }
+  }
+  ieKirli(); closeModal();
+}
 function ieRender(id){
   const j = JOBS.find(x => x.id === id); if(!j) return;
   const e = ieVarsayilan(j);
@@ -5330,7 +5371,9 @@ function ieRender(id){
     ${cbGrup('dosyaKontrol', IE_DOSYA_KONTROL)}
     <div class="hint" style="margin:-4px 0 10px;">⚠️ Son revizyon işaretli değilse bu iş emri <b>üretime verilmemelidir</b> — yazdırılan formda uyarı görünür.</div>
 
-    ${bolum('E','Montaj Planlaması')}
+    ${bolum('E','Montaj Planlaması' + (ieKoordinator() ? '' : ' — 🔒 koordinatör doldurur'))}
+    ${ieKoordinator() ? '' : `<div class="hint" style="margin:0 0 8px;">Bu bölümü <b>koordinatör</b> doldurur. Diğer bölümleri tamamlayıp kaydettiğinizde koordinatöre bildirim gider.</div>`}
+    <fieldset ${ieKoordinator() ? '' : 'disabled'} style="border:none;padding:0;margin:0;min-width:0;">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
       ${alan('Montaj Yeri / Lokasyon', txt('montajYeri', e.montajYeri, 'Örn. TAV Bodrum Havalimanı'))}
       ${alan('Alan / Bölüm', txt('montajAlan', e.montajAlan, 'Örn. İç hatlar bagaj alım salonu'))}
@@ -5344,6 +5387,7 @@ function ieRender(id){
       ${alan('Vinç', sec('vinc', e.vinc, [['gerekli','Gerekli'],['gerekmez','Gerekmez']]))}
       ${alan('İskele', sec('iskeleSec', e.iskeleSec, [['gerekli','Gerekli'],['gerekmez','Gerekmez']]))}
     </div>
+    </fieldset>
 
     ${bolum('F','Montajda Gerekli Ekipman')}
     ${cbGrup('ekipman', IE_EKIPMAN)}
@@ -5373,7 +5417,9 @@ function ieRender(id){
 
     <div style="display:flex;gap:8px;margin-top:10px;">
       <button class="btn" style="flex:1;height:38px;" onclick="ieKapat()">Kaydet ve Kapat</button>
-      <button class="modal-submit" style="flex:1;margin:0;" onclick="isEmriYazdir('${id}')">🖨️ Yazdır</button>
+      ${ieKoordinator()
+        ? `<button class="modal-submit" style="flex:1;margin:0;" onclick="isEmriYazdir('${id}')">🖨️ Yazdır</button>`
+        : `<button class="btn" style="flex:1;height:38px;opacity:.55;cursor:not-allowed;" onclick="showToast('Çıktıyı, montaj planlamasını tamamlayan koordinatör alır.')">🖨️ Yazdır — koordinatör</button>`}
     </div>
   `;
   const mb = document.getElementById('modalBox');
@@ -5605,6 +5651,7 @@ function isEmriPrintHtml(j){
   </body></html>`;
 }
 function isEmriYazdir(id){
+  if(!ieKoordinator()){ showToast('İş emri çıktısını koordinatör alır — form kaydedildi.'); return; }
   const j = JOBS.find(x => x.id === id); if(!j) return;
   const w = window.open('', '_blank');
   if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
