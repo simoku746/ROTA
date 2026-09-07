@@ -1260,7 +1260,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07f';
+window.ROTA_SURUM = 'v2026-09-07g';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5443,64 +5443,98 @@ function isEmriPrintHtml(j){
   const esc = v => (v === undefined || v === null || v === '') ? '—' : notEsc(String(v));
   const trh = v => v ? formatDate(v) : '—';
   const bugun = new Date().toLocaleDateString('tr-TR');
-  const KIRMIZI = '#DC2626', KOYU = '#1E293B';
   const kut = (dolu, ad) => `<span class="kut ${dolu ? 'dolu' : ''}"><i>${dolu ? '✓' : ''}</i>${notEsc(ad)}</span>`;
   const secKut = (deger, opts) => opts.map(o => kut(deger === o[0], o[1])).join('');
   const bilgiSat = cifte => `<tr>${cifte.map(([k, v]) => `<td class="k">${k}</td><td class="v">${v}</td>`).join('')}</tr>`;
   const bolum = (harf, ad, ic) => `<div class="bolum"><div class="bolum-bas"><span class="harf">${harf}</span>${ad}</div>${ic}</div>`;
   const sonRevUyari = !e.dosyaKontrol.sonRevizyon || !e.dosyaKontrol.musteriOnay;
+  const gorselVar = e.gorseller.length > 0;
   return `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>İş Emri — ${notEsc(e.emriNo)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     @page{size:A4;margin:9mm;}
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Segoe UI',Arial,sans-serif;font-size:10.5px;color:#0F172A;}
-    .ust{display:flex;justify-content:space-between;align-items:stretch;border-bottom:3px solid ${KOYU};padding-bottom:8px;margin-bottom:10px;gap:12px;}
+    body{font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:9.5pt;font-weight:400;color:#111827;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+    /* ---- Üst bant ---- */
+    .ust{display:flex;justify-content:space-between;align-items:stretch;border-bottom:2.5px solid #1E293B;padding-bottom:6px;margin-bottom:8px;gap:12px;}
     .marka{display:flex;flex-direction:column;justify-content:center;}
-    .marka .ad{font-size:23px;font-weight:800;letter-spacing:-.5px;}
-    .marka .ad i{color:${KIRMIZI};font-style:normal;}
-    .marka .alt-ad{font-size:9px;letter-spacing:4px;color:#64748B;text-transform:uppercase;margin-top:1px;}
-    .orta{border-left:2.5px solid ${KIRMIZI};padding-left:12px;display:flex;flex-direction:column;justify-content:center;flex:1;margin-left:12px;}
-    .orta .b1{font-size:16px;font-weight:800;letter-spacing:.2px;}
-    .orta .b2{font-size:9px;color:#64748B;margin-top:2px;}
+    .marka .ad{font-size:18pt;font-weight:800;letter-spacing:-.4px;color:#111827;}
+    .marka .ad i{color:#DC2626;font-style:normal;}
+    .marka .alt-ad{font-size:6.5pt;font-weight:600;letter-spacing:4px;color:#6B7280;text-transform:uppercase;margin-top:1px;}
+    .orta{border-left:2.5px solid #DC2626;padding-left:12px;display:flex;flex-direction:column;justify-content:center;flex:1;margin-left:12px;}
+    .orta .b1{font-size:12.5pt;font-weight:600;letter-spacing:.4px;color:#111827;}
+    .orta .b2{font-size:7pt;font-weight:400;color:#6B7280;margin-top:3px;letter-spacing:.3px;}
     .no-kutu{display:flex;flex-direction:column;gap:4px;justify-content:center;}
     .no-kutu .satir{display:flex;}
-    .no-kutu .et{background:${KOYU};color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.6px;padding:4px 8px;display:flex;align-items:center;white-space:nowrap;}
-    .no-kutu .dg{border:1.5px solid ${KOYU};font-family:Consolas,monospace;font-weight:700;font-size:11px;padding:3px 10px;min-width:112px;display:flex;align-items:center;}
-    .bolum{margin-bottom:8px;page-break-inside:avoid;}
-    .bolum-bas{background:${KOYU};color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 8px;display:flex;align-items:center;gap:7px;margin-bottom:0;}
-    .bolum-bas .harf{background:${KIRMIZI};width:15px;height:15px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;}
+    .no-kutu .et{background:#1E293B;color:#fff;font-size:6.5pt;font-weight:600;letter-spacing:.6px;padding:4px 8px;display:flex;align-items:center;white-space:nowrap;}
+    .no-kutu .dg{border:1.5px solid #1E293B;font-family:'Inter',Consolas,monospace;font-weight:600;font-size:9.5pt;padding:3px 10px;min-width:118px;display:flex;align-items:center;}
+
+    /* ---- Bölümler ---- */
+    .bolum{margin-bottom:7px;page-break-inside:avoid;}
+    .bolum-bas{background:#1E293B;color:#FFFFFF;font-size:9pt;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;display:flex;align-items:center;gap:8px;}
+    .bolum-bas .harf{background:#DC2626;width:15px;height:15px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:600;flex-shrink:0;}
     table{width:100%;border-collapse:collapse;}
-    .bilgi td{border:1px solid #CBD5E1;padding:3.5px 7px;}
-    .bilgi .k{width:13%;background:#F1F5F9;font-weight:700;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:#334155;}
-    .bilgi .v{width:37%;}
-    .kalem th{background:#334155;color:#fff;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;padding:4px 6px;text-align:left;}
-    .kalem td{border:1px solid #CBD5E1;padding:4px 6px;}
-    .kalem td.s{text-align:center;font-family:Consolas,monospace;}
-    .kut{display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0;font-size:9.5px;color:#334155;}
-    .kut i{width:11px;height:11px;border:1.5px solid #94A3B8;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:8.5px;font-weight:700;color:#fff;}
-    .kut.dolu i{background:${KIRMIZI};border-color:${KIRMIZI};}
-    .cb-alan{border:1px solid #CBD5E1;border-top:none;padding:5px 8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px 8px;}
+
+    /* Etiket / veri ayrımı */
+    .bilgi td{border:1px solid #D1D5DB;padding:4px 8px;vertical-align:middle;}
+    .bilgi .k{width:13%;background:#F3F4F6;font-weight:600;font-size:7.5pt;text-transform:uppercase;letter-spacing:.4px;color:#1E293B;}
+    .bilgi .v{width:37%;font-size:9.5pt;font-weight:400;color:#111827;}
+
+    /* Kalem tablosu */
+    .kalem th{background:#1E293B;color:#fff;font-size:8pt;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:5.5px 8px;text-align:left;}
+    .kalem td{border:1px solid #D1D5DB;padding:5px 8px;font-size:9pt;color:#1F2937;}
+    .kalem td.s{text-align:center;font-family:'Inter',Consolas,monospace;}
+
+    /* Checkbox */
+    .kut{display:inline-flex;align-items:center;gap:6px;margin:1.5px 10px 1.5px 0;font-size:8.5pt;font-weight:400;color:#1F2937;line-height:1.3;}
+    .kut i{width:11px;height:11px;border:1.3px solid #9CA3AF;border-radius:2.5px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;}
+    .kut.dolu{font-weight:600;color:#111827;}
+    .kut.dolu i{background:#DC2626;border-color:#DC2626;}
+    .cb-alan{border:1px solid #D1D5DB;border-top:none;padding:5px 9px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px 10px;}
     .cb-alan.iki{grid-template-columns:1fr 1fr;}
-    .yan-yana{display:flex;gap:8px;align-items:stretch;}
+    .kut-cok{display:grid;grid-template-columns:repeat(3,1fr);gap:0 5px;}
+
+    .yan-yana{display:flex;gap:9px;align-items:stretch;}
     .yan-yana > div{flex:1;}
-    .uyari{background:#FEF2F2;border:1.5px solid ${KIRMIZI};color:#991B1B;font-weight:700;font-size:10px;padding:6px 10px;margin:6px 0;display:flex;align-items:center;gap:6px;}
-    .gorseller{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid #CBD5E1;border-top:none;padding:8px;}
-    .gorsel{border:1px solid #CBD5E1;overflow:hidden;page-break-inside:avoid;}
+
+    /* Uyarı — belirgin ama sakin */
+    .uyari{background:#FEF2F2;border:1.3px solid #DC2626;border-left:4px solid #DC2626;color:#B91C1C;font-weight:600;font-size:9pt;padding:7px 11px;margin:7px 0;display:flex;align-items:center;gap:8px;line-height:1.4;}
+
+    /* ---- Sayfa 2: teknik dosya ---- */
+    .s2{page-break-before:always;}
+    .s2-bas{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1E293B;padding-bottom:6px;margin-bottom:10px;}
+    .s2-bas .sol{font-size:9pt;font-weight:600;color:#111827;}
+    .s2-bas .sol span{font-family:'Inter',Consolas,monospace;color:#DC2626;}
+    .s2-bas .sag{font-size:7.5pt;color:#6B7280;}
+    .g-ozet{border:1px solid #D1D5DB;border-top:none;padding:6px 10px;display:flex;gap:22px;flex-wrap:wrap;font-size:8.5pt;color:#1F2937;}
+    .g-ozet b{font-weight:600;color:#1E293B;font-size:7.5pt;text-transform:uppercase;letter-spacing:.4px;margin-right:5px;}
+    .gorseller{display:grid;gap:10px;border:1px solid #D1D5DB;border-top:none;padding:10px;}
+    .gorseller.tek{grid-template-columns:1fr;}
+    .gorseller.cift{grid-template-columns:1fr 1fr;}
+    .gorsel{border:1px solid #D1D5DB;overflow:hidden;page-break-inside:avoid;}
     .gorsel img{width:100%;display:block;}
-    .gorsel .not{padding:3px 7px;font-size:8.5px;color:#334155;background:#F8FAFC;border-top:1px solid #E2E8F0;}
-    .imzalar{display:flex;gap:8px;margin-top:10px;page-break-inside:avoid;}
-    .imza{flex:1;border:1px solid #CBD5E1;padding:6px 9px 26px;}
-    .imza b{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;color:#334155;margin-bottom:2px;}
-    .imza span{font-size:9px;color:#64748B;}
-    .alt{margin-top:10px;border-top:2px solid ${KOYU};padding-top:5px;display:flex;justify-content:space-between;font-size:8px;color:#94A3B8;letter-spacing:.4px;}
+    .gorsel .not{padding:5px 9px;font-size:8.5pt;font-weight:400;color:#374151;background:#F9FAFB;border-top:1px solid #E5E7EB;}
+    .gorsel .not b{font-weight:600;color:#111827;}
+
+    /* İmzalar */
+    .imzalar{display:flex;gap:9px;margin-top:12px;page-break-inside:avoid;}
+    .imza{flex:1;border:1px solid #D1D5DB;padding:7px 10px 30px;}
+    .imza b{display:block;font-size:7.5pt;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#1E293B;margin-bottom:3px;}
+    .imza span{font-size:7.5pt;font-weight:400;color:#6B7280;}
+    .alt{margin-top:11px;border-top:2px solid #1E293B;padding-top:5px;display:flex;justify-content:space-between;font-size:7pt;font-weight:400;color:#9CA3AF;letter-spacing:.3px;}
+
     @media print{.yazdirma-notu{display:none;}}
-    .yazdirma-notu{background:#FFEDD5;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:#9A3412;}
+    .yazdirma-notu{background:#FFF7ED;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5pt;color:#9A3412;}
   </style></head><body>
   <div class="yazdirma-notu">Yazdırma penceresi otomatik açılır; açılmazsa <b>Ctrl+P</b> ile yazdırın.</div>
+
   <div class="ust">
     <div class="marka"><div class="ad">dekant<i>▰</i></div><div class="alt-ad">Reklam</div></div>
     <div class="orta"><div class="b1">ÜRETİM &amp; MONTAJ İŞ EMRİ FORMU</div>
-      <div class="b2">Doğru Planlama&nbsp;&nbsp;|&nbsp;&nbsp;Kaliteli Üretim&nbsp;&nbsp;|&nbsp;&nbsp;Zamanında Teslim</div></div>
+      <div class="b2">Doğru Planlama&nbsp;&nbsp;·&nbsp;&nbsp;Kaliteli Üretim&nbsp;&nbsp;·&nbsp;&nbsp;Zamanında Teslim</div></div>
     <div class="no-kutu">
       <div class="satir"><span class="et">İŞ EMRİ NO</span><span class="dg">${esc(e.emriNo)}</span></div>
       <div class="satir"><span class="et">TARİH</span><span class="dg">${bugun}</span></div>
@@ -5514,12 +5548,12 @@ function isEmriPrintHtml(j){
     ${bilgiSat([[ 'Koordinatör', esc(e.koordinator)], ['Grafiker', esc(e.grafiker)]])}
     ${bilgiSat([[ 'Teslim Tarihi', trh(e.teslimTarihi)], ['Montaj Tarihi', trh(e.montajTarihi)]])}
     <tr><td class="k">Öncelik</td><td class="v">${secKut(e.oncelik, [['normal','Normal'],['acil','Acil'],['kritik','Kritik']])}</td>
-        <td class="k">Durum</td><td class="v">${secKut(e.durum, IE_DURUMLAR)}</td></tr>
+        <td class="k">Durum</td><td class="v"><div class="kut-cok">${secKut(e.durum, IE_DURUMLAR)}</div></td></tr>
   </table>`)}
 
   ${bolum('B','İş Kalemleri', `<table class="kalem">
-    <thead><tr><th style="width:22px;">No</th><th>Ürün / Tanım</th><th style="width:56px;">Kod</th><th style="width:36px;">Adet</th>
-      <th style="width:56px;">En (mm)</th><th style="width:56px;">Boy (mm)</th><th style="width:56px;">Toplam m²</th><th>Malzeme / Teknik</th></tr></thead>
+    <thead><tr><th style="width:26px;">No</th><th>Ürün / Tanım</th><th style="width:58px;">Kod</th><th style="width:38px;">Adet</th>
+      <th style="width:58px;">En (mm)</th><th style="width:58px;">Boy (mm)</th><th style="width:62px;">Toplam m²</th><th>Malzeme / Teknik</th></tr></thead>
     <tbody>${(e.kalemler.length ? e.kalemler : [{}]).map((k, i) => `<tr>
       <td class="s">${String(i + 1).padStart(2, '0')}</td><td>${esc(k.tanim)}</td><td class="s">${esc(k.kod)}</td>
       <td class="s">${esc(k.adet)}</td><td class="s">${esc(k.en)}</td><td class="s">${esc(k.boy)}</td>
@@ -5536,7 +5570,7 @@ function isEmriPrintHtml(j){
     ${bilgiSat([[ 'Onaylayan', esc(e.onaylayan)], ['Onay Tarihi', trh(e.onayTarihi)]])}
   </table>
   <div class="cb-alan iki">${IE_DOSYA_KONTROL.map(([k, ad]) => kut(!!e.dosyaKontrol[k], ad)).join('')}</div>
-  ${sonRevUyari ? `<div class="uyari">⚠ MÜŞTERİ ONAYI / SON REVİZYON İŞARETLİ DEĞİL — BU FORMLA ÜRETİME BAŞLAMAYIN!</div>` : ''}`)}
+  ${sonRevUyari ? `<div class="uyari">⚠&nbsp; Müşteri onayı / son revizyon işaretli değil — bu formla üretime başlamayın.</div>` : ''}`)}
 
   ${bolum('E','Montaj Planlaması', `<div class="yan-yana">
     <div><table class="bilgi">
@@ -5556,22 +5590,35 @@ function isEmriPrintHtml(j){
 
   ${bolum('F','Montajda Gerekli Ekipman', `<div class="cb-alan">${IE_EKIPMAN.map(([k, ad]) => kut(!!e.ekipman[k], ad)).join('')}</div>`)}
 
-  ${e.gorseller.length ? bolum('G','Onaylı Görseller', `<div class="gorseller">
-    ${e.gorseller.map((g, i) => `<div class="gorsel"><img src="${g.src}"><div class="not">${i + 1}. ${notEsc(g.not || 'Onaylı çalışma')}</div></div>`).join('')}
-  </div>`) : ''}
+  <div class="${gorselVar ? 's2' : ''}">
+    ${gorselVar ? `<div class="s2-bas">
+      <div class="sol"><span>${esc(e.emriNo)}</span> &nbsp;·&nbsp; ${esc(j.client)} — ${esc(e.projeAdi)}</div>
+      <div class="sag">Teknik dosya · Sayfa 2/2</div>
+    </div>` : ''}
+    ${gorselVar ? bolum('G','Onaylı Görseller &amp; Teknik Çizimler', `
+    <div class="g-ozet">
+      <span><b>Dosya</b>${esc(e.dosyaAdi)}</span>
+      <span><b>Revizyon</b>${esc(e.revizyon)}</span>
+      <span><b>Onay</b>${trh(e.onayTarihi)}</span>
+      ${e.kalemler.length ? `<span><b>Ölçüler</b>${e.kalemler.map(k => (k.en && k.boy) ? `${notEsc(String(k.en))} × ${notEsc(String(k.boy))} mm` : null).filter(Boolean).join(' · ') || '—'}</span>` : ''}
+    </div>
+    <div class="gorseller ${e.gorseller.length <= 2 ? 'tek' : 'cift'}">
+      ${e.gorseller.map((g, i) => `<div class="gorsel"><img src="${g.src}"><div class="not"><b>Görsel ${i + 1}.</b> ${notEsc(g.not || 'Onaylı çalışma')}</div></div>`).join('')}
+    </div>`) : ''}
 
-  ${bolum('H','Montaj Sonu Kapanış', `<div class="cb-alan" style="border-bottom:1px solid #CBD5E1;">${IE_KAPANIS.map(([k, ad]) => kut(!!e.kapanis[k], ad)).join('')}</div>
-  <table class="bilgi" style="margin-top:-1px;">
-    ${bilgiSat([[ 'Eksik / Sorun', esc(e.eksikNot)], ['Montajı Yapan', esc(e.montajYapan)]])}
-  </table>`)}
+    ${bolum('H','Montaj Sonu Kapanış', `<div class="cb-alan" style="border-bottom:1px solid #D1D5DB;">${IE_KAPANIS.map(([k, ad]) => kut(!!e.kapanis[k], ad)).join('')}</div>
+    <table class="bilgi" style="margin-top:-1px;">
+      ${bilgiSat([[ 'Eksik / Sorun', esc(e.eksikNot)], ['Montajı Yapan', esc(e.montajYapan)]])}
+    </table>`)}
 
-  <div class="imzalar">
-    <div class="imza"><b>Hazırlayan</b><span>Ad / İmza / Tarih</span></div>
-    <div class="imza"><b>Üretim Sorumlusu</b><span>Ad / İmza / Tarih</span></div>
-    <div class="imza"><b>Montaj Ekip Lideri</b><span>Ad / İmza / Tarih</span></div>
-    <div class="imza"><b>Koordinatör Teslim${e.kontrolEden ? ' — ' + notEsc(e.kontrolEden) : ''}</b><span>Ad / İmza / Tarih</span></div>
+    <div class="imzalar">
+      <div class="imza"><b>Hazırlayan</b><span>Ad / İmza / Tarih</span></div>
+      <div class="imza"><b>Üretim Sorumlusu</b><span>Ad / İmza / Tarih</span></div>
+      <div class="imza"><b>Montaj Ekip Lideri</b><span>Ad / İmza / Tarih</span></div>
+      <div class="imza"><b>Koordinatör Teslim${e.kontrolEden ? ' — ' + notEsc(e.kontrolEden) : ''}</b><span>Ad / İmza / Tarih</span></div>
+    </div>
+    <div class="alt"><span>${notEsc(AGENCY.name)} · ${notEsc(AGENCY.address || '')}</span><span>${notEsc(e.emriNo)} · ${notEsc(j.code)} · ROTA ile oluşturuldu · ${bugun}</span></div>
   </div>
-  <div class="alt"><span>${notEsc(AGENCY.name)} · ${notEsc(AGENCY.address || '')}</span><span>${notEsc(e.emriNo)} · ${notEsc(j.code)} · ROTA ile oluşturuldu · ${bugun}</span></div>
   </body></html>`;
 }
 function isEmriYazdir(id){
