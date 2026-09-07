@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08a';
+window.ROTA_SURUM = 'v2026-09-08b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1470,6 +1470,7 @@ function doLogin(role){
   const firstTab = roleCfg().tabs[0];
   currentPage = firstTab;
   NAV_HISTORY = [];
+  try{ history.replaceState(snapshotNavState(), ''); }catch(e){}
   document.getElementById('appRoot').style.display = 'flex';
   const userNameEl = document.getElementById('userName');
   const me = LIVE.user;
@@ -1540,6 +1541,27 @@ function pushHistory(){
   if(NAV_HISTORY.length>20) NAV_HISTORY.shift();
   updateBackBtn();
 }
+// Tarayıcının GERİ/İLERİ tuşları uygulama içi ekranlar arasında gezinir
+function tarayiciGecmisYaz(){
+  if(window.__gecmisGeziniyor) return;
+  try{
+    const su = snapshotNavState();
+    if(history.state && JSON.stringify(history.state) === JSON.stringify(su)) return;
+    history.pushState(su, '');
+  }catch(e){}
+}
+window.addEventListener('popstate', e => {
+  const st = e.state;
+  if(!st || !st.currentPage) return;
+  window.__gecmisGeziniyor = true;
+  currentPage = st.currentPage;
+  onMuhasebeSub = st.onMuhasebeSub; raporlarSub = st.raporlarSub;
+  stokSub = st.stokSub; gorevSub = st.gorevSub; yonetimSub = st.yonetimSub;
+  openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
+  kisilerStep = 'list'; teklifStep = 'list'; gelirStep = 'list'; giderStep = 'list'; cekSenetStep = 'list'; personelStep = 'list';
+  renderNav(); renderContent();
+  window.__gecmisGeziniyor = false;
+});
 function updateBackBtn(){
   const b = document.getElementById('backBtn');
   if(b) b.disabled = NAV_HISTORY.length===0;
@@ -1560,6 +1582,7 @@ function toggleSubmenu(key){
   if(key==='on-muhasebe'){ cekSenetStep = 'list'; giderStep = 'list'; gelirStep = 'list'; }
   if(key!=='gorev-yonetimi' || gorevSub!=='genel-board') boardFilterStage = null;
   renderNav(); renderContent();
+  tarayiciGecmisYaz();
 }
 function selectSub(parentKey, subKey){
   if(!(currentPage===parentKey && SUB_STATE[parentKey].get()===subKey)) pushHistory();
@@ -1573,12 +1596,14 @@ function selectSub(parentKey, subKey){
   renderNav(); renderContent();
   closeMobileSidebar();
   menuDaralt(true);
+  tarayiciGecmisYaz();
 }
 function goTo(key){
   if(key !== currentPage) pushHistory();
   if(key === 'ana-sayfa' && currentPage !== 'ana-sayfa' && sozSirasi !== null) sozSirasi++;
   currentPage = key; kisilerStep = 'list'; editingCustomerId = null; teklifStep = 'list'; boardFilterStage = null; gtAssigneeFilter = ''; gtSearchQuery = ''; if(!SUBMENUS[key]) openSubmenu = null; renderNav(); renderContent(); closeMobileSidebar();
   menuDaralt(true);
+  tarayiciGecmisYaz();
 }
 
 function renderContent(){
@@ -7657,6 +7682,7 @@ function bildirimIseGit(jobId){
     boardFilterStage = null; openSubmenu = 'gorev-yonetimi';
     renderNav(); renderContent();
     if(typeof menuDaralt === 'function') menuDaralt(true);
+    tarayiciGecmisYaz();
   }
   openJobDrawer(jobId);
 }
