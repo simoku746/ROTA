@@ -25,6 +25,10 @@ html,body{margin:0; padding:0; background:var(--canvas); color:var(--ink); font-
 .field input:focus{outline:none; border-color:var(--ink);}
 .field small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:4px;}
 
+.hatirla-satir{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-2);
+  cursor:pointer; margin:2px 0 4px; user-select:none;}
+.hatirla-satir input{width:15px; height:15px; accent-color:var(--ink); cursor:pointer;}
+
 .submit-btn{width:100%; padding:10px; background:var(--ink); color:#fff; border:none; border-radius:6px; font-size:13.5px; cursor:pointer; margin-top:6px; font-weight:600; font-family:inherit;}
 .submit-btn:hover{background:#1E293B;}
 .submit-btn:disabled{opacity:.6; cursor:default;}

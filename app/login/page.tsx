@@ -1,23 +1,40 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+const HATIRLA_ANAHTAR = 'rotaGirisEmail';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passRef = useRef<HTMLInputElement>(null);
+  const [hatirla, setHatirla] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Hiç kullanıcı yoksa ilk kurulum ekranına yönlendir.
+  // Hiç kullanıcı yoksa ilk kurulum ekranına yönlendir; kayıtlı e-postayı doldur.
   useEffect(() => {
     fetch('/api/setup', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d?.needsSetup) window.location.replace('/setup'); })
       .catch(() => {});
+    try {
+      const kayitli = localStorage.getItem(HATIRLA_ANAHTAR);
+      if (kayitli && emailRef.current && !emailRef.current.value) {
+        emailRef.current.value = kayitli;
+        // E-posta doluysa imleç şifreye gelsin — tarayıcı kayıtlı şifreyi önerir.
+        passRef.current?.focus();
+      }
+      if (kayitli === null) setHatirla(true);
+    } catch {}
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    // Değerler DOM'dan okunur — tarayıcının/Windows'un otomatik doldurduğu
+    // kullanıcı adı ve şifre, alana hiç dokunulmasa bile buradan gelir.
+    const email = emailRef.current?.value.trim() ?? '';
+    const password = passRef.current?.value ?? '';
+    if (!email || !password) { setError('E-posta ve şifre gerekli'); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/login', {
@@ -31,6 +48,10 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+      try {
+        if (hatirla) localStorage.setItem(HATIRLA_ANAHTAR, email);
+        else localStorage.removeItem(HATIRLA_ANAHTAR);
+      } catch {}
       // Uygulama statik bir sayfa (rota.html) olduğu için tam yükleme gerekir.
       window.location.href = '/';
     } catch {
@@ -44,15 +65,19 @@ export default function LoginPage() {
       <div className="auth-box">
         <div className="auth-brand"><span className="auth-logo">R</span>ROTA</div>
         <p className="auth-sub">Keşiften tahsilata, tek rota.</p>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} method="post" action="/api/auth/login">
           <div className="field">
             <label>E-posta</label>
-            <input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+            <input ref={emailRef} type="email" name="email" autoComplete="username" required autoFocus />
           </div>
           <div className="field">
             <label>Şifre</label>
-            <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input ref={passRef} type="password" name="password" autoComplete="current-password" required />
           </div>
+          <label className="hatirla-satir">
+            <input type="checkbox" checked={hatirla} onChange={(e) => setHatirla(e.target.checked)} />
+            Beni hatırla
+          </label>
           <button className="submit-btn" type="submit" disabled={loading}>
             {loading ? 'Giriş yapılıyor…' : 'Giriş Yap'}
           </button>
