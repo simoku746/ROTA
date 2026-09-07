@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08b';
+window.ROTA_SURUM = 'v2026-09-08c';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1299,6 +1299,12 @@ function veriOnar(){
   });
   const g2 = new Set();
   (GENERAL_TASKS || []).forEach(t => { if(g2.has(t.id)) t.id = benzersizId('gt'); g2.add(t.id); });
+  // Eski gelir kayıtlarına isimden müşteri kimliği eşlenir (cari hareketleri için)
+  (GELIRLER || []).forEach(g => {
+    if(g.customerId || !g.client) return;
+    const c = CUSTOMERS.find(x => x.name.toLowerCase() === String(g.client).toLowerCase());
+    if(c){ g.customerId = c.id; degisti = true; }
+  });
   // Teklif geçerliliği yanlışlıkla teslim tarihi olarak kopyalanmış işler temizlenir
   (JOBS || []).forEach(j => {
     if(!j.quoteId || !j.due) return;
@@ -3207,16 +3213,43 @@ let PERSONELLER = [
   })
 );
 // Cari bakiyeleri faturalardan türetilir: satış faturası kalanı = tahsil edilecek (−), alış faturası kalanı = ödeme yapılacak (+)
-function cariBakiyeleri(){
-  const m = new Map();
-  FATURALAR.forEach(f => {
-    const kalan = Number(f.kalan)||0; if(!kalan) return;
-    const yon = /Alış/.test(f.tur||'') ? 1 : -1;
-    m.set(f.client, (m.get(f.client)||0) + yon*kalan);
+// Cari hesap dökümü: kabul edilmiş teklifler borç yazar, gelir kayıtları (tahsilat) düşer
+function cariHesaplari(){
+  const map = new Map();
+  const adAnahtar = ad => 'ad:' + String(ad || '').trim().toLowerCase();
+  const kayit = (cid, ad) => {
+    const k = cid || adAnahtar(ad);
+    if(!map.has(k)){
+      // isimle açılmış kayıt varsa kimliklisiyle birleştir
+      const eski = !cid ? null : map.get(adAnahtar(ad));
+      if(cid && eski){ map.delete(adAnahtar(ad)); map.set(k, eski); eski.customerId = cid; }
+      else map.set(k, { ad: ad || 'Bilinmeyen', customerId: cid || '', borclar: [], tahsilatlar: [] });
+    }
+    const c = map.get(k);
+    if(ad && (c.ad === 'Bilinmeyen' || !c.ad)) c.ad = ad;
+    return c;
+  };
+  QUOTES.forEach(q => {
+    if(q.status !== 'Kabul Edildi' && q.status !== 'Faturalandı') return;
+    const cst = CUSTOMERS.find(x => x.id === q.customerId);
+    const ad = (cst && cst.name) || q.musteriAdi || 'Müşteri seçilmedi';
+    kayit(q.customerId, ad).borclar.push({ no: q.no, tarih: q.date, tutar: Math.round(quoteTotal(q)) });
   });
-  return [...m.entries()].filter(([,b]) => b !== 0)
-    .map(([client,bakiye]) => ({ client, bakiye, durum: bakiye<0 ? 'Tahsil Edilecek' : 'Ödeme Yapılacak' }))
-    .sort((a,b) => a.client.localeCompare(b.client,'tr'));
+  GELIRLER.forEach(g => {
+    if(!g.client && !g.customerId) return;
+    let c = g.customerId ? map.get(g.customerId) : null;
+    if(!c) c = map.get(adAnahtar(g.client));
+    if(!c) c = [...map.values()].find(x => x.ad.toLowerCase() === String(g.client || '').toLowerCase());
+    if(!c) c = kayit(g.customerId || '', g.client);
+    c.tahsilatlar.push({ tarih: g.tarih, tutar: Number(g.tutar) || 0, aciklama: g.tur || 'Tahsilat' });
+  });
+  return [...map.values()].map(c => {
+    c.borc = c.borclar.reduce((t,x) => t + x.tutar, 0);
+    c.tahsil = c.tahsilatlar.reduce((t,x) => t + x.tutar, 0);
+    c.kalan = c.borc - c.tahsil;
+    return c;
+  }).filter(c => c.borc || c.tahsil)
+    .sort((a,b) => a.ad.localeCompare(b.ad, 'tr'));
 }
 
 function faturalarView(){
@@ -3381,6 +3414,7 @@ function submitTahsilat(){
   if(!tutar){ showToast('Tutar girin.'); return; }
   GELIRLER.unshift({
     id: benzersizId('ge'),
+    customerId: document.getElementById('tMusteri').value || null,
     client: cust ? cust.name : 'Müşteri seçilmedi',
     hesap: document.getElementById('tHesap').value,
     tur: document.getElementById('tAciklama').value || 'Tahsilat',
@@ -4262,35 +4296,48 @@ function saveMesai(){
   showToast(`${p ? p.name : 'Personel'} — ${tl(toplam)} mesai kaydedildi.`);
 }
 
+let cariAcikAd = null;
+function cariAcKapa(ad){ cariAcikAd = cariAcikAd === ad ? null : ad; renderContent(); }
 function cariHareketleriView(){
-  const CARI = cariBakiyeleri();
-  const tahsilatlar = CARI.filter(c=>c.bakiye<0).reduce((s,c)=>s+c.bakiye,0);
-  const odemeler = CARI.filter(c=>c.bakiye>0).reduce((s,c)=>s+c.bakiye,0);
+  const CARI = cariHesaplari();
+  const tl2 = n => '₺' + Number(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+  const toplamBorc = CARI.reduce((t,c) => t + c.borc, 0);
+  const toplamTahsil = CARI.reduce((t,c) => t + c.tahsil, 0);
   return `
-    <div class="list-page-head"><div class="page-title">Cari Hareketleri</div><button class="primary-btn" onclick="showToast('İşlemler menüsü bir sonraki adımda bağlanacak')">İşlemler</button></div>
+    <div class="list-page-head"><div><div class="page-title">Cari Hareketleri</div>
+      <div class="page-sub">Kabul edilmiş teklif tutarları (KDV dahil) borç yazar, girilen tahsilatlar düşer.</div></div></div>
     <div class="ledger-wrap">
       <div class="ledger-main">
-        <div class="ledger-search">🔍 Ara</div>
-        <div class="ledger-row" style="font-weight:700; color:var(--accent);"><span>Cari ⇅</span><span>Bakiye</span></div>
-        ${CARI.length ? '' : '<div class="empty-state">Henüz cari bakiyesi yok — bakiyeler faturalardan oluşur.</div>'}
+        <div class="ledger-row" style="font-weight:700;"><span>Cari</span><span>Kalan</span></div>
+        ${CARI.length ? '' : '<div class="empty-state">Henüz cari hareketi yok — teklif kabul edilip iş açıldığında burada görünür.</div>'}
         ${CARI.map(c => `
-          <div class="ledger-row">
-            <div class="ledger-title" style="margin:0;">${c.client}</div>
-            <div class="ledger-amount">₺${Math.abs(c.bakiye).toLocaleString('tr-TR',{minimumFractionDigits:2})}${c.bakiye<0?'-':''}<span class="${c.bakiye<0?'odendi':'kalan'}">${c.durum}</span></div>
+          <div class="ledger-row" style="cursor:pointer;" onclick="cariAcKapa('${notEsc(c.ad).replace(/'/g, "\\'")}')">
+            <div>
+              <div class="ledger-title" style="margin:0;">${notEsc(c.ad)} <span style="color:var(--ink-3);font-size:11px;">${cariAcikAd === c.ad ? '▾' : '▸'}</span></div>
+              <div class="ledger-meta">${c.borclar.length} iş · ${tl2(c.borc)} &nbsp;—&nbsp; ${c.tahsilatlar.length} tahsilat · ${tl2(c.tahsil)}</div>
+            </div>
+            <div class="ledger-amount" style="color:${c.kalan > 0 ? 'var(--risk)' : 'var(--ok)'};">${tl2(Math.abs(c.kalan))}<span class="${c.kalan > 0 ? 'kalan' : 'odendi'}">${c.kalan > 0 ? 'Tahsil Edilecek' : (c.kalan < 0 ? 'Fazla Tahsilat' : 'Kapandı')}</span></div>
           </div>
+          ${cariAcikAd === c.ad ? `
+          <div style="background:var(--surface-sunk);border-radius:8px;padding:10px 14px;margin:0 8px 10px;">
+            ${c.borclar.map(b => `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;">
+              <span>📄 Teklif ${notEsc(b.no)} kabul edildi · ${b.tarih ? formatDate(b.tarih) : ''}</span>
+              <span style="font-family:var(--font-mono);">+ ${tl2(b.tutar)}</span></div>`).join('')}
+            ${c.tahsilatlar.map(t => `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--ok);">
+              <span>💰 ${notEsc(t.aciklama)} · ${notEsc(t.tarih || '')}</span>
+              <span style="font-family:var(--font-mono);">− ${tl2(t.tutar)}</span></div>`).join('')}
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0 0;margin-top:4px;border-top:1px solid var(--line);font-weight:700;">
+              <span>Kalan</span><span style="font-family:var(--font-mono);color:${c.kalan > 0 ? 'var(--risk)' : 'var(--ok)'};">${tl2(c.kalan)}</span></div>
+          </div>` : ''}
         `).join('')}
-        <div class="ledger-footer"><span>🔻 Toplam: ${CARI.length} kayıt</span></div>
+        <div class="ledger-footer"><span>🔻 Toplam: ${CARI.length} cari</span></div>
       </div>
       <div class="ledger-side">
-        <div class="filter-group"><h5>Tür</h5><div>Bakiyesi Olanlar</div><div>Ödeme Yapılacak</div><div>Tahsil Edilecek</div></div>
-        <div class="filter-group"><h5>🏷️ Etiketler</h5></div>
+        <div class="kb-row header"><span>Özet (TL)</span><span></span></div>
+        <div class="kb-row"><span>Toplam İş</span><span>${tl2(toplamBorc)}</span></div>
+        <div class="kb-row"><span>Toplam Tahsilat</span><span>${tl2(toplamTahsil)}</span></div>
+        <div class="kb-row total"><span>Tahsil Edilecek</span><span style="color:${toplamBorc - toplamTahsil > 0 ? 'var(--risk)' : 'var(--ok)'};">${tl2(toplamBorc - toplamTahsil)}</span></div>
       </div>
-    </div>
-    <div class="kb-side" style="max-width:280px; margin-top:14px;">
-      <div class="kb-row header"><span>Toplam (TL)</span><span></span></div>
-      <div class="kb-row"><span>Tahsilatlar</span><span>₺${tahsilatlar.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
-      <div class="kb-row"><span>Ödemeler</span><span>₺${odemeler.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
-      <div class="kb-row total"><span>Toplam</span><span>₺${(tahsilatlar+odemeler).toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
     </div>
   `;
 }
