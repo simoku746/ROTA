@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07w';
+window.ROTA_SURUM = 'v2026-09-07x';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1440,7 +1440,7 @@ const ROLE_CONFIG = {
   TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['tum-isler','gorevlerim','projeler'] },
   URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'] },
   MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','gorevlerim'] },
-  MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','teklifler','raporlar','yonetim','destek'], gorevSubs:[], yonetimSubs:['araclarim','kategoriler'] },
+  MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['gorevlerim'], yonetimSubs:['araclarim','kategoriler'] },
 };
 let CURRENT_ROLE = 'YONETICI';
 function roleCfg(){ return ROLE_CONFIG[CURRENT_ROLE]; }
@@ -7592,7 +7592,9 @@ function bildirimIseGit(jobId){
   bildirimAcik = false; renderBildirimler();
   if(roleCfg().tabs.includes('gorev-yonetimi')){
     pushHistory();
-    currentPage = 'gorev-yonetimi'; gorevSub = 'tum-isler'; boardFilterStage = null; openSubmenu = 'gorev-yonetimi';
+    currentPage = 'gorev-yonetimi';
+    gorevSub = roleCfg().gorevSubs.includes('tum-isler') ? 'tum-isler' : (roleCfg().gorevSubs[0] || 'gorevlerim');
+    boardFilterStage = null; openSubmenu = 'gorev-yonetimi';
     renderNav(); renderContent();
     if(typeof menuDaralt === 'function') menuDaralt(true);
   }
