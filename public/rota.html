@@ -1260,7 +1260,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07e';
+window.ROTA_SURUM = 'v2026-09-07f';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5173,27 +5173,63 @@ function openJobDrawer(id){
   document.getElementById('drawerOverlay').classList.add('show');
   document.getElementById('sideDrawer').classList.add('show');
 }
-// ---------------- İŞ EMRİ (standart üretim formu) ----------------
+// ---------------- İŞ EMRİ v2 (Üretim & Montaj standart formu) ----------------
+const IE_DURUMLAR = [
+  ['tasarim','Tasarım'], ['onay','Onay Bekliyor'], ['onaylandi','Onaylandı'], ['tedarik','Tedarik'],
+  ['uretimde','Üretimde'], ['kalite','Kalite Kontrol'], ['sevk','Sevke Hazır'], ['montajda','Montajda'], ['tamam','Tamamlandı'],
+];
+const IE_DOSYA_KONTROL = [
+  ['musteriOnay','Müşteri onayı alınmıştır'], ['sonRevizyon','Son revizyon kullanılıyor'],
+  ['olculer','Ölçüler kontrol edildi'], ['cmyk','Baskı dosyası CMYK'],
+  ['fontlar','Fontlar convert edildi'], ['cozunurluk','Görsel çözünürlük kontrol edildi'],
+  ['kesim','Kesim çizgileri / taşma payı kontrol edildi'], ['uretimDosyasi','Üretim dosyası oluşturuldu'],
+];
+const IE_EKIPMAN = [
+  ['matkap','Matkap'], ['hilti','Hilti'], ['lazer','Lazer metre'], ['merdiven','Merdiven'],
+  ['iskele','İskele'], ['vinc','Vinç'], ['silikon','Silikon'], ['dubel','Dübel'],
+  ['vida','Vida'], ['kablo','Kablo'], ['elektrik','Elektrik ekipmanı'], ['aparat','Montaj aparatı'],
+  ['yedekLed','Yedek LED'], ['yedekTrafo','Yedek trafo'],
+];
+const IE_KAPANIS = [
+  ['montajTamam','Montaj tamamlandı'], ['urunCalisiyor','Ürün çalışıyor'], ['gorselDogru','Görsel doğru'],
+  ['olcuUygun','Ölçüler uygun'], ['kasaTemiz','Kasa temiz'], ['noktalar','Montaj noktaları kontrol edildi'],
+  ['elektrikKontrol','Elektrik kontrol edildi'], ['fotograf','Fotoğraflar çekildi'],
+  ['musteriKontrol','Müşteri / saha yetkilisi kontrol etti'], ['eksikYok','Eksik / hata yok'],
+];
+function drNumara(){
+  const yil = new Date().getFullYear();
+  let enBuyuk = 0;
+  JOBS.forEach(j => {
+    const m = j.isEmri && j.isEmri.emriNo && j.isEmri.emriNo.match(/^DR-(\d{4})-(\d{5})$/);
+    if(m && Number(m[1]) === yil) enBuyuk = Math.max(enBuyuk, Number(m[2]));
+  });
+  return 'DR-' + yil + '-' + String(enBuyuk + 1).padStart(5, '0');
+}
 function ieVarsayilan(j){
   if(!j.isEmri) j.isEmri = {};
   const e = j.isEmri;
-  if(e.projeAdi === undefined)   e.projeAdi = j.desc || '';
-  if(e.yetkili === undefined)    e.yetkili = '';
-  if(e.satinalmaNo === undefined)e.satinalmaNo = '';
-  if(e.siparisAdet === undefined)e.siparisAdet = '';
-  if(e.teslimTarihi === undefined) e.teslimTarihi = '';
-  if(e.montajTarihi === undefined) e.montajTarihi = '';
-  if(e.montajYeri === undefined) e.montajYeri = '';
-  if(e.grafiker === undefined)   e.grafiker = '';
-  if(e.aciklama === undefined)   e.aciklama = '';
-  if(e.malzemeler === undefined) e.malzemeler = j.material || '';
-  if(e.tedarikci === undefined)  e.tedarikci = '';
-  if(e.tedarikNot === undefined) e.tedarikNot = '';
+  const alanlar = {
+    projeAdi: j.desc || '', yetkili: '', satinalmaNo: '', siparisAdet: '',
+    teslimTarihi: '', montajTarihi: '', montajYeri: '', grafiker: '', koordinator: '',
+    aciklama: '', malzemeler: j.material || '', tedarikci: '', tedarikNot: '',
+    durum: 'tasarim', oncelik: 'normal', genelAciklama: '',
+    dosyaAdi: '', revizyon: '', onaylayan: '', onayTarihi: '',
+    montajSaati: '', montajAlan: '', ekipLideri: '', sahaTelefon: '',
+    isg: '', calisma: '', elektrik: '', vinc: '', iskeleSec: '', montajOncesiOlcu: '',
+    eksikNot: '', montajYapan: '', kontrolEden: '',
+  };
+  Object.keys(alanlar).forEach(k => { if(e[k] === undefined) e[k] = alanlar[k]; });
+  if(!e.emriNo) e.emriNo = drNumara();
   if(!Array.isArray(e.kalemler)) e.kalemler = [];
   if(!Array.isArray(e.gorseller)) e.gorseller = [];
+  ['dosyaKontrol','ekipman','kapanis'].forEach(k => { if(!e[k] || typeof e[k] !== 'object') e[k] = {}; });
   return e;
 }
 function ieKirli(){ if(typeof liveMarkDirty === 'function') liveMarkDirty(); }
+function ieM2(k){
+  const m2 = (Number(k.en) || 0) * (Number(k.boy) || 0) / 1000000 * (Number(k.adet) || 1);
+  return m2 ? m2.toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 }) : '—';
+}
 function openIsEmri(id){
   const j = JOBS.find(x => x.id === id); if(!j) return;
   ieVarsayilan(j);
@@ -5221,52 +5257,97 @@ function ieRender(id){
   const alan = (etiket, girdi) => `<div class="field" style="margin-bottom:9px;"><label>${etiket}</label>${girdi}</div>`;
   const txt = (ad, deger, ph) => `<input value="${notEsc(deger || '')}" placeholder="${ph || ''}" onchange="ieAlan('${id}','${ad}',this.value)">`;
   const tarih = (ad, deger) => `<input type="date" value="${deger || ''}" onchange="ieAlan('${id}','${ad}',this.value)">`;
+  const sec = (ad, deger, opts) => `<select onchange="ieAlan('${id}','${ad}',this.value)">
+    <option value="">— Seçiniz —</option>${opts.map(o => `<option value="${o[0]}" ${deger === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>`;
+  const bolum = (harf, ad) => `<div class="group-header" style="margin:14px 0 8px;"><span style="display:inline-flex;align-items:center;gap:7px;">
+    <span style="background:var(--ink);color:var(--surface);width:18px;height:18px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;">${harf}</span> ${ad}</span></div>`;
+  const cbGrup = (grup, liste) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin-bottom:10px;">
+    ${liste.map(([k, ad]) => `<label class="checkbox-row" style="padding:5px 4px;font-size:12px;">
+      <input type="checkbox" ${e[grup][k] ? 'checked' : ''} onchange="ieCheck('${id}','${grup}','${k}',this.checked)"> ${ad}</label>`).join('')}</div>`;
   const per = PERSONELLER.filter(p => !p.arsiv);
-  document.getElementById('modalBox').innerHTML = `
-    <div class="modal-head"><h2>🖨️ İş Emri — ${notEsc(j.client)} <span style="color:var(--ink-3);font-weight:400;">${j.code}</span></h2>
-      <button class="modal-close" onclick="ieKapat()">✕</button></div>
+  const perSec = (ad, deger) => `<select onchange="ieAlan('${id}','${ad}',this.value)">
+    <option value="">— Seçiniz —</option>
+    ${per.map(p => `<option ${deger === p.name ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('')}
+    ${deger && !per.some(p => p.name === deger) ? `<option selected>${notEsc(deger)}</option>` : ''}</select>`;
 
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head" style="margin-bottom:12px;">
+      <h2>🖨️ İş Emri <span style="font-family:var(--font-mono);color:var(--signal);">${e.emriNo}</span>
+        <span style="color:var(--ink-3);font-weight:400;font-size:13px;">${notEsc(j.client)} · ${j.code}</span></h2>
+      <button class="modal-close" onclick="ieKapat()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;background:var(--surface-sunk);border-radius:8px;padding:10px 12px 2px;margin-bottom:12px;">
+      ${alan('İş Emri Durumu', sec('durum', e.durum, IE_DURUMLAR))}
+      ${alan('Öncelik', sec('oncelik', e.oncelik, [['normal','Normal'],['acil','Acil'],['kritik','Kritik']]))}
+    </div>
+
+    ${bolum('A','İş Bilgileri')}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
-      ${alan('Proje Adı', txt('projeAdi', e.projeAdi, 'Örn. Tav Bodrum + Antalya lightbox'))}
-      ${alan('Yetkili Kişi (müşteri)', txt('yetkili', e.yetkili, 'Örn. Özge Hanım'))}
-      ${alan('Satınalma No', txt('satinalmaNo', e.satinalmaNo, 'Sipariş / PO numarası'))}
+      ${alan('Proje Adı', txt('projeAdi', e.projeAdi, 'Örn. TAV Bodrum Havalimanı'))}
+      ${alan('Müşteri Yetkilisi', txt('yetkili', e.yetkili, 'Örn. Özge Hanım'))}
+      ${alan('Satınalma / Sipariş No', txt('satinalmaNo', e.satinalmaNo, 'PO numarası'))}
       ${alan('Sipariş Adet', txt('siparisAdet', e.siparisAdet, 'Örn. 1+1 adet'))}
       ${alan('Teslim Tarihi', tarih('teslimTarihi', e.teslimTarihi))}
       ${alan('Montaj Tarihi', tarih('montajTarihi', e.montajTarihi))}
-      ${alan('Montaj Yeri', txt('montajYeri', e.montajYeri, 'Örn. Bodrum + Antalya Havalimanı'))}
-      ${alan('Çalışmayı Yapan Grafiker', `<select onchange="ieAlan('${id}','grafiker',this.value)">
-        <option value="">— Seçiniz —</option>
-        ${per.map(p => `<option ${e.grafiker === p.name ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('')}
-        ${e.grafiker && !per.some(p => p.name === e.grafiker) ? `<option selected>${notEsc(e.grafiker)}</option>` : ''}
-      </select>`)}
+      ${alan('Koordinatör', perSec('koordinator', e.koordinator))}
+      ${alan('Grafiker', perSec('grafiker', e.grafiker))}
     </div>
-    ${alan('Sipariş Açıklama', `<textarea rows="2" onchange="ieAlan('${id}','aciklama',this.value)" placeholder="Örn. Light box baskıları — görsel değişimi">${notEsc(e.aciklama)}</textarea>`)}
-    ${alan('Kullanılacak Malzemeler', txt('malzemeler', e.malzemeler, 'Örn. Backlit baskı, 3M folyo'))}
+    ${alan('İşin Genel Açıklaması', `<textarea rows="2" onchange="ieAlan('${id}','genelAciklama',this.value)" placeholder="Örn. TAV Bodrum iç hatlar bagaj alım salonundaki mevcut lightbox görselinin değiştirilmesi">${notEsc(e.genelAciklama)}</textarea>`)}
 
-    <div class="group-header" style="margin:12px 0 8px;"><span>— Ölçüler ve Kalemler</span></div>
+    ${bolum('B','İş Kalemleri — ölçüler mm')}
     <table style="margin-bottom:6px;">
-      <thead><tr><th style="width:34%;">Tanım / Konum</th><th>En (cm)</th><th>Boy (cm)</th><th>Adet</th><th>Malzeme / Baskı</th><th style="width:26px;"></th></tr></thead>
+      <thead><tr><th style="width:30%;">Ürün / Tanım</th><th>Kod</th><th>Adet</th><th>En (mm)</th><th>Boy (mm)</th><th>Malzeme / Baskı</th><th style="width:26px;"></th></tr></thead>
       <tbody>
         ${e.kalemler.map((k, i) => `<tr>
-          <td><input value="${notEsc(k.tanim || '')}" placeholder="Örn. Bagaj alım salonu yan alınlık" onchange="ieKalem('${id}',${i},'tanim',this.value)"></td>
-          <td><input type="number" value="${k.en || ''}" placeholder="0" onchange="ieKalem('${id}',${i},'en',this.value)"></td>
-          <td><input type="number" value="${k.boy || ''}" placeholder="0" onchange="ieKalem('${id}',${i},'boy',this.value)"></td>
-          <td><input type="number" value="${k.adet || ''}" placeholder="1" onchange="ieKalem('${id}',${i},'adet',this.value)"></td>
-          <td><input value="${notEsc(k.malzeme || '')}" placeholder="Örn. Backlit" onchange="ieKalem('${id}',${i},'malzeme',this.value)"></td>
+          <td><input value="${notEsc(k.tanim || '')}" placeholder="Örn. Lightbox görsel baskı" onchange="ieKalem('${id}',${i},'tanim',this.value)"></td>
+          <td><input value="${notEsc(k.kod || '')}" placeholder="LB-001" style="width:70px;" onchange="ieKalem('${id}',${i},'kod',this.value)"></td>
+          <td><input type="number" value="${k.adet || ''}" placeholder="1" style="width:52px;" onchange="ieKalem('${id}',${i},'adet',this.value)"></td>
+          <td><input type="number" value="${k.en || ''}" placeholder="0" style="width:72px;" onchange="ieKalem('${id}',${i},'en',this.value)"></td>
+          <td><input type="number" value="${k.boy || ''}" placeholder="0" style="width:72px;" onchange="ieKalem('${id}',${i},'boy',this.value)"></td>
+          <td><input value="${notEsc(k.malzeme || '')}" placeholder="Backlit PVC / UV" onchange="ieKalem('${id}',${i},'malzeme',this.value)"></td>
           <td style="text-align:center;"><span class="mini-islem sil" onclick="ieKalemSil('${id}',${i})">✕</span></td>
         </tr>`).join('')}
       </tbody>
     </table>
-    <button class="btn" style="height:32px;margin-bottom:14px;" onclick="ieKalemEkle('${id}')">+ Kalem Ekle</button>
+    <button class="btn" style="height:32px;margin-bottom:8px;" onclick="ieKalemEkle('${id}')">+ Kalem Ekle</button>
 
-    <div class="group-header" style="margin:4px 0 8px;"><span>— Tedarik</span></div>
+    ${bolum('C','Tedarik / Satın Alma')}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
       ${alan('Tedarikçi (baskı/malzeme nereden)', `<input value="${notEsc(e.tedarikci)}" list="ieTedList" placeholder="Firma adı" onchange="ieAlan('${id}','tedarikci',this.value)">
         <datalist id="ieTedList">${CUSTOMERS.map(c => `<option value="${notEsc(c.name)}">`).join('')}</datalist>`)}
-      ${alan('Tedarik Notu', txt('tedarikNot', e.tedarikNot, 'Örn. sipariş verildi, Perşembe teslim'))}
+      ${alan('Tedarik Notu / Termin', txt('tedarikNot', e.tedarikNot, 'Örn. sipariş verildi — 02.05 teslim'))}
+    </div>
+    ${alan('Kullanılacak Malzemeler', txt('malzemeler', e.malzemeler, 'Örn. Backlit PVC, LED modül, alüminyum profil'))}
+
+    ${bolum('D','Görsel / Dosya Kontrolü')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      ${alan('Dosya Adı', txt('dosyaAdi', e.dosyaAdi, 'Örn. TAV_BODRUM_LB001_REV02.pdf'))}
+      ${alan('Revizyon', txt('revizyon', e.revizyon, 'Örn. REV 02'))}
+      ${alan('Onaylayan', txt('onaylayan', e.onaylayan, 'Müşteri / yetkili'))}
+      ${alan('Müşteri Onay Tarihi', tarih('onayTarihi', e.onayTarihi))}
+    </div>
+    ${cbGrup('dosyaKontrol', IE_DOSYA_KONTROL)}
+    <div class="hint" style="margin:-4px 0 10px;">⚠️ Son revizyon işaretli değilse bu iş emri <b>üretime verilmemelidir</b> — yazdırılan formda uyarı görünür.</div>
+
+    ${bolum('E','Montaj Planlaması')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      ${alan('Montaj Yeri / Lokasyon', txt('montajYeri', e.montajYeri, 'Örn. TAV Bodrum Havalimanı'))}
+      ${alan('Alan / Bölüm', txt('montajAlan', e.montajAlan, 'Örn. İç hatlar bagaj alım salonu'))}
+      ${alan('Montaj Saati', `<input type="time" value="${e.montajSaati || ''}" onchange="ieAlan('${id}','montajSaati',this.value)">`)}
+      ${alan('Ekip Lideri', perSec('ekipLideri', e.ekipLideri))}
+      ${alan('Saha Yetkilisi Telefonu', txt('sahaTelefon', e.sahaTelefon, '05xx xxx xx xx'))}
+      ${alan('Montaj Öncesi Ölçü', txt('montajOncesiOlcu', e.montajOncesiOlcu, 'Örn. 6500 × 1800 mm — yerinde doğrulandı'))}
+      ${alan('İSG / Giriş Belgesi', sec('isg', e.isg, [['gerekli','Gerekli'],['tamam','Gerekli — tamamlandı'],['gerekmez','Gerekmez']]))}
+      ${alan('Çalışma', sec('calisma', e.calisma, [['gunduz','Gündüz'],['gece','Gece']]))}
+      ${alan('Elektrik', sec('elektrik', e.elektrik, [['hazir','Hazır'],['degil','Hazır değil'],['ekip','Bağlantıyı ekibimiz yapacak']]))}
+      ${alan('Vinç', sec('vinc', e.vinc, [['gerekli','Gerekli'],['gerekmez','Gerekmez']]))}
+      ${alan('İskele', sec('iskeleSec', e.iskeleSec, [['gerekli','Gerekli'],['gerekmez','Gerekmez']]))}
     </div>
 
-    <div class="group-header" style="margin:4px 0 8px;"><span>— Görseller (onaylı çalışmalar)</span></div>
+    ${bolum('F','Montajda Gerekli Ekipman')}
+    ${cbGrup('ekipman', IE_EKIPMAN)}
+
+    ${bolum('G','Onaylı Görseller')}
     <div id="ieGorselAlan" style="border:1.5px dashed var(--line-strong);border-radius:8px;padding:12px;text-align:center;color:var(--ink-3);font-size:12px;margin-bottom:10px;">
       📋 Ekran görüntüsünü kopyalayıp bu pencere açıkken <b>Ctrl+V</b> ile yapıştırın
       &nbsp;veya&nbsp; <label style="text-decoration:underline;cursor:pointer;color:var(--ink-2);">dosya seçin<input type="file" accept="image/*" multiple style="display:none;" onchange="Array.from(this.files).forEach(f=>ieGorselIsle('${id}',f)); this.value='';"></label>
@@ -5281,19 +5362,32 @@ function ieRender(id){
       </div>`).join('')}
     </div>` : ''}
 
-    <div style="display:flex;gap:8px;margin-top:6px;">
+    ${bolum('H','Montaj Sonu Kapanış')}
+    ${cbGrup('kapanis', IE_KAPANIS)}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      ${alan('Eksik / Sorun / Not', txt('eksikNot', e.eksikNot, 'Varsa yazın'))}
+      ${alan('Montajı Yapan', perSec('montajYapan', e.montajYapan))}
+      ${alan('Kontrol Eden', perSec('kontrolEden', e.kontrolEden))}
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:10px;">
       <button class="btn" style="flex:1;height:38px;" onclick="ieKapat()">Kaydet ve Kapat</button>
       <button class="modal-submit" style="flex:1;margin:0;" onclick="isEmriYazdir('${id}')">🖨️ Yazdır</button>
     </div>
   `;
   const mb = document.getElementById('modalBox');
   mb.classList.add('wide');
-  mb.style.maxWidth = '840px';
+  mb.style.maxWidth = '860px';
   showModal();
 }
 function ieAlan(id, ad, deger){
   const j = JOBS.find(x => x.id === id); if(!j) return;
   ieVarsayilan(j)[ad] = deger;
+  ieKirli();
+}
+function ieCheck(id, grup, ad, deger){
+  const j = JOBS.find(x => x.id === id); if(!j) return;
+  ieVarsayilan(j)[grup][ad] = !!deger;
   ieKirli();
 }
 function ieKalem(id, i, ad, deger){
@@ -5303,7 +5397,7 @@ function ieKalem(id, i, ad, deger){
 }
 function ieKalemEkle(id){
   const j = JOBS.find(x => x.id === id); if(!j) return;
-  ieVarsayilan(j).kalemler.push({ tanim:'', en:'', boy:'', adet:'', malzeme:'' });
+  ieVarsayilan(j).kalemler.push({ tanim:'', kod:'', adet:'', en:'', boy:'', malzeme:'' });
   ieRender(id); ieKirli();
 }
 function ieKalemSil(id, i){
@@ -5346,79 +5440,138 @@ function ieGorselSil(id, i){
 }
 function isEmriPrintHtml(j){
   const e = ieVarsayilan(j);
-  const tr = t => (t === undefined || t === null || t === '') ? '—' : notEsc(String(t));
-  const trh = t => t ? formatDate(t) : '—';
+  const esc = v => (v === undefined || v === null || v === '') ? '—' : notEsc(String(v));
+  const trh = v => v ? formatDate(v) : '—';
   const bugun = new Date().toLocaleDateString('tr-TR');
-  const bilgi = (k, v) => `<td class="k">${k}</td><td class="v">${v}</td>`;
-  return `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>İş Emri — ${notEsc(j.code)}</title>
+  const KIRMIZI = '#DC2626', KOYU = '#1E293B';
+  const kut = (dolu, ad) => `<span class="kut ${dolu ? 'dolu' : ''}"><i>${dolu ? '✓' : ''}</i>${notEsc(ad)}</span>`;
+  const secKut = (deger, opts) => opts.map(o => kut(deger === o[0], o[1])).join('');
+  const bilgiSat = cifte => `<tr>${cifte.map(([k, v]) => `<td class="k">${k}</td><td class="v">${v}</td>`).join('')}</tr>`;
+  const bolum = (harf, ad, ic) => `<div class="bolum"><div class="bolum-bas"><span class="harf">${harf}</span>${ad}</div>${ic}</div>`;
+  const sonRevUyari = !e.dosyaKontrol.sonRevizyon || !e.dosyaKontrol.musteriOnay;
+  return `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>İş Emri — ${notEsc(e.emriNo)}</title>
   <style>
-    @page{size:A4;margin:12mm;}
+    @page{size:A4;margin:9mm;}
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Segoe UI',Arial,sans-serif;font-size:11.5px;color:#0F172A;padding:4px;}
-    .ust{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0F172A;padding-bottom:10px;margin-bottom:12px;}
-    .marka{font-size:21px;font-weight:800;letter-spacing:-.4px;}
-    .marka small{display:block;font-size:9.5px;font-weight:400;color:#64748B;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
-    .firma-detay{font-size:9px;color:#64748B;margin-top:6px;line-height:1.5;}
-    .rozet{text-align:right;}
-    .rozet .ie{display:inline-block;background:#0F172A;color:#fff;font-weight:700;font-size:14px;letter-spacing:2px;padding:6px 16px;border-radius:4px;}
-    .rozet .tarih{font-size:10.5px;color:#334155;margin-top:6px;}
-    .rozet .kod{font-family:Consolas,monospace;font-size:11px;color:#0F172A;margin-top:3px;font-weight:700;}
-    table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-    .bilgi td{border:1px solid #CBD5E1;padding:5px 8px;}
-    .bilgi .k{width:16%;background:#F1F5F9;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#334155;}
-    .bilgi .v{width:34%;}
-    h3{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:#334155;border-bottom:1.5px solid #CBD5E1;padding-bottom:4px;margin:14px 0 8px;}
-    .kalem th{background:#0F172A;color:#fff;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;text-align:left;}
-    .kalem td{border:1px solid #CBD5E1;padding:6px 8px;}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:10.5px;color:#0F172A;}
+    .ust{display:flex;justify-content:space-between;align-items:stretch;border-bottom:3px solid ${KOYU};padding-bottom:8px;margin-bottom:10px;gap:12px;}
+    .marka{display:flex;flex-direction:column;justify-content:center;}
+    .marka .ad{font-size:23px;font-weight:800;letter-spacing:-.5px;}
+    .marka .ad i{color:${KIRMIZI};font-style:normal;}
+    .marka .alt-ad{font-size:9px;letter-spacing:4px;color:#64748B;text-transform:uppercase;margin-top:1px;}
+    .orta{border-left:2.5px solid ${KIRMIZI};padding-left:12px;display:flex;flex-direction:column;justify-content:center;flex:1;margin-left:12px;}
+    .orta .b1{font-size:16px;font-weight:800;letter-spacing:.2px;}
+    .orta .b2{font-size:9px;color:#64748B;margin-top:2px;}
+    .no-kutu{display:flex;flex-direction:column;gap:4px;justify-content:center;}
+    .no-kutu .satir{display:flex;}
+    .no-kutu .et{background:${KOYU};color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.6px;padding:4px 8px;display:flex;align-items:center;white-space:nowrap;}
+    .no-kutu .dg{border:1.5px solid ${KOYU};font-family:Consolas,monospace;font-weight:700;font-size:11px;padding:3px 10px;min-width:112px;display:flex;align-items:center;}
+    .bolum{margin-bottom:8px;page-break-inside:avoid;}
+    .bolum-bas{background:${KOYU};color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 8px;display:flex;align-items:center;gap:7px;margin-bottom:0;}
+    .bolum-bas .harf{background:${KIRMIZI};width:15px;height:15px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;}
+    table{width:100%;border-collapse:collapse;}
+    .bilgi td{border:1px solid #CBD5E1;padding:3.5px 7px;}
+    .bilgi .k{width:13%;background:#F1F5F9;font-weight:700;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:#334155;}
+    .bilgi .v{width:37%;}
+    .kalem th{background:#334155;color:#fff;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;padding:4px 6px;text-align:left;}
+    .kalem td{border:1px solid #CBD5E1;padding:4px 6px;}
     .kalem td.s{text-align:center;font-family:Consolas,monospace;}
-    .gorseller{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .gorsel{border:1px solid #CBD5E1;border-radius:4px;overflow:hidden;page-break-inside:avoid;}
+    .kut{display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0;font-size:9.5px;color:#334155;}
+    .kut i{width:11px;height:11px;border:1.5px solid #94A3B8;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:8.5px;font-weight:700;color:#fff;}
+    .kut.dolu i{background:${KIRMIZI};border-color:${KIRMIZI};}
+    .cb-alan{border:1px solid #CBD5E1;border-top:none;padding:5px 8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px 8px;}
+    .cb-alan.iki{grid-template-columns:1fr 1fr;}
+    .yan-yana{display:flex;gap:8px;align-items:stretch;}
+    .yan-yana > div{flex:1;}
+    .uyari{background:#FEF2F2;border:1.5px solid ${KIRMIZI};color:#991B1B;font-weight:700;font-size:10px;padding:6px 10px;margin:6px 0;display:flex;align-items:center;gap:6px;}
+    .gorseller{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid #CBD5E1;border-top:none;padding:8px;}
+    .gorsel{border:1px solid #CBD5E1;overflow:hidden;page-break-inside:avoid;}
     .gorsel img{width:100%;display:block;}
-    .gorsel .not{padding:5px 8px;font-size:10px;color:#334155;background:#F8FAFC;border-top:1px solid #E2E8F0;}
-    .imzalar{display:flex;gap:14px;margin-top:22px;page-break-inside:avoid;}
-    .imza{flex:1;border:1px solid #CBD5E1;border-radius:4px;padding:8px 10px 34px;}
-    .imza b{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:#334155;margin-bottom:2px;}
-    .imza span{font-size:10.5px;color:#64748B;}
-    .alt{margin-top:14px;text-align:center;font-size:8.5px;color:#94A3B8;letter-spacing:.5px;}
+    .gorsel .not{padding:3px 7px;font-size:8.5px;color:#334155;background:#F8FAFC;border-top:1px solid #E2E8F0;}
+    .imzalar{display:flex;gap:8px;margin-top:10px;page-break-inside:avoid;}
+    .imza{flex:1;border:1px solid #CBD5E1;padding:6px 9px 26px;}
+    .imza b{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;color:#334155;margin-bottom:2px;}
+    .imza span{font-size:9px;color:#64748B;}
+    .alt{margin-top:10px;border-top:2px solid ${KOYU};padding-top:5px;display:flex;justify-content:space-between;font-size:8px;color:#94A3B8;letter-spacing:.4px;}
     @media print{.yazdirma-notu{display:none;}}
-    .yazdirma-notu{background:#FFEDD5;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#9A3412;}
+    .yazdirma-notu{background:#FFEDD5;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:#9A3412;}
   </style></head><body>
   <div class="yazdirma-notu">Yazdırma penceresi otomatik açılır; açılmazsa <b>Ctrl+P</b> ile yazdırın.</div>
   <div class="ust">
-    <div>
-      <div class="marka">${notEsc(AGENCY.name)}<small>${notEsc(AGENCY.slogan || '')}</small></div>
-      <div class="firma-detay">${notEsc(AGENCY.address || '')}<br>T. ${notEsc(AGENCY.phone || '')} · ${notEsc(AGENCY.web || '')}</div>
-    </div>
-    <div class="rozet">
-      <span class="ie">İŞ EMRİ</span>
-      <div class="tarih">Tarih: <b>${bugun}</b></div>
-      <div class="kod">${notEsc(j.code)}${j.quoteNo ? ' · Teklif ' + notEsc(j.quoteNo) : ''}</div>
+    <div class="marka"><div class="ad">dekant<i>▰</i></div><div class="alt-ad">Reklam</div></div>
+    <div class="orta"><div class="b1">ÜRETİM &amp; MONTAJ İŞ EMRİ FORMU</div>
+      <div class="b2">Doğru Planlama&nbsp;&nbsp;|&nbsp;&nbsp;Kaliteli Üretim&nbsp;&nbsp;|&nbsp;&nbsp;Zamanında Teslim</div></div>
+    <div class="no-kutu">
+      <div class="satir"><span class="et">İŞ EMRİ NO</span><span class="dg">${esc(e.emriNo)}</span></div>
+      <div class="satir"><span class="et">TARİH</span><span class="dg">${bugun}</span></div>
     </div>
   </div>
-  <table class="bilgi">
-    <tr>${bilgi('Firma Adı', tr(j.client))}${bilgi('Proje Adı', tr(e.projeAdi))}</tr>
-    <tr>${bilgi('Yetkili Kişi', tr(e.yetkili))}${bilgi('Satınalma No', tr(e.satinalmaNo))}</tr>
-    <tr>${bilgi('Sipariş Adet', tr(e.siparisAdet))}${bilgi('Teslim Tarihi', trh(e.teslimTarihi))}</tr>
-    <tr>${bilgi('Montaj Tarihi', trh(e.montajTarihi))}${bilgi('Montaj Yeri', tr(e.montajYeri))}</tr>
-    <tr>${bilgi('Grafiker', tr(e.grafiker))}${bilgi('Sorumlu', tr((j.assignees || []).join(', ')))}</tr>
-    <tr>${bilgi('Sipariş Açıklama', tr(e.aciklama))}${bilgi('Kullanılacak Malzemeler', tr(e.malzemeler))}</tr>
-    <tr>${bilgi('Tedarikçi', tr(e.tedarikci))}${bilgi('Tedarik Notu', tr(e.tedarikNot))}</tr>
+
+  ${bolum('A','İş Bilgileri', `<table class="bilgi">
+    ${bilgiSat([[ 'Müşteri', esc(j.client)], ['Proje', esc(e.projeAdi)]])}
+    ${bilgiSat([[ 'İşin Adı', esc(e.genelAciklama || j.desc)], ['Müşteri Yetkilisi', esc(e.yetkili)]])}
+    ${bilgiSat([[ 'Satınalma No', esc(e.satinalmaNo)], ['Sipariş Adet', esc(e.siparisAdet)]])}
+    ${bilgiSat([[ 'Koordinatör', esc(e.koordinator)], ['Grafiker', esc(e.grafiker)]])}
+    ${bilgiSat([[ 'Teslim Tarihi', trh(e.teslimTarihi)], ['Montaj Tarihi', trh(e.montajTarihi)]])}
+    <tr><td class="k">Öncelik</td><td class="v">${secKut(e.oncelik, [['normal','Normal'],['acil','Acil'],['kritik','Kritik']])}</td>
+        <td class="k">Durum</td><td class="v">${secKut(e.durum, IE_DURUMLAR)}</td></tr>
+  </table>`)}
+
+  ${bolum('B','İş Kalemleri', `<table class="kalem">
+    <thead><tr><th style="width:22px;">No</th><th>Ürün / Tanım</th><th style="width:56px;">Kod</th><th style="width:36px;">Adet</th>
+      <th style="width:56px;">En (mm)</th><th style="width:56px;">Boy (mm)</th><th style="width:56px;">Toplam m²</th><th>Malzeme / Teknik</th></tr></thead>
+    <tbody>${(e.kalemler.length ? e.kalemler : [{}]).map((k, i) => `<tr>
+      <td class="s">${String(i + 1).padStart(2, '0')}</td><td>${esc(k.tanim)}</td><td class="s">${esc(k.kod)}</td>
+      <td class="s">${esc(k.adet)}</td><td class="s">${esc(k.en)}</td><td class="s">${esc(k.boy)}</td>
+      <td class="s">${ieM2(k)}</td><td>${esc(k.malzeme)}</td></tr>`).join('')}</tbody>
+  </table>`)}
+
+  ${bolum('C','Tedarik / Satın Alma', `<table class="bilgi">
+    ${bilgiSat([[ 'Tedarikçi', esc(e.tedarikci)], ['Termin / Not', esc(e.tedarikNot)]])}
+    ${bilgiSat([[ 'Malzemeler', esc(e.malzemeler)], ['Sipariş Adet', esc(e.siparisAdet)]])}
+  </table>`)}
+
+  ${bolum('D','Görsel / Dosya Kontrolü', `<table class="bilgi" style="border-bottom:none;">
+    ${bilgiSat([[ 'Dosya Adı', esc(e.dosyaAdi)], ['Revizyon', esc(e.revizyon)]])}
+    ${bilgiSat([[ 'Onaylayan', esc(e.onaylayan)], ['Onay Tarihi', trh(e.onayTarihi)]])}
   </table>
-  ${e.kalemler.length ? `<h3>Ölçüler ve Kalemler</h3>
-  <table class="kalem">
-    <thead><tr><th style="width:24px;">#</th><th>Tanım / Konum</th><th style="width:64px;">En (cm)</th><th style="width:64px;">Boy (cm)</th><th style="width:48px;">Adet</th><th>Malzeme / Baskı</th></tr></thead>
-    <tbody>${e.kalemler.map((k, i) => `<tr>
-      <td class="s">${i + 1}</td><td>${tr(k.tanim)}</td><td class="s">${tr(k.en)}</td><td class="s">${tr(k.boy)}</td><td class="s">${tr(k.adet)}</td><td>${tr(k.malzeme)}</td>
-    </tr>`).join('')}</tbody>
-  </table>` : ''}
-  ${e.gorseller.length ? `<h3>Onaylı Görseller</h3>
-  <div class="gorseller">${e.gorseller.map((g, i) => `<div class="gorsel"><img src="${g.src}"><div class="not">${i + 1}. ${notEsc(g.not || 'Onaylı çalışma')}</div></div>`).join('')}</div>` : ''}
+  <div class="cb-alan iki">${IE_DOSYA_KONTROL.map(([k, ad]) => kut(!!e.dosyaKontrol[k], ad)).join('')}</div>
+  ${sonRevUyari ? `<div class="uyari">⚠ MÜŞTERİ ONAYI / SON REVİZYON İŞARETLİ DEĞİL — BU FORMLA ÜRETİME BAŞLAMAYIN!</div>` : ''}`)}
+
+  ${bolum('E','Montaj Planlaması', `<div class="yan-yana">
+    <div><table class="bilgi">
+      ${bilgiSat([[ 'Montaj Tarihi', trh(e.montajTarihi)], ['Saat', esc(e.montajSaati)]])}
+      ${bilgiSat([[ 'Lokasyon', esc(e.montajYeri)], ['Alan', esc(e.montajAlan)]])}
+      ${bilgiSat([[ 'Ekip Lideri', esc(e.ekipLideri)], ['Saha Tel.', esc(e.sahaTelefon)]])}
+      ${bilgiSat([[ 'Ön Ölçü', esc(e.montajOncesiOlcu)], ['Sorumlu', esc((j.assignees || []).join(', '))]])}
+    </table></div>
+    <div><table class="bilgi">
+      <tr><td class="k" style="width:34%;">İSG / Giriş</td><td class="v">${secKut(e.isg, [['gerekli','Gerekli'],['tamam','Tamamlandı'],['gerekmez','Gerekmez']])}</td></tr>
+      <tr><td class="k">Çalışma</td><td class="v">${secKut(e.calisma, [['gunduz','Gündüz'],['gece','Gece']])}</td></tr>
+      <tr><td class="k">Elektrik</td><td class="v">${secKut(e.elektrik, [['hazir','Hazır'],['degil','Değil'],['ekip','Ekip bağlayacak']])}</td></tr>
+      <tr><td class="k">Vinç</td><td class="v">${secKut(e.vinc, [['gerekli','Gerekli'],['gerekmez','Gerekmez']])}</td></tr>
+      <tr><td class="k">İskele</td><td class="v">${secKut(e.iskeleSec, [['gerekli','Gerekli'],['gerekmez','Gerekmez']])}</td></tr>
+    </table></div>
+  </div>`)}
+
+  ${bolum('F','Montajda Gerekli Ekipman', `<div class="cb-alan">${IE_EKIPMAN.map(([k, ad]) => kut(!!e.ekipman[k], ad)).join('')}</div>`)}
+
+  ${e.gorseller.length ? bolum('G','Onaylı Görseller', `<div class="gorseller">
+    ${e.gorseller.map((g, i) => `<div class="gorsel"><img src="${g.src}"><div class="not">${i + 1}. ${notEsc(g.not || 'Onaylı çalışma')}</div></div>`).join('')}
+  </div>`) : ''}
+
+  ${bolum('H','Montaj Sonu Kapanış', `<div class="cb-alan" style="border-bottom:1px solid #CBD5E1;">${IE_KAPANIS.map(([k, ad]) => kut(!!e.kapanis[k], ad)).join('')}</div>
+  <table class="bilgi" style="margin-top:-1px;">
+    ${bilgiSat([[ 'Eksik / Sorun', esc(e.eksikNot)], ['Montajı Yapan', esc(e.montajYapan)]])}
+  </table>`)}
+
   <div class="imzalar">
     <div class="imza"><b>Hazırlayan</b><span>Ad / İmza / Tarih</span></div>
     <div class="imza"><b>Üretim Sorumlusu</b><span>Ad / İmza / Tarih</span></div>
-    <div class="imza"><b>Koordinatör Teslim</b><span>Ad / İmza / Tarih</span></div>
+    <div class="imza"><b>Montaj Ekip Lideri</b><span>Ad / İmza / Tarih</span></div>
+    <div class="imza"><b>Koordinatör Teslim${e.kontrolEden ? ' — ' + notEsc(e.kontrolEden) : ''}</b><span>Ad / İmza / Tarih</span></div>
   </div>
-  <div class="alt">Bu iş emri ROTA üzerinden oluşturuldu · ${notEsc(j.code)} · ${bugun}</div>
+  <div class="alt"><span>${notEsc(AGENCY.name)} · ${notEsc(AGENCY.address || '')}</span><span>${notEsc(e.emriNo)} · ${notEsc(j.code)} · ROTA ile oluşturuldu · ${bugun}</span></div>
   </body></html>`;
 }
 function isEmriYazdir(id){
