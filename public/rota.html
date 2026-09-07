@@ -305,6 +305,34 @@ tr:last-child td{border-bottom:none;}
 .ledger-footer{padding:10px 16px;font-size:11.5px;color:var(--ink-3);display:flex;
   justify-content:space-between;align-items:center;border-top:1px solid var(--line);}
 .empty-state{padding:22px 16px;font-size:12px;color:var(--ink-3);text-align:center;}
+/* Cari hareketleri ekranı */
+.cari-ara-kutu{display:flex;align-items:center;gap:8px;margin:10px;padding:0 11px;height:32px;
+  background:var(--surface);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-3);}
+.cari-ara-kutu input{border:none;outline:none;flex:1;font-size:12.5px;background:transparent;color:var(--ink);font-family:inherit;}
+.cari-durum{display:block;margin-top:2px;font-size:11px;font-weight:500;}
+.cari-durum.tahsil{color:var(--ok);}
+.cari-durum.odeme{color:var(--risk);}
+.cari-durum.notr{color:var(--ink-3);}
+.fg-opt{font-size:12px;color:var(--ink-2);padding:5px 8px;border-radius:6px;cursor:pointer;user-select:none;}
+.fg-opt:hover{background:var(--surface-sunk);}
+.fg-opt.aktif{background:var(--signal-soft);color:var(--signal);font-weight:600;}
+.fg-opt.bos{color:var(--ink-3);cursor:default;}
+.fg-opt.bos:hover{background:none;}
+.cari-toplam-kutu{border-top:1px solid var(--line);padding:8px 12px 12px;max-width:330px;margin-left:auto;}
+.cari-h-satir{display:grid;grid-template-columns:1fr 105px 125px 145px;gap:10px;align-items:center;
+  padding:9px 14px;border-bottom:1px solid var(--line);}
+.cari-h-satir:last-of-type{border-bottom:none;}
+.cari-h-satir.tiklanir{cursor:pointer;}
+.cari-h-satir.tiklanir:hover{background:var(--surface-sunk);}
+.cari-h-baslik{font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--ink-2);background:var(--surface-sunk);}
+.cari-h-hucre{text-align:right;font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;}
+.cari-h-link{font-size:10.5px;color:var(--signal);font-weight:600;margin-left:4px;}
+.cari-dekont-bilgi{font-size:12px;border-radius:6px;padding:8px 11px;margin:-4px 0 12px;}
+.cari-dekont-bilgi.borc{background:var(--risk-soft);color:var(--risk);}
+.cari-dekont-bilgi.alacak{background:var(--ok-soft);color:var(--ok);}
+.cari-dekont-bilgi.notr{background:var(--surface-sunk);color:var(--ink-2);}
+@media (max-width:880px){ .cari-h-satir{grid-template-columns:1fr 78px 95px;} .cari-h-satir > .cari-h-hucre:nth-child(2){display:none;} }
 .group-header{display:flex;justify-content:space-between;padding:6px 13px;background:var(--surface-sunk);
   font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;
   letter-spacing:.7px;color:var(--ink-2);border-bottom:1px solid var(--line);}
@@ -1271,7 +1299,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08c';
+window.ROTA_SURUM = 'v2026-09-08d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1328,6 +1356,7 @@ function veriOnar(){
   (GELIRLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('ge'); degisti = true; } });
   (GIDERLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('gi'); degisti = true; } });
   (CEK_SENET || []).forEach(x => { if(!x.id){ x.id = benzersizId('cs'); degisti = true; } });
+  (CARI_DEKONTLAR || []).forEach(x => { if(!x.id){ x.id = benzersizId('cd'); degisti = true; } });
   (PRODUCT_CATALOG || []).forEach(x => { if(!x.id){ x.id = benzersizId('pr'); degisti = true; } });
   (KASA_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ka'); degisti = true; } });
   (BANK_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ba'); degisti = true; } });
@@ -1564,7 +1593,7 @@ window.addEventListener('popstate', e => {
   onMuhasebeSub = st.onMuhasebeSub; raporlarSub = st.raporlarSub;
   stokSub = st.stokSub; gorevSub = st.gorevSub; yonetimSub = st.yonetimSub;
   openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
-  kisilerStep = 'list'; teklifStep = 'list'; gelirStep = 'list'; giderStep = 'list'; cekSenetStep = 'list'; personelStep = 'list';
+  kisilerStep = 'list'; teklifStep = 'list'; gelirStep = 'list'; giderStep = 'list'; cekSenetStep = 'list'; personelStep = 'list'; cariDetayKey = null;
   renderNav(); renderContent();
   window.__gecmisGeziniyor = false;
 });
@@ -3144,6 +3173,7 @@ let FATURALAR = [
   { client:'Ercüment Hukuk Bürosu', tur:'Satış Faturası', no:'S100', tarih:'27.08.2026', vade:'26.09.2026 · 30 Gün Kaldı', tutar:2800, kalan:2800, highlight:true },
   { client:'Ultra Web Yazılım', tur:'Satış Faturası', no:'S101', tarih:'12.08.2026', vade:'Vade tarihi yok', tutar:960, kalan:16 },
 ];
+let CARI_DEKONTLAR = [];   // elle girilen borç/alacak dekontları
 let GELIRLER = [
   { client:'Ultra Web Yazılım', hesap:'Garanti Bankası - Ana Hesap', tur:'Tahsilat', tarih:'12.08.2026', tutar:944, kategoriId:null },
   { client:'Parlak Sanayi A.Ş.', hesap:'Garanti Bankası - Ana Hesap', tur:'Tahsilat', tarih:'21.08.2026', tutar:2800, kategoriId:'kg2' },
@@ -3213,7 +3243,7 @@ let PERSONELLER = [
   })
 );
 // Cari bakiyeleri faturalardan türetilir: satış faturası kalanı = tahsil edilecek (−), alış faturası kalanı = ödeme yapılacak (+)
-// Cari hesap dökümü: kabul edilmiş teklifler borç yazar, gelir kayıtları (tahsilat) düşer
+// Cari hesap dökümü: kabul edilmiş teklifler + borç dekontları borç yazar; tahsilatlar + alacak dekontları düşer
 function cariHesaplari(){
   const map = new Map();
   const adAnahtar = ad => 'ad:' + String(ad || '').trim().toLowerCase();
@@ -3222,8 +3252,8 @@ function cariHesaplari(){
     if(!map.has(k)){
       // isimle açılmış kayıt varsa kimliklisiyle birleştir
       const eski = !cid ? null : map.get(adAnahtar(ad));
-      if(cid && eski){ map.delete(adAnahtar(ad)); map.set(k, eski); eski.customerId = cid; }
-      else map.set(k, { ad: ad || 'Bilinmeyen', customerId: cid || '', borclar: [], tahsilatlar: [] });
+      if(cid && eski){ map.delete(adAnahtar(ad)); map.set(k, eski); eski.customerId = cid; eski.key = k; }
+      else map.set(k, { key: k, ad: ad || 'Bilinmeyen', customerId: cid || '', borclar: [], tahsilatlar: [], dekontlar: [] });
     }
     const c = map.get(k);
     if(ad && (c.ad === 'Bilinmeyen' || !c.ad)) c.ad = ad;
@@ -3233,7 +3263,7 @@ function cariHesaplari(){
     if(q.status !== 'Kabul Edildi' && q.status !== 'Faturalandı') return;
     const cst = CUSTOMERS.find(x => x.id === q.customerId);
     const ad = (cst && cst.name) || q.musteriAdi || 'Müşteri seçilmedi';
-    kayit(q.customerId, ad).borclar.push({ no: q.no, tarih: q.date, tutar: Math.round(quoteTotal(q)) });
+    kayit(q.customerId, ad).borclar.push({ qid: q.id, no: q.no, tarih: q.date, tutar: Math.round(quoteTotal(q)) });
   });
   GELIRLER.forEach(g => {
     if(!g.client && !g.customerId) return;
@@ -3243,10 +3273,18 @@ function cariHesaplari(){
     if(!c) c = kayit(g.customerId || '', g.client);
     c.tahsilatlar.push({ tarih: g.tarih, tutar: Number(g.tutar) || 0, aciklama: g.tur || 'Tahsilat' });
   });
+  (CARI_DEKONTLAR || []).forEach(d => {
+    let c = d.customerId ? map.get(d.customerId) : null;
+    if(!c) c = map.get(adAnahtar(d.musteriAdi));
+    if(!c) c = kayit(d.customerId || '', d.musteriAdi || 'Bilinmeyen');
+    c.dekontlar.push(d);
+  });
   return [...map.values()].map(c => {
-    c.borc = c.borclar.reduce((t,x) => t + x.tutar, 0);
-    c.tahsil = c.tahsilatlar.reduce((t,x) => t + x.tutar, 0);
-    c.kalan = c.borc - c.tahsil;
+    c.borc = c.borclar.reduce((t,x) => t + x.tutar, 0)
+           + c.dekontlar.filter(d => d.tur === 'borc').reduce((t,d) => t + (Number(d.tutar) || 0), 0);
+    c.tahsil = c.tahsilatlar.reduce((t,x) => t + x.tutar, 0)
+             + c.dekontlar.filter(d => d.tur === 'alacak').reduce((t,d) => t + (Number(d.tutar) || 0), 0);
+    c.kalan = c.borc - c.tahsil;   // + → tahsil edilecek, − → ödeme yapılacak
     return c;
   }).filter(c => c.borc || c.tahsil)
     .sort((a,b) => a.ad.localeCompare(b.ad, 'tr'));
@@ -4296,50 +4334,217 @@ function saveMesai(){
   showToast(`${p ? p.name : 'Personel'} — ${tl(toplam)} mesai kaydedildi.`);
 }
 
-let cariAcikAd = null;
-function cariAcKapa(ad){ cariAcikAd = cariAcikAd === ad ? null : ad; renderContent(); }
+// ---- Cari Hareketleri: liste + cari detay (ekstre) + dekontlar ----
+let cariDetayKey = null;
+let cariTurFiltre = 'hepsi';
+function cariTL(n){ return Number(Math.abs(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' TL'; }
+function cariBakiyeYazi(kalan){  // referans programdaki gibi: tahsil edilecek bakiye eksi (−) yazılır
+  if(kalan > 0) return '-' + cariTL(kalan);
+  if(kalan < 0) return cariTL(kalan);
+  return '0,00 TL';
+}
+function cariDurumHtml(kalan){
+  if(kalan > 0) return '<span class="cari-durum tahsil">Tahsil Edilecek</span>';
+  if(kalan < 0) return '<span class="cari-durum odeme">Ödeme Yapılacak</span>';
+  return '<span class="cari-durum notr">Kapandı</span>';
+}
+function cariTarihTR(t){
+  if(!t) return '—';
+  return /^\d{4}-\d{2}-\d{2}/.test(t) ? formatDate(t) : String(t);
+}
+function cariTarihSira(t){  // "07.09.2026" ve "2026-09-07" karışık kayıtlar sıralanabilsin
+  if(!t) return '';
+  const m = String(t).match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  return String(t).slice(0, 10);
+}
+function cariDetayAc(key){ cariDetayKey = key; renderContent(); }
+function cariTurSec(t){ cariTurFiltre = t; renderContent(); }
+function cariAraFiltre(v){
+  const q = v.trim().toLowerCase();
+  document.querySelectorAll('.cari-satir').forEach(r => {
+    r.style.display = !q || (r.dataset.ad || '').includes(q) ? '' : 'none';
+  });
+}
+function cariIslemTahsilat(cid){ gorevdenTahsilat(cid || ''); }
+function cariIslemOdeme(){
+  pushHistory();
+  currentPage = 'on-muhasebe'; onMuhasebeSub = 'giderler'; openSubmenu = 'on-muhasebe';
+  renderNav(); openGiderForm('odeme'); tarayiciGecmisYaz();
+}
+function cariTeklifAc(qid){
+  pushHistory();
+  goTo('teklifler');
+  openQuoteView(qid);
+}
+function openCariDekont(tur, onCid){
+  const opts = '<option value="">Seçiniz..</option>' +
+    CUSTOMERS.map(c => `<option value="${c.id}" ${onCid === c.id ? 'selected' : ''}>${notEsc(c.name)}</option>`).join('');
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${tur === 'borc' ? 'Borç' : 'Alacak'} Dekontu Ekle</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Müşteri / Tedarikçi</label><select id="cdMusteri" onchange="cariDekontBilgi()">${opts}</select></div>
+    <div id="cdBilgi"></div>
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Tutar</label><input type="number" id="cdTutar" placeholder="0"></div>
+      <div class="field"><label>&nbsp;</label><select id="cdParaBirimi"><option>TL</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>İşlem Tarihi</label><input id="cdTarih" value="${bugunTR()}"></div>
+      <div class="field"><label>Vade Tarihi</label><input id="cdVade" value="${bugunTR()}"></div>
+    </div>
+    <div class="field"><label>Kategori</label>${kategoriSelectHtml('cdKategori', tur === 'borc' ? 'gelir' : 'gider', '')}</div>
+    <div class="field"><label>Etiket</label><input id="cdEtiket" placeholder="Etiket (isteğe bağlı)"></div>
+    <div class="field"><label>Açıklama</label><input id="cdAciklama" placeholder="Açıklama"></div>
+    <button class="modal-submit" onclick="submitCariDekont('${tur}')">Kaydet</button>`;
+  showModal();
+  cariDekontBilgi();
+}
+function cariDekontBilgi(){
+  const el = document.getElementById('cdBilgi'); if(!el) return;
+  const cid = document.getElementById('cdMusteri').value;
+  if(!cid){ el.innerHTML = ''; return; }
+  const c = cariHesaplari().find(x => x.customerId === cid);
+  const kalan = c ? c.kalan : 0;
+  el.innerHTML = kalan > 0
+    ? `<div class="cari-dekont-bilgi borc">Bu carinin -${cariTL(kalan)} borcu bulunmaktadır.</div>`
+    : (kalan < 0
+      ? `<div class="cari-dekont-bilgi alacak">Bu cariye ${cariTL(kalan)} ödeme yapılacaktır.</div>`
+      : `<div class="cari-dekont-bilgi notr">Bu carinin borcu bulunmamaktadır.</div>`);
+}
+function submitCariDekont(tur){
+  const cid = document.getElementById('cdMusteri').value;
+  const cst = CUSTOMERS.find(c => c.id === cid);
+  const tutar = Number(document.getElementById('cdTutar').value) || 0;
+  if(!cid){ showToast('Müşteri / tedarikçi seçin.'); return; }
+  if(!tutar){ showToast('Tutar girin.'); return; }
+  CARI_DEKONTLAR.unshift({
+    id: benzersizId('cd'),
+    customerId: cid,
+    musteriAdi: cst ? cst.name : '',
+    tur,
+    tutar,
+    islemTarihi: document.getElementById('cdTarih').value,
+    vadeTarihi: document.getElementById('cdVade').value,
+    kategoriId: document.getElementById('cdKategori').value || null,
+    etiket: document.getElementById('cdEtiket').value.trim(),
+    aciklama: document.getElementById('cdAciklama').value.trim(),
+  });
+  closeModal(); renderContent();
+  showToast(`${tur === 'borc' ? 'Borç' : 'Alacak'} dekontu kaydedildi.`);
+}
+function cariDekontSil(id){
+  if(!confirm('Bu dekont silinsin mi?')) return;
+  CARI_DEKONTLAR = CARI_DEKONTLAR.filter(d => d.id !== id);
+  renderContent();
+}
 function cariHareketleriView(){
-  const CARI = cariHesaplari();
-  const tl2 = n => '₺' + Number(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
-  const toplamBorc = CARI.reduce((t,c) => t + c.borc, 0);
-  const toplamTahsil = CARI.reduce((t,c) => t + c.tahsil, 0);
+  if(cariDetayKey) return cariDetayView();
+  const HEPSI = cariHesaplari();
+  const CARI = HEPSI.filter(c =>
+    cariTurFiltre === 'bakiyeli' ? c.kalan !== 0 :
+    cariTurFiltre === 'odeme'    ? c.kalan < 0 :
+    cariTurFiltre === 'tahsil'   ? c.kalan > 0 : true);
+  const tahsilToplam = HEPSI.filter(c => c.kalan > 0).reduce((t,c) => t + c.kalan, 0);
+  const odemeToplam  = HEPSI.filter(c => c.kalan < 0).reduce((t,c) => t - c.kalan, 0);
+  const turler = [['hepsi','Tümü'],['bakiyeli','Bakiyesi Olanlar'],['odeme','Ödeme Yapılacak'],['tahsil','Tahsil Edilecek']];
+  const etiketler = [...new Set((CARI_DEKONTLAR || []).map(d => d.etiket).filter(Boolean))];
   return `
-    <div class="list-page-head"><div><div class="page-title">Cari Hareketleri</div>
-      <div class="page-sub">Kabul edilmiş teklif tutarları (KDV dahil) borç yazar, girilen tahsilatlar düşer.</div></div></div>
+    <div class="list-page-head"><div class="page-title">Cari Hareketleri</div>
+      <div class="new-menu-wrap">
+        <button class="primary-btn" data-newmenu onclick="toggleNewMenu(event,'cariIslemMenu')">İşlemler ⌄</button>
+        <div class="new-menu" id="cariIslemMenu">
+          <button onclick="cariIslemTahsilat()">Tahsilat Ekle</button>
+          <button onclick="cariIslemOdeme()">Ödeme Ekle</button>
+          <button onclick="openCariDekont('borc')">Borç Dekontu Ekle</button>
+          <button onclick="openCariDekont('alacak')">Alacak Dekontu Ekle</button>
+        </div>
+      </div></div>
     <div class="ledger-wrap">
       <div class="ledger-main">
-        <div class="ledger-row" style="font-weight:700;"><span>Cari</span><span>Kalan</span></div>
-        ${CARI.length ? '' : '<div class="empty-state">Henüz cari hareketi yok — teklif kabul edilip iş açıldığında burada görünür.</div>'}
+        <div class="cari-ara-kutu">🔍 <input id="cariAra" placeholder="Ara" oninput="cariAraFiltre(this.value)"></div>
+        <div class="ledger-row" style="font-weight:700;"><span>Cari ⇅</span><span>Bakiye</span></div>
+        ${CARI.length ? '' : '<div class="empty-state">Kayıt bulunamadı — teklif kabul edilip iş açıldığında cari hareketi oluşur.</div>'}
         ${CARI.map(c => `
-          <div class="ledger-row" style="cursor:pointer;" onclick="cariAcKapa('${notEsc(c.ad).replace(/'/g, "\\'")}')">
-            <div>
-              <div class="ledger-title" style="margin:0;">${notEsc(c.ad)} <span style="color:var(--ink-3);font-size:11px;">${cariAcikAd === c.ad ? '▾' : '▸'}</span></div>
-              <div class="ledger-meta">${c.borclar.length} iş · ${tl2(c.borc)} &nbsp;—&nbsp; ${c.tahsilatlar.length} tahsilat · ${tl2(c.tahsil)}</div>
-            </div>
-            <div class="ledger-amount" style="color:${c.kalan > 0 ? 'var(--risk)' : 'var(--ok)'};">${tl2(Math.abs(c.kalan))}<span class="${c.kalan > 0 ? 'kalan' : 'odendi'}">${c.kalan > 0 ? 'Tahsil Edilecek' : (c.kalan < 0 ? 'Fazla Tahsilat' : 'Kapandı')}</span></div>
-          </div>
-          ${cariAcikAd === c.ad ? `
-          <div style="background:var(--surface-sunk);border-radius:8px;padding:10px 14px;margin:0 8px 10px;">
-            ${c.borclar.map(b => `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;">
-              <span>📄 Teklif ${notEsc(b.no)} kabul edildi · ${b.tarih ? formatDate(b.tarih) : ''}</span>
-              <span style="font-family:var(--font-mono);">+ ${tl2(b.tutar)}</span></div>`).join('')}
-            ${c.tahsilatlar.map(t => `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--ok);">
-              <span>💰 ${notEsc(t.aciklama)} · ${notEsc(t.tarih || '')}</span>
-              <span style="font-family:var(--font-mono);">− ${tl2(t.tutar)}</span></div>`).join('')}
-            <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0 0;margin-top:4px;border-top:1px solid var(--line);font-weight:700;">
-              <span>Kalan</span><span style="font-family:var(--font-mono);color:${c.kalan > 0 ? 'var(--risk)' : 'var(--ok)'};">${tl2(c.kalan)}</span></div>
-          </div>` : ''}
-        `).join('')}
-        <div class="ledger-footer"><span>🔻 Toplam: ${CARI.length} cari</span></div>
+          <div class="ledger-row cari-satir" data-ad="${notEsc(c.ad).toLowerCase()}" style="cursor:pointer;align-items:center;" onclick="cariDetayAc('${c.key.replace(/'/g, "\\'")}')">
+            <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}</div>
+            <div class="ledger-amount" style="color:${c.kalan > 0 ? 'var(--ok)' : (c.kalan < 0 ? 'var(--risk)' : 'var(--ink-3)')};">${cariBakiyeYazi(c.kalan)}${cariDurumHtml(c.kalan)}</div>
+          </div>`).join('')}
+        <div class="ledger-footer"><span>🔻 Toplam: ${CARI.length} kayıt</span></div>
+        <div class="cari-toplam-kutu">
+          <div class="kb-row header"><span>Toplam (TL)</span><span></span></div>
+          <div class="kb-row"><span>Tahsilatlar</span><span style="color:var(--ok);">${tahsilToplam ? '-' + cariTL(tahsilToplam) : '0,00 TL'}</span></div>
+          <div class="kb-row"><span>Ödemeler</span><span style="color:var(--risk);">${odemeToplam ? cariTL(odemeToplam) : '0,00 TL'}</span></div>
+          <div class="kb-row total"><span>Toplam</span><span>${cariBakiyeYazi(tahsilToplam - odemeToplam)}</span></div>
+        </div>
       </div>
       <div class="ledger-side">
-        <div class="kb-row header"><span>Özet (TL)</span><span></span></div>
-        <div class="kb-row"><span>Toplam İş</span><span>${tl2(toplamBorc)}</span></div>
-        <div class="kb-row"><span>Toplam Tahsilat</span><span>${tl2(toplamTahsil)}</span></div>
-        <div class="kb-row total"><span>Tahsil Edilecek</span><span style="color:${toplamBorc - toplamTahsil > 0 ? 'var(--risk)' : 'var(--ok)'};">${tl2(toplamBorc - toplamTahsil)}</span></div>
+        <div class="filter-group"><h5>Tür</h5>
+          ${turler.map(([k, ad]) => `<div class="fg-opt ${cariTurFiltre === k ? 'aktif' : ''}" onclick="cariTurSec('${k}')">${ad}</div>`).join('')}
+        </div>
+        <div class="filter-group"><h5>🏷️ Etiketler</h5>
+          ${etiketler.length ? etiketler.map(e => `<div class="fg-opt">${notEsc(e)}</div>`).join('') : '<div class="fg-opt bos">Etiket yok</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+function cariDetayView(){
+  const c = cariHesaplari().find(x => x.key === cariDetayKey);
+  if(!c){ cariDetayKey = null; return cariHareketleriView(); }
+  const satirlar = [];
+  c.borclar.forEach(b => satirlar.push({
+    sira: cariTarihSira(b.tarih), yon: -1, tutar: b.tutar,
+    baslik: `Satış Faturası (${notEsc(b.no || '')})`,
+    alt: `Tarih: ${b.tarih ? formatDate(b.tarih) : '—'} · Teklif tutarı, KDV dahil`,
+    vade: '—', qid: b.qid || '',
+  }));
+  c.dekontlar.forEach(d => satirlar.push({
+    sira: cariTarihSira(d.islemTarihi), yon: d.tur === 'borc' ? -1 : 1, tutar: Number(d.tutar) || 0,
+    baslik: d.tur === 'borc' ? 'Borç Dekontu' : 'Alacak Dekontu',
+    alt: `Tarih: ${cariTarihTR(d.islemTarihi)}${d.aciklama ? ' · ' + notEsc(d.aciklama) : ''}${d.etiket ? ' · 🏷️ ' + notEsc(d.etiket) : ''}`,
+    vade: cariTarihTR(d.vadeTarihi), sil: d.id,
+  }));
+  c.tahsilatlar.forEach(t => satirlar.push({
+    sira: cariTarihSira(t.tarih), yon: 1, tutar: t.tutar,
+    baslik: 'Tahsilat',
+    alt: `Tarih: ${cariTarihTR(t.tarih)}${t.aciklama && t.aciklama !== 'Tahsilat' ? ' · ' + notEsc(t.aciklama) : ''}`,
+    vade: '—',
+  }));
+  satirlar.sort((a,b) => a.sira.localeCompare(b.sira));
+  let bakiye = 0;
+  const govde = satirlar.map(s => {
+    bakiye += s.yon * s.tutar;   // eksi bakiye = tahsil edilecek
+    return `
+      <div class="cari-h-satir ${s.qid ? 'tiklanir' : ''}" ${s.qid ? `onclick="cariTeklifAc('${s.qid}')"` : ''}>
+        <div><div class="ledger-title" style="margin:0;">${s.baslik}${s.qid ? ' <span class="cari-h-link">Teklifi Gör ↗</span>' : ''}</div>
+          <div class="ledger-meta" style="font-family:var(--font-body);">${s.alt}</div></div>
+        <div class="cari-h-hucre">${s.vade}</div>
+        <div class="cari-h-hucre" style="color:${s.yon < 0 ? 'var(--ink)' : 'var(--ok)'};">${s.yon < 0 ? '-' : ''}${cariTL(s.tutar)}</div>
+        <div class="cari-h-hucre" style="font-weight:700;color:${bakiye < 0 ? 'var(--ok)' : (bakiye > 0 ? 'var(--risk)' : 'var(--ink-3)')};">${bakiye < 0 ? '-' : ''}${cariTL(bakiye)}${s.sil ? ` <span class="mini-islem sil" title="Dekontu Sil" onclick="event.stopPropagation();cariDekontSil('${s.sil}')">✕</span>` : ''}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="list-page-head">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="back-btn" onclick="cariDetayKey=null; renderContent();">←</button>
+        <div><div class="page-title">${notEsc(c.ad)} Hareketleri</div>
+          <div class="page-sub">${cariBakiyeYazi(c.kalan)} · ${c.kalan > 0 ? 'Tahsil Edilecek' : (c.kalan < 0 ? 'Ödeme Yapılacak' : 'Hesap kapalı')}</div></div>
       </div>
     </div>
-  `;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin:-4px 0 12px;">
+      <button class="back-btn" style="width:auto;padding:0 12px;" onclick="openCariDekont('borc','${c.customerId}')">Borç Dekontu</button>
+      <button class="back-btn" style="width:auto;padding:0 12px;" onclick="openCariDekont('alacak','${c.customerId}')">Alacak Dekontu</button>
+      <button class="primary-btn" onclick="cariIslemTahsilat('${c.customerId}')">Tahsilat Ekle</button>
+    </div>
+    <div class="ledger-main">
+      <div class="cari-h-satir cari-h-baslik">
+        <div>Detay</div><div class="cari-h-hucre">Vade Tarihi</div><div class="cari-h-hucre">Tutar</div><div class="cari-h-hucre">Bakiye</div>
+      </div>
+      ${govde || '<div class="empty-state">Bu cariye ait hareket yok.</div>'}
+      <div class="ledger-footer">
+        <span>🔻 Toplam: ${satirlar.length} hareket</span>
+        <span style="font-family:var(--font-mono);font-weight:700;color:${c.kalan > 0 ? 'var(--ok)' : (c.kalan < 0 ? 'var(--risk)' : 'var(--ink-3)')};">Kalan: ${cariBakiyeYazi(c.kalan)}</span>
+      </div>
+    </div>`;
 }
 
 function kasaBankaView(){
@@ -7913,6 +8118,7 @@ function collectState(){
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
     KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, BILDIRIMLER,
+    CARI_DEKONTLAR,
   };
 }
 function applyState(d){
@@ -7931,6 +8137,7 @@ function applyState(d){
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   DIS_ALIMLAR = arr('DIS_ALIMLAR'); BILDIRIMLER = arr('BILDIRIMLER');
+  CARI_DEKONTLAR = arr('CARI_DEKONTLAR');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   window.__onarimYapildi = (typeof veriOnar === 'function') ? !!veriOnar() : false;   // çift kimlik + yetim kayıt onarımı
   if(d.AGENCY && typeof d.AGENCY === 'object'){
