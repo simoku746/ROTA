@@ -1271,7 +1271,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-07p';
+window.ROTA_SURUM = 'v2026-09-07r';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1804,7 +1804,24 @@ function dkToSaatMetni(dk){
   return String(s).padStart(2,'0') + ':' + String(k).padStart(2,'0');
 }
 // Renk müşteri/proje adından türetilir — aynı müşteri her yerde aynı renk, liste tutulmaz
+let PLAN_RENK_MAP = {};
+// Görünen haftadaki cariler farklı renk alır: hash başlangıç, doluysa sıradaki boş renge kayar
+function planRenkleriGuncelle(gunler){
+  PLAN_RENK_MAP = {};
+  const kullanilan = new Set();
+  planAktifProjeler(gunler).forEach(ad => {
+    let hsh = 0; const t = String(ad || '');
+    for(let i = 0; i < t.length; i++) hsh = (hsh * 31 + t.charCodeAt(i)) >>> 0;
+    let idx = hsh % PLAN_RENKLER.length;
+    if(kullanilan.size < PLAN_RENKLER.length){
+      while(kullanilan.has(idx)) idx = (idx + 1) % PLAN_RENKLER.length;
+    }
+    kullanilan.add(idx);
+    PLAN_RENK_MAP[ad] = PLAN_RENKLER[idx];
+  });
+}
 function planRenk(ad){
+  if(PLAN_RENK_MAP[ad]) return PLAN_RENK_MAP[ad];
   let hsh = 0; const s = String(ad || '');
   for(let i = 0; i < s.length; i++) hsh = (hsh * 31 + s.charCodeAt(i)) >>> 0;
   return PLAN_RENKLER[hsh % PLAN_RENKLER.length];
@@ -2129,6 +2146,7 @@ function planUstBar(gunler, ekstra){
 
 function planEkipView(){
   const gunler = planHaftaGunleri();
+  planRenkleriGuncelle(gunler);
   const bugunIso = planIso(new Date());
   const ekip = planEkip();
   const departmanSecici = `
@@ -2197,6 +2215,7 @@ function planEkipView(){
 
 function planSaatView(){
   const gunler = planHaftaGunleri();
+  planRenkleriGuncelle(gunler);
   const bugunIso = planIso(new Date());
   const yukseklik = (PLAN_BIT_SAAT - PLAN_BAS_SAAT) * PLAN_SAAT_PX;
   const haftaDk = gunler.reduce((s,d)=> s + planGunOzeti(planIso(d)).dk, 0);
