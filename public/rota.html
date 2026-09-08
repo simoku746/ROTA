@@ -305,6 +305,44 @@ tr:last-child td{border-bottom:none;}
 .ledger-footer{padding:10px 16px;font-size:11.5px;color:var(--ink-3);display:flex;
   justify-content:space-between;align-items:center;border-top:1px solid var(--line);}
 .empty-state{padding:22px 16px;font-size:12px;color:var(--ink-3);text-align:center;}
+/* Cari Hareketleri */
+.cari-ara-kutu{display:flex;align-items:center;gap:8px;margin:10px;padding:0 11px;height:32px;
+  background:var(--surface);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-3);}
+.cari-ara-kutu input{border:none;outline:none;flex:1;font-size:12.5px;background:transparent;color:var(--ink);font-family:inherit;}
+.ch-yon{display:block;margin-top:2px;font-size:11px;font-weight:500;}
+.ch-yon.tahsil{color:var(--ok);} .ch-yon.odeme{color:var(--risk);} .ch-yon.notr{color:var(--ink-3);}
+.ch-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.ch-kart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 15px;}
+.ch-kart.vurgu{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-soft);}
+.ch-kart h4{margin:0 0 4px;font-size:11.5px;font-weight:600;color:var(--ink-3);}
+.ch-kart .deger{font-family:var(--font-mono);font-size:18px;font-weight:700;letter-spacing:-.3px;}
+.ch-kart .ch-alt{font-size:10.5px;color:var(--ink-3);}
+.ch-filtre{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+.ch-filtre select,.ch-filtre input[type=date]{height:32px;padding:0 9px;border:1px solid var(--line);border-radius:6px;
+  background:var(--surface);color:var(--ink);font-size:12px;font-family:inherit;}
+.ch-tablo{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap;}
+.ch-tablo th{text-align:left;padding:9px 12px;background:var(--surface-sunk);border-bottom:1px solid var(--line);
+  font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-2);}
+.ch-tablo td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.ch-tablo tbody tr:hover{background:var(--surface-sunk);}
+.ch-tablo tr:last-child td{border-bottom:none;}
+.ch-tablo .ch-sag{text-align:right;font-family:var(--font-mono);}
+.ch-tablo tr.ch-iptal td{opacity:.5;text-decoration:line-through;}
+.ch-rozet{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;}
+.ch-rozet.mor{background:#EDE9FE;color:#5B21B6;}
+.ch-rozet.turuncu{background:var(--signal-soft);color:var(--signal);}
+.ch-rozet.yesil{background:var(--ok-soft);color:var(--ok);}
+.ch-rozet.kirmizi{background:var(--risk-soft);color:var(--risk);}
+.ch-rozet.gri{background:var(--surface-sunk);color:var(--ink-2);}
+.ch-durum{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600;}
+.ch-durum.yesil{background:var(--ok-soft);color:var(--ok);}
+.ch-durum.kirmizi{background:var(--risk-soft);color:var(--risk);}
+.ch-durum.turuncu{background:var(--signal-soft);color:var(--signal);}
+.ch-durum.gri{background:var(--surface-sunk);color:var(--ink-2);}
+.ch-durum.iptal{background:var(--surface-sunk);color:var(--ink-3);}
+.cari-tablo-kap{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.cari-tablo-kaydir{overflow-x:auto;}
+@media (max-width:880px){ .ch-kpi{grid-template-columns:1fr 1fr;} }
 .group-header{display:flex;justify-content:space-between;padding:6px 13px;background:var(--surface-sunk);
   font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;
   letter-spacing:.7px;color:var(--ink-2);border-bottom:1px solid var(--line);}
@@ -1291,7 +1329,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08t';
+window.ROTA_SURUM = 'v2026-09-08u';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1348,6 +1386,7 @@ function veriOnar(){
   (GELIRLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('ge'); degisti = true; } });
   (GIDERLER  || []).forEach(x => { if(!x.id){ x.id = benzersizId('gi'); degisti = true; } });
   (CEK_SENET || []).forEach(x => { if(!x.id){ x.id = benzersizId('cs'); degisti = true; } });
+  (CARI_HAREKETLER || []).forEach(x => { if(!x.id){ x.id = benzersizId('ch'); degisti = true; } });
   (PRODUCT_CATALOG || []).forEach(x => { if(!x.id){ x.id = benzersizId('pr'); degisti = true; } });
   (KASA_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ka'); degisti = true; } });
   (BANK_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ba'); degisti = true; } });
@@ -1563,7 +1602,7 @@ let NAV_HISTORY = [];
 function snapshotNavState(){
   return { currentPage, onMuhasebeSub, raporlarSub, stokSub, gorevSub, yonetimSub,
     teklifStep, teklifViewId, kisilerStep, gelirStep, giderStep, cekSenetStep,
-    personelStep, personelSecili, mesaiPersonelId };
+    personelStep, personelSecili, mesaiPersonelId, cariSecili };
 }
 function pushHistory(){
   NAV_HISTORY.push(snapshotNavState());
@@ -1587,6 +1626,7 @@ window.addEventListener('popstate', e => {
   onMuhasebeSub = st.onMuhasebeSub; raporlarSub = st.raporlarSub;
   stokSub = st.stokSub; gorevSub = st.gorevSub; yonetimSub = st.yonetimSub;
   openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
+  cariSecili = st.cariSecili !== undefined ? st.cariSecili : null;
   kisilerStep = st.kisilerStep || 'list'; teklifStep = st.teklifStep || 'list';
   gelirStep = st.gelirStep || 'list'; giderStep = st.giderStep || 'list';
   cekSenetStep = st.cekSenetStep || 'list'; personelStep = st.personelStep || 'list';
@@ -1606,6 +1646,7 @@ function goBack(){
   currentPage = snap.currentPage; onMuhasebeSub = snap.onMuhasebeSub; raporlarSub = snap.raporlarSub;
   stokSub = snap.stokSub; gorevSub = snap.gorevSub; yonetimSub = snap.yonetimSub;
   openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
+  cariSecili = snap.cariSecili !== undefined ? snap.cariSecili : null;
   kisilerStep = snap.kisilerStep || 'list'; teklifStep = snap.teklifStep || 'list';
   gelirStep = snap.gelirStep || 'list'; giderStep = snap.giderStep || 'list';
   cekSenetStep = snap.cekSenetStep || 'list'; personelStep = snap.personelStep || 'list';
@@ -3331,6 +3372,7 @@ let FATURALAR = [
   { client:'Ercüment Hukuk Bürosu', tur:'Satış Faturası', no:'S100', tarih:'27.08.2026', vade:'26.09.2026 · 30 Gün Kaldı', tutar:2800, kalan:2800, highlight:true },
   { client:'Ultra Web Yazılım', tur:'Satış Faturası', no:'S101', tarih:'12.08.2026', vade:'Vade tarihi yok', tutar:960, kalan:16 },
 ];
+let CARI_HAREKETLER = [];   // elle girilen cari defter kayıtları (silinmez, iptal edilir)
 let GELIRLER = [
   { client:'Ultra Web Yazılım', hesap:'Garanti Bankası - Ana Hesap', tur:'Tahsilat', tarih:'12.08.2026', tutar:944, kategoriId:null },
   { client:'Parlak Sanayi A.Ş.', hesap:'Garanti Bankası - Ana Hesap', tur:'Tahsilat', tarih:'21.08.2026', tutar:2800, kategoriId:'kg2' },
@@ -4470,12 +4512,479 @@ function mesaiSil(id){
   showToast(`${p ? p.name : 'Personel'} mesai kaydı silindi.`);
 }
 
-// Cari Hareketleri: şimdilik boş — kurgu netleşince yeniden inşa edilecek
-function cariHareketleriView(){
-  return `
-    <div class="list-page-head"><div class="page-title">Cari Hareketleri</div></div>
-    <div class="ledger-main" style="min-height:320px;"></div>`;
+// ================= CARİ HAREKETLERİ — merkezi defter =================
+// Tüm tutarlar KURUŞ cinsinden tam sayı tutulur (kayan nokta hatası olmaz).
+// Kaynaklar: kabul edilmiş teklifler (satış faturası olarak düşer, çift kayıt yok),
+// GELIRLER'deki tahsilatlar (otomatik düşer) ve CARI_HAREKETLER'deki manuel kayıtlar
+// (ödeme, borç/alacak dekontu, virman, açılış). Manuel kayıtlar silinmez — iptal edilir (audit).
+let cariSecili = null;                 // seçili cari anahtarı (customerId ya da 'ad:...')
+let chFiltre = { ara: '', tur: '', yon: '', bas: '', bit: '' };
+let chYeniUstte = false;
+let chIptalGoster = false;
+
+const CH_TURLER = {
+  'satis-faturasi': { ad: 'Satış Faturası',          sinif: 'mor',     yon: 'borc'   },
+  'alis-faturasi':  { ad: 'Alış Faturası',           sinif: 'turuncu', yon: 'alacak' },
+  'tahsilat':       { ad: 'Tahsilat',                sinif: 'yesil',   yon: 'alacak' },
+  'odeme':          { ad: 'Ödeme',                   sinif: 'kirmizi', yon: 'borc'   },
+  'borc-dekontu':   { ad: 'Borç Dekontu',            sinif: 'kirmizi', yon: 'borc'   },
+  'alacak-dekontu': { ad: 'Alacak Dekontu',          sinif: 'yesil',   yon: 'alacak' },
+  'virman-cikis':   { ad: 'Virman (Çıkış)',          sinif: 'mor',     yon: 'borc'   },
+  'virman-giris':   { ad: 'Virman (Giriş)',          sinif: 'mor',     yon: 'alacak' },
+  'acilis-borc':    { ad: 'Açılış Bakiyesi (Borç)',  sinif: 'gri',     yon: 'borc'   },
+  'acilis-alacak':  { ad: 'Açılış Bakiyesi (Alacak)',sinif: 'gri',     yon: 'alacak' },
+};
+const CH_YONTEMLER = ['Nakit','Havale','EFT','FAST','Kredi Kartı','Çek','Diğer'];
+
+function chAdAnahtar(ad){ return 'ad:' + String(ad || '').trim().toLowerCase(); }
+function chKurus(tl){ return Math.round((Number(tl) || 0) * 100); }
+function chTL(k){ return (Math.abs(k) / 100).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' TL'; }
+function chTarihSira(t){
+  if(!t) return '';
+  const m = String(t).match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  return String(t).slice(0, 10);
 }
+function chTarihTR(t){
+  if(!t) return '—';
+  return /^\d{4}-\d{2}-\d{2}/.test(t) ? formatDate(t) : String(t);
+}
+function chKullanici(){
+  try{ if(typeof LIVE !== 'undefined' && LIVE.user && LIVE.user.email) return LIVE.user.email; }catch(e){}
+  return CURRENT_ROLE || 'demo';
+}
+function chBelgeNo(onEk){
+  const n = CARI_HAREKETLER.filter(h => (h.belgeNo || '').startsWith(onEk)).length + 1;
+  return onEk + '-' + String(n).padStart(3, '0');
+}
+
+// ---- MERKEZİ SERVİS: tüm kaynaklardan birleşik hareket satırları ----
+function cariTumSatirlar(){
+  const satirlar = [];
+  QUOTES.forEach(q => {
+    if(q.status !== 'Kabul Edildi' && q.status !== 'Faturalandı') return;
+    const cst = CUSTOMERS.find(x => x.id === q.customerId);
+    const ad = (cst && cst.name) || q.musteriAdi || 'Müşteri seçilmedi';
+    const ilk = q.items && q.items.find(it => it.title);
+    satirlar.push({ key: q.customerId || chAdAnahtar(ad), ad, tip: 'satis-faturasi',
+      tarih: q.date, vade: '', belgeNo: q.no || '',
+      aciklama: ilk ? (ilk.title + (q.items.filter(it => it.title).length > 1 ? ' +' + (q.items.filter(it => it.title).length - 1) + ' kalem' : '')) : 'Satış',
+      borcK: Math.round(quoteTotal(q) * 100), alacakK: 0,
+      kaynak: { tip: 'teklif', id: q.id } });
+  });
+  GELIRLER.forEach(g => {
+    if(!g.customerId && !g.client) return;
+    satirlar.push({ key: g.customerId || chAdAnahtar(g.client), ad: g.client || '',
+      tip: 'tahsilat', tarih: g.tarih, vade: '', belgeNo: '',
+      aciklama: (g.tur || 'Tahsilat') + (g.hesap ? ' · ' + g.hesap : ''),
+      borcK: 0, alacakK: Math.round((Number(g.tutar) || 0) * 100),
+      kaynak: { tip: 'gelir', id: g.id } });
+  });
+  (CARI_HAREKETLER || []).forEach(h => {
+    const t = CH_TURLER[h.tip]; if(!t) return;
+    satirlar.push({ key: h.customerId || chAdAnahtar(h.musteriAdi), ad: h.musteriAdi || '',
+      tip: h.tip, tarih: h.tarih, vade: h.vade || '', belgeNo: h.belgeNo || '',
+      aciklama: h.aciklama || '', notu: h.notu || '',
+      borcK: t.yon === 'borc' ? (h.tutarK || 0) : 0,
+      alacakK: t.yon === 'alacak' ? (h.tutarK || 0) : 0,
+      kaynak: { tip: 'manuel', id: h.id }, iptal: !!h.iptal, h });
+  });
+  return satirlar;
+}
+
+// Bir carinin defteri: kronolojik sıra, yürüyen bakiye, FIFO ile fatura kalanları.
+// Bakiye = Toplam Borç − Toplam Alacak. Pozitif → Tahsil Edilecek, negatif → Ödeme Yapılacak.
+function cariDefter(key){
+  const bugun = chTarihSira(new Date().toLocaleDateString('tr-TR'));
+  const rows = cariTumSatirlar().filter(r => r.key === key && (!r.iptal || chIptalGoster))
+    .sort((a, b) => chTarihSira(a.tarih).localeCompare(chTarihSira(b.tarih)));
+  let bakiyeK = 0, borcK = 0, alacakK = 0;
+  rows.forEach(r => {
+    if(r.iptal){ r.bakiyeK = bakiyeK; return; }
+    bakiyeK += r.borcK - r.alacakK;
+    borcK += r.borcK; alacakK += r.alacakK;
+    r.bakiyeK = bakiyeK;
+  });
+  // FIFO: alacaklar borç satırlarına kronolojik dağıtılır → kalan + ödeme durumu
+  let havuzK = alacakK;
+  let vadesiGecenK = 0;
+  rows.forEach(r => {
+    if(r.iptal || !r.borcK) return;
+    const dusen = Math.min(havuzK, r.borcK);
+    r.kalanK = r.borcK - dusen;
+    havuzK -= dusen;
+    // Ödeme durumu yalnız alacak doğuran belgelerde anlamlı (fatura ve borç dekontu)
+    if(r.tip !== 'satis-faturasi' && r.tip !== 'borc-dekontu'){ r.durum = 'İşlendi'; return; }
+    const vadeGecti = r.vade && chTarihSira(r.vade) < bugun && r.kalanK > 0;
+    r.durum = vadeGecti ? 'Vadesi Geçti'
+      : (r.kalanK === 0 ? 'Ödendi' : (r.kalanK < r.borcK ? 'Kısmi Ödendi' : (r.vade && chTarihSira(r.vade) >= bugun ? 'Vadesi Gelmedi' : 'Ödenmedi')));
+    if(vadeGecti) vadesiGecenK += r.kalanK;
+  });
+  rows.forEach(r => {
+    if(r.iptal){ r.durum = 'İptal Edildi'; return; }
+    if(!r.durum) r.durum = r.tip === 'tahsilat' ? 'Tahsil Edildi' : 'İşlendi';
+  });
+  return { rows, bakiyeK, borcK, alacakK, vadesiGecenK };
+}
+
+// Cari listesi: tüm anahtarların özetleri (ad çözümü CUSTOMERS öncelikli)
+function cariOzetListesi(){
+  const map = new Map();
+  cariTumSatirlar().forEach(r => {
+    if(r.iptal) return;
+    if(!map.has(r.key)) map.set(r.key, { key: r.key, ad: r.ad, borcK: 0, alacakK: 0 });
+    const c = map.get(r.key);
+    if(r.ad && (!c.ad || c.ad === 'Müşteri seçilmedi')) c.ad = r.ad;
+    c.borcK += r.borcK; c.alacakK += r.alacakK;
+  });
+  return [...map.values()].map(c => {
+    const cst = CUSTOMERS.find(x => x.id === c.key);
+    if(cst) c.ad = cst.name;
+    c.bakiyeK = c.borcK - c.alacakK;
+    return c;
+  }).filter(c => c.borcK || c.alacakK)
+    .sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
+}
+function chBakiyeMetni(k){
+  if(k > 0) return '<span class="ch-yon tahsil">Tahsil Edilecek</span>';
+  if(k < 0) return '<span class="ch-yon odeme">Ödeme Yapılacak</span>';
+  return '<span class="ch-yon notr">Kapalı</span>';
+}
+
+// ---- GÖRÜNÜM ----
+function cariHareketleriView(){
+  return cariSecili ? cariDefterView() : cariListesiView();
+}
+function cariAc(key){ cariSecili = key; chFiltre = { ara:'', tur:'', yon:'', bas:'', bit:'' }; renderContent(); tarayiciGecmisYaz(); }
+function cariKapat(){ cariSecili = null; renderContent(); tarayiciGecmisYaz(); }
+
+function chIslemMenuHtml(menuId, cid){
+  return `
+    <div class="new-menu-wrap">
+      <button class="primary-btn" data-newmenu onclick="toggleNewMenu(event,'${menuId}')">İşlemler ⌄</button>
+      <div class="new-menu" id="${menuId}">
+        <button onclick="gorevdenTahsilat('${cid || ''}')">＋ Tahsilat Ekle</button>
+        <button onclick="chModalAc('odeme','${cid || ''}')">－ Ödeme Ekle</button>
+        <button onclick="chModalAc('borc-dekontu','${cid || ''}')">📄 Borç Dekontu Ekle</button>
+        <button onclick="chModalAc('alacak-dekontu','${cid || ''}')">📄 Alacak Dekontu Ekle</button>
+        <button onclick="chVirmanModal('${cid || ''}')">↔ Virman / Cari Transfer</button>
+        <button onclick="chModalAc('acilis','${cid || ''}')">⚖ Açılış Bakiyesi</button>
+      </div>
+    </div>`;
+}
+
+function cariListesiView(){
+  const liste = cariOzetListesi();
+  const iptalSayi = (CARI_HAREKETLER || []).filter(h => h.iptal).length;
+  return `
+    <div class="list-page-head"><div><div class="page-title">Cari Hareketleri</div>
+      <div class="page-sub">Kabul edilen teklifler satış faturası olarak, girilen tahsilatlar otomatik düşer. Cariye tıklayın.</div></div>
+      ${chIslemMenuHtml('chListeMenu', '')}</div>
+    <div class="ledger-main">
+      <div class="cari-ara-kutu">🔍 <input id="chListeAra" placeholder="Cari ara" oninput="chListeAra(this.value)"></div>
+      <div class="ledger-row" style="font-weight:700;"><span>Cari</span><span>Bakiye</span></div>
+      ${liste.length ? '' : '<div class="empty-state">Henüz cari hareketi yok — teklif kabul edildiğinde, tahsilat girildiğinde ya da İşlemler menüsünden kayıt açıldığında burada görünür.</div>'}
+      ${liste.map(c => `
+        <div class="ledger-row ch-cari-satir" data-ad="${notEsc(c.ad).toLowerCase()}" style="cursor:pointer;align-items:center;" onclick="cariAc('${c.key.replace(/'/g, "\\'")}')">
+          <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}</div>
+          <div class="ledger-amount" style="color:${c.bakiyeK > 0 ? 'var(--ok)' : (c.bakiyeK < 0 ? 'var(--risk)' : 'var(--ink-3)')};">${chTL(c.bakiyeK)}${chBakiyeMetni(c.bakiyeK)}</div>
+        </div>`).join('')}
+      <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} cari${iptalSayi ? ' · ' + iptalSayi + ' iptal kayıt saklı' : ''}</span></div>
+    </div>`;
+}
+function chListeAra(v){
+  const q = v.trim().toLowerCase();
+  document.querySelectorAll('.ch-cari-satir').forEach(r => {
+    r.style.display = !q || (r.dataset.ad || '').includes(q) ? '' : 'none';
+  });
+}
+
+function chRozet(tip){
+  const t = CH_TURLER[tip] || { ad: tip, sinif: 'gri' };
+  return `<span class="ch-rozet ${t.sinif}">${t.ad}</span>`;
+}
+function chDurumRozet(d){
+  const sinif = d === 'Ödendi' || d === 'Tahsil Edildi' ? 'yesil'
+    : d === 'Vadesi Geçti' ? 'kirmizi'
+    : d === 'Kısmi Ödendi' ? 'turuncu'
+    : d === 'İptal Edildi' ? 'iptal' : 'gri';
+  return `<span class="ch-durum ${sinif}">${d}</span>`;
+}
+
+function cariDefterView(){
+  const key = cariSecili;
+  const ozet = cariOzetListesi().find(x => x.key === key);
+  const cst = CUSTOMERS.find(x => x.id === key);
+  const ad = (cst && cst.name) || (ozet && ozet.ad) || 'Cari';
+  const d = cariDefter(key);
+  const f = chFiltre;
+  // filtre uygula (bakiye kolonu tam defter üzerinden hesaplandı, satırlar sadece gizlenir)
+  const gorunen = d.rows.filter(r => {
+    if(f.tur && r.tip !== f.tur) return false;
+    if(f.yon === 'borc' && !r.borcK) return false;
+    if(f.yon === 'alacak' && !r.alacakK) return false;
+    if(f.bas && chTarihSira(r.tarih) < f.bas) return false;
+    if(f.bit && chTarihSira(r.tarih) > f.bit) return false;
+    if(f.ara){
+      const metin = (r.belgeNo + ' ' + r.aciklama + ' ' + (r.notu || '') + ' ' + (CH_TURLER[r.tip] ? CH_TURLER[r.tip].ad : '')).toLowerCase();
+      if(!metin.includes(f.ara.toLowerCase())) return false;
+    }
+    return true;
+  });
+  const sirali = chYeniUstte ? [...gorunen].reverse() : gorunen;
+  const filtreli = gorunen.length !== d.rows.length;
+  const cid = cst ? cst.id : '';
+  const govde = sirali.map(r => {
+    const i = d.rows.indexOf(r);
+    return `
+    <tr class="${r.iptal ? 'ch-iptal' : ''}">
+      <td style="white-space:nowrap;">${chTarihTR(r.tarih)}</td>
+      <td>${chRozet(r.tip)}</td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;">${notEsc(r.belgeNo) || '—'}</td>
+      <td>${notEsc(r.aciklama)}${r.kalanK > 0 && r.kalanK < r.borcK ? ` <span style="color:var(--signal);font-size:11px;font-weight:600;">· Kalan: ${chTL(r.kalanK)}</span>` : ''}</td>
+      <td style="white-space:nowrap;">${r.vade ? chTarihTR(r.vade) : '—'}</td>
+      <td class="ch-sag" style="color:${r.borcK ? 'var(--risk)' : 'var(--line-strong)'};">${r.borcK ? chTL(r.borcK) : '—'}</td>
+      <td class="ch-sag" style="color:${r.alacakK ? 'var(--ok)' : 'var(--line-strong)'};">${r.alacakK ? chTL(r.alacakK) : '—'}</td>
+      <td class="ch-sag" style="font-weight:700;">${r.iptal ? '—' : chTL(r.bakiyeK) + (r.bakiyeK < 0 ? ' (A)' : '')}</td>
+      <td>${chDurumRozet(r.durum)}</td>
+      <td style="text-align:right;position:relative;">
+        <div class="new-menu-wrap" style="display:inline-block;">
+          <button class="mini-islem" data-newmenu style="font-size:15px;" onclick="toggleNewMenu(event,'chSatirMenu${i}')">⋯</button>
+          <div class="new-menu" id="chSatirMenu${i}" style="right:0;left:auto;">
+            <button onclick="chDetayModal('${key.replace(/'/g, "\\'")}',${i})">🔎 Detay Görüntüle</button>
+            ${r.kaynak.tip === 'teklif' ? `<button onclick="pushHistory(); goTo('teklifler'); openQuoteView('${r.kaynak.id}')">📄 İlgili Teklifi Aç</button>` : ''}
+            ${r.kaynak.tip === 'gelir' ? `<button onclick="pushHistory(); currentPage='on-muhasebe'; onMuhasebeSub='gelirler'; openSubmenu='on-muhasebe'; gelirStep='list'; renderNav(); renderContent(); tarayiciGecmisYaz();">💰 Gelirler'de Aç</button>` : ''}
+            ${r.kaynak.tip === 'manuel' && !r.iptal ? `<button onclick="chDuzenleModal('${r.kaynak.id}')">✏️ Düzenle</button>
+            <button style="color:var(--risk);" onclick="chIptalEt('${r.kaynak.id}')">🚫 İptal Et</button>` : ''}
+          </div>
+        </div>
+      </td>
+    </tr>`; }).join('');
+  return `
+    <div class="list-page-head">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="back-btn" onclick="cariKapat()">←</button>
+        <div><div class="page-title">${notEsc(ad)} — Cari Hareketleri</div>
+          <div class="page-sub">Bakiye = Toplam Borç − Toplam Alacak · pozitif bakiye tahsil edilecek demektir.</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin:-4px 0 12px;">
+      <button class="btn" style="flex:0 0 auto;" onclick="chCsvAktar('${key.replace(/'/g, "\\'")}')">⬇ Aktar</button>
+      ${chIslemMenuHtml('chDefterMenu', cid)}
+    </div>
+    <div class="ch-kpi">
+      <div class="ch-kart vurgu"><h4>Güncel Bakiye</h4><div class="deger" style="color:${d.bakiyeK > 0 ? 'var(--ok)' : (d.bakiyeK < 0 ? 'var(--risk)' : 'var(--ink)')};">${chTL(d.bakiyeK)}</div>${chBakiyeMetni(d.bakiyeK)}</div>
+      <div class="ch-kart"><h4>Toplam Borç</h4><div class="deger">${chTL(d.borcK)}</div><span class="ch-alt">faturalar + borç kayıtları</span></div>
+      <div class="ch-kart"><h4>Toplam Tahsilat / Alacak</h4><div class="deger" style="color:var(--ok);">${chTL(d.alacakK)}</div><span class="ch-alt">tahsilat + alacak kayıtları</span></div>
+      <div class="ch-kart"><h4>Vadesi Geçen</h4><div class="deger" style="color:${d.vadesiGecenK ? 'var(--risk)' : 'var(--ink-3)'};">${chTL(d.vadesiGecenK)}</div><span class="ch-alt">vadesi geçmiş açık borçlar</span></div>
+    </div>
+    <div class="ch-filtre">
+      <div class="cari-ara-kutu" style="margin:0;flex:1;min-width:200px;">🔍 <input id="chAraKutu" value="${notEsc(f.ara)}" placeholder="Cari hareketlerinde ara — belge no, açıklama, tür, not" onchange="chFiltre.ara=this.value; renderContent();"></div>
+      <input type="date" value="${f.bas}" title="Başlangıç" onchange="chFiltre.bas=this.value; renderContent();">
+      <input type="date" value="${f.bit}" title="Bitiş" onchange="chFiltre.bit=this.value; renderContent();">
+      <select onchange="chFiltre.tur=this.value; renderContent();">
+        <option value="">Tüm İşlem Türleri</option>
+        ${Object.keys(CH_TURLER).map(t => `<option value="${t}" ${f.tur === t ? 'selected' : ''}>${CH_TURLER[t].ad}</option>`).join('')}
+      </select>
+      <select onchange="chFiltre.yon=this.value; renderContent();">
+        <option value="">Borç + Alacak</option>
+        <option value="borc" ${f.yon === 'borc' ? 'selected' : ''}>Sadece Borç</option>
+        <option value="alacak" ${f.yon === 'alacak' ? 'selected' : ''}>Sadece Alacak</option>
+      </select>
+      ${filtreli || f.ara ? `<button class="btn" style="flex:0 0 auto;height:32px;" onclick="chFiltre={ara:'',tur:'',yon:'',bas:'',bit:''}; renderContent();">✕ Temizle</button>` : ''}
+      <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-3);cursor:pointer;">
+        <input type="checkbox" ${chIptalGoster ? 'checked' : ''} onchange="chIptalGoster=this.checked; renderContent();" style="width:14px;height:14px;">İptaller</label>
+    </div>
+    <div class="cari-tablo-kap">
+      <div class="cari-tablo-kaydir">
+        <table class="ch-tablo">
+          <thead><tr>
+            <th style="cursor:pointer;" onclick="chYeniUstte=!chYeniUstte; renderContent();">Tarih ${chYeniUstte ? '↓' : '↑'}</th>
+            <th>İşlem Türü</th><th>Belge No</th><th>Açıklama</th><th>Vade</th>
+            <th class="ch-sag">Borç</th><th class="ch-sag">Alacak</th><th class="ch-sag">Bakiye</th><th>Durum</th><th></th>
+          </tr></thead>
+          <tbody>${govde || `<tr><td colspan="10"><div class="empty-state">${filtreli ? 'Filtreye uyan hareket yok.' : 'Bu cariye ait hareket yok.'}</div></td></tr>`}</tbody>
+        </table>
+      </div>
+      <div class="ledger-footer" style="gap:18px;justify-content:flex-end;font-family:var(--font-mono);font-size:12px;">
+        <span>Toplam Borç: <b style="color:var(--risk);">${chTL(d.borcK)}</b></span>
+        <span>Toplam Alacak: <b style="color:var(--ok);">${chTL(d.alacakK)}</b></span>
+        <span>Net Bakiye: <b style="color:${d.bakiyeK > 0 ? 'var(--ok)' : (d.bakiyeK < 0 ? 'var(--risk)' : 'var(--ink)')};">${chTL(d.bakiyeK)} ${d.bakiyeK > 0 ? '(Tahsil Edilecek)' : (d.bakiyeK < 0 ? '(Ödeme Yapılacak)' : '')}</b></span>
+      </div>
+    </div>`;
+}
+
+// ---- MODALLAR ----
+function chCariSecenekleri(secili){
+  return '<option value="">Seçiniz..</option>' + CUSTOMERS.map(c =>
+    `<option value="${c.id}" ${secili === c.id ? 'selected' : ''}>${notEsc(c.name)}</option>`).join('');
+}
+function chModalAc(tur, onCid){
+  const baslik = tur === 'odeme' ? 'Ödeme Ekle' : tur === 'borc-dekontu' ? 'Borç Dekontu Ekle'
+    : tur === 'alacak-dekontu' ? 'Alacak Dekontu Ekle' : 'Açılış Bakiyesi';
+  const odeme = tur === 'odeme';
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${baslik}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Cari</label><select id="chCari">${chCariSecenekleri(onCid)}</select></div>
+    ${tur === 'acilis' ? `
+    <div class="field"><label>Açılış Yönü</label><select id="chAcilisYon">
+      <option value="acilis-borc">Açılış Borcu (bize borçlu başlar)</option>
+      <option value="acilis-alacak">Açılış Alacağı (biz borçlu başlarız)</option></select></div>` : ''}
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Tutar</label><input id="chTutar" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label>Para Birimi</label><select id="chPara"><option>TL</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${odeme ? 'Ödeme Tarihi' : 'İşlem Tarihi'}</label><input id="chTarih" value="${bugunTR()}"></div>
+      ${tur === 'borc-dekontu' ? `<div class="field"><label>Vade Tarihi</label><input id="chVade" placeholder="gg.aa.yyyy"></div>` : ''}
+    </div>
+    ${odeme ? `
+    <div class="field-row">
+      <div class="field"><label>Kasa / Banka <span style="color:var(--risk);">*</span></label><select id="chHesap">${hesapSecenekleri()}</select></div>
+      <div class="field"><label>Ödeme Yöntemi</label><select id="chYontem">${CH_YONTEMLER.map(y => `<option>${y}</option>`).join('')}</select></div>
+    </div>` : ''}
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Açıklama</label><input id="chAciklama" placeholder="Açıklama"></div>
+      <div class="field"><label>Belge No</label><input id="chBelge" placeholder="otomatik"></div>
+    </div>
+    <div class="field"><label>Not</label><input id="chNot" placeholder="İç not (isteğe bağlı)"></div>
+    <button class="modal-submit" onclick="chKaydet('${tur}')">Kaydet</button>`;
+  showModal();
+}
+function chKaydet(tur, duzenlenenId){
+  const cid = document.getElementById('chCari').value;
+  const cst = CUSTOMERS.find(c => c.id === cid);
+  const tutarK = chKurus(virgulSayi(document.getElementById('chTutar').value));
+  if(!cid){ showToast('Cari seçin.'); return; }
+  if(!tutarK){ showToast('Tutar girin.'); return; }
+  const gercekTur = tur === 'acilis' ? document.getElementById('chAcilisYon').value : tur;
+  const onEk = { 'odeme':'ODM', 'borc-dekontu':'BDK', 'alacak-dekontu':'ADK', 'acilis-borc':'ACL', 'acilis-alacak':'ACL' }[gercekTur] || 'CH';
+  const vadeEl = document.getElementById('chVade');
+  const hesapEl = document.getElementById('chHesap');
+  if(tur === 'odeme' && hesapEl && !hesapEl.value){ showToast('Kasa / Banka seçimi zorunlu.'); return; }
+  const kayit = duzenlenenId ? CARI_HAREKETLER.find(h => h.id === duzenlenenId) : null;
+  const h = kayit || { id: benzersizId('ch'), olusturan: chKullanici(), olusturmaZamani: new Date().toLocaleString('tr-TR') };
+  Object.assign(h, {
+    customerId: cid, musteriAdi: cst ? cst.name : '',
+    tip: gercekTur, tutarK,
+    para: 'TL', kur: 1,
+    tarih: document.getElementById('chTarih').value || bugunTR(),
+    vade: vadeEl ? vadeEl.value.trim() : (h.vade || ''),
+    hesap: hesapEl ? hesapEl.value : (h.hesap || ''),
+    yontem: document.getElementById('chYontem') ? document.getElementById('chYontem').value : (h.yontem || ''),
+    aciklama: document.getElementById('chAciklama').value.trim(),
+    belgeNo: document.getElementById('chBelge').value.trim() || h.belgeNo || chBelgeNo(onEk),
+    notu: document.getElementById('chNot').value.trim(),
+  });
+  if(kayit){ h.guncelleyen = chKullanici(); h.guncellemeZamani = new Date().toLocaleString('tr-TR'); }
+  else CARI_HAREKETLER.unshift(h);
+  closeModal(); renderContent();
+  showToast(`${CH_TURLER[gercekTur].ad} kaydedildi — ${chTL(tutarK)}.`);
+}
+function chDuzenleModal(id){
+  const h = CARI_HAREKETLER.find(x => x.id === id); if(!h) return;
+  const tur = h.tip.startsWith('acilis') ? 'acilis' : h.tip;
+  if(tur === 'virman-cikis' || tur === 'virman-giris'){ showToast('Virman kayıtları düzenlenmez — iptal edip yeniden oluşturun.'); return; }
+  chModalAc(tur, h.customerId);
+  document.getElementById('chTutar').value = virgulYaz(h.tutarK / 100);
+  document.getElementById('chTarih').value = h.tarih || '';
+  if(document.getElementById('chVade')) document.getElementById('chVade').value = h.vade || '';
+  if(document.getElementById('chHesap')) document.getElementById('chHesap').value = h.hesap || '';
+  if(document.getElementById('chYontem')) document.getElementById('chYontem').value = h.yontem || 'Nakit';
+  if(document.getElementById('chAcilisYon')) document.getElementById('chAcilisYon').value = h.tip;
+  document.getElementById('chAciklama').value = h.aciklama || '';
+  document.getElementById('chBelge').value = h.belgeNo || '';
+  document.getElementById('chNot').value = h.notu || '';
+  document.querySelector('#modalBox .modal-submit').setAttribute('onclick', `chKaydet('${tur}','${id}')`);
+}
+function chIptalEt(id){
+  const h = CARI_HAREKETLER.find(x => x.id === id); if(!h || h.iptal) return;
+  if(!confirm(`${CH_TURLER[h.tip].ad} (${h.belgeNo || ''} · ${chTL(h.tutarK)}) iptal edilsin mi?\nKayıt silinmez, iptal olarak işaretlenir ve bakiyeden düşer.`)) return;
+  h.iptal = { zaman: new Date().toLocaleString('tr-TR'), kim: chKullanici() };
+  if(h.virmanId){
+    const es = CARI_HAREKETLER.find(x => x.virmanId === h.virmanId && x.id !== h.id && !x.iptal);
+    if(es) es.iptal = { zaman: h.iptal.zaman, kim: h.iptal.kim };
+  }
+  renderContent();
+  showToast('Kayıt iptal edildi (geçmişte saklanır).');
+}
+function chVirmanModal(onCid){
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Virman / Cari Transfer</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="hint" style="margin-top:0;">Bir carideki alacağı başka cariye taşır — iki karşılıklı kayıt oluşturur, tek işlem olarak izlenir.</div>
+    <div class="field"><label>Kaynak Cari (alacağı azalır)</label><select id="chVKaynak">${chCariSecenekleri(onCid)}</select></div>
+    <div class="field"><label>Hedef Cari (alacağı artar)</label><select id="chVHedef">${chCariSecenekleri('')}</select></div>
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Tutar</label><input id="chVTutar" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label>Tarih</label><input id="chVTarih" value="${bugunTR()}"></div>
+    </div>
+    <div class="field"><label>Açıklama</label><input id="chVAciklama" placeholder="ör. Yanlış cariye işlenen tahsilat transferi"></div>
+    <button class="modal-submit" onclick="chVirmanKaydet()">Aktar</button>`;
+  showModal();
+}
+function chVirmanKaydet(){
+  const k = document.getElementById('chVKaynak').value, hd = document.getElementById('chVHedef').value;
+  const tutarK = chKurus(virgulSayi(document.getElementById('chVTutar').value));
+  if(!k || !hd){ showToast('Kaynak ve hedef cari seçin.'); return; }
+  if(k === hd){ showToast('Kaynak ve hedef aynı olamaz.'); return; }
+  if(!tutarK){ showToast('Tutar girin.'); return; }
+  const kc = CUSTOMERS.find(c => c.id === k), hc = CUSTOMERS.find(c => c.id === hd);
+  const virmanId = benzersizId('vr');
+  const belgeNo = chBelgeNo('VRM');
+  const ortak = {
+    tarih: document.getElementById('chVTarih').value || bugunTR(),
+    aciklama: document.getElementById('chVAciklama').value.trim() || `Virman: ${kc.name} → ${hc.name}`,
+    belgeNo, virmanId, para: 'TL', kur: 1, tutarK,
+    olusturan: chKullanici(), olusturmaZamani: new Date().toLocaleString('tr-TR'),
+  };
+  CARI_HAREKETLER.unshift(Object.assign({ id: benzersizId('ch'), customerId: k, musteriAdi: kc.name, tip: 'virman-cikis' }, ortak));
+  CARI_HAREKETLER.unshift(Object.assign({ id: benzersizId('ch'), customerId: hd, musteriAdi: hc.name, tip: 'virman-giris' }, ortak));
+  closeModal(); renderContent();
+  showToast(`Virman kaydedildi — ${chTL(tutarK)} (${belgeNo}).`);
+}
+function chDetayModal(key, i){
+  const d = cariDefter(key);
+  const r = d.rows[i]; if(!r) return;
+  const h = r.h;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Hareket Detayı</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="drawer-row"><span class="k">İşlem Türü</span><span class="v">${chRozet(r.tip)}</span></div>
+    <div class="drawer-row"><span class="k">Tarih</span><span class="v">${chTarihTR(r.tarih)}</span></div>
+    <div class="drawer-row"><span class="k">Belge No</span><span class="v" style="font-family:var(--font-mono);">${notEsc(r.belgeNo) || '—'}</span></div>
+    <div class="drawer-row"><span class="k">Açıklama</span><span class="v" style="text-align:right;max-width:250px;">${notEsc(r.aciklama) || '—'}</span></div>
+    ${r.vade ? `<div class="drawer-row"><span class="k">Vade</span><span class="v">${chTarihTR(r.vade)}</span></div>` : ''}
+    <div class="drawer-row"><span class="k">Borç</span><span class="v" style="color:var(--risk);">${r.borcK ? chTL(r.borcK) : '—'}</span></div>
+    <div class="drawer-row"><span class="k">Alacak</span><span class="v" style="color:var(--ok);">${r.alacakK ? chTL(r.alacakK) : '—'}</span></div>
+    ${r.kalanK !== undefined && r.borcK ? `<div class="drawer-row"><span class="k">Kalan</span><span class="v">${chTL(r.kalanK)}</span></div>` : ''}
+    <div class="drawer-row"><span class="k">Durum</span><span class="v">${chDurumRozet(r.durum)}</span></div>
+    <div class="drawer-row"><span class="k">Kaynak</span><span class="v">${r.kaynak.tip === 'teklif' ? 'Teklif modülü (otomatik)' : r.kaynak.tip === 'gelir' ? 'Gelirler / Tahsilat (otomatik)' : 'Elle girilen kayıt'}</span></div>
+    ${h && h.hesap ? `<div class="drawer-row"><span class="k">Kasa / Banka</span><span class="v">${notEsc(h.hesap)}${h.yontem ? ' · ' + notEsc(h.yontem) : ''}</span></div>` : ''}
+    ${h && h.notu ? `<div class="drawer-row"><span class="k">Not</span><span class="v" style="text-align:right;max-width:250px;">${notEsc(h.notu)}</span></div>` : ''}
+    ${h ? `<div class="drawer-row"><span class="k">Oluşturan</span><span class="v" style="font-size:11.5px;">${notEsc(h.olusturan || '—')} · ${notEsc(h.olusturmaZamani || '')}</span></div>` : ''}
+    ${h && h.iptal ? `<div class="drawer-row" style="color:var(--risk);"><span class="k">İptal</span><span class="v">${notEsc(h.iptal.kim)} · ${notEsc(h.iptal.zaman)}</span></div>` : ''}`;
+  showModal();
+}
+function chCsvAktar(key){
+  const ozet = cariOzetListesi().find(x => x.key === key);
+  const cst = CUSTOMERS.find(x => x.id === key);
+  const ad = (cst && cst.name) || (ozet && ozet.ad) || 'cari';
+  const d = cariDefter(key);
+  const say = k => (k / 100).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+  const satirlar = [['Tarih','İşlem Türü','Belge No','Açıklama','Vade','Borç','Alacak','Bakiye','Durum']];
+  d.rows.forEach(r => satirlar.push([chTarihTR(r.tarih), CH_TURLER[r.tip] ? CH_TURLER[r.tip].ad : r.tip,
+    r.belgeNo, r.aciklama, r.vade ? chTarihTR(r.vade) : '', r.borcK ? say(r.borcK) : '',
+    r.alacakK ? say(r.alacakK) : '', r.iptal ? '' : say(r.bakiyeK), r.durum]));
+  satirlar.push([]);
+  satirlar.push(['Toplam Borç', say(d.borcK)], ['Toplam Alacak', say(d.alacakK)], ['Net Bakiye', say(d.bakiyeK)]);
+  const csv = '﻿' + satirlar.map(s => s.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'cari-hareketleri-' + ad.replace(/[^\wğüşıöçĞÜŞİÖÇ ]/g, '').trim().replace(/\s+/g, '-') + '.csv';
+  a.click();
+  showToast('CSV indirildi — Excel ile açabilirsiniz.');
+}
+// ================= /CARİ HAREKETLERİ =================
+
 function kasaBankaView(){
   const kasaUsd = KASA_ACCOUNTS.filter(a=>a.currency==='$').reduce((s,a)=>s+a.balance,0);
   const kasaTl = KASA_ACCOUNTS.filter(a=>a.currency==='TL').reduce((s,a)=>s+a.balance,0);
@@ -7319,7 +7828,17 @@ function paraSimge(pb){ return pb === 'USD' ? '$' : (pb === 'EUR' ? '€' : '₺
 // Türkçe ondalık: "15,5" da "15.5" da kabul edilir
 function virgulSayi(v){
   if(v === '' || v === null || v === undefined) return 0;
-  return Number(String(v).trim().replace(',', '.')) || 0;
+  let t = String(v).trim().replace(/\s/g, '');
+  if(!t) return 0;
+  if(t.includes(',')){
+    // Virgül ondalık ayırıcı: noktalar binlik ayırıcıdır
+    t = t.replace(/\./g, '').replace(',', '.');
+  } else {
+    const parcalar = t.split('.');
+    // Tek nokta + sonrasında tam 3 hane (25.000) ya da birden fazla nokta (1.250.000) → binlik
+    if(parcalar.length > 2 || (parcalar.length === 2 && /^\d{3}$/.test(parcalar[1]))) t = parcalar.join('');
+  }
+  return Number(t) || 0;
 }
 function virgulYaz(n){ return (n || n === 0) && n !== '' ? String(n).replace('.', ',') : ''; }
 function malzemeTL(mz){
@@ -8323,6 +8842,7 @@ function collectState(){
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
     KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, BILDIRIMLER,
+    CARI_HAREKETLER,
     MALZEME_FIYATLARI, KURLAR,
   };
 }
@@ -8342,6 +8862,7 @@ function applyState(d){
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   DIS_ALIMLAR = arr('DIS_ALIMLAR'); BILDIRIMLER = arr('BILDIRIMLER');
+  CARI_HAREKETLER = arr('CARI_HAREKETLER');
   MALZEME_FIYATLARI = Array.isArray(d.MALZEME_FIYATLARI) && d.MALZEME_FIYATLARI.length ? d.MALZEME_FIYATLARI : VARSAYILAN_MALZEMELER();
   KURLAR = (d.KURLAR && typeof d.KURLAR === 'object' && !Array.isArray(d.KURLAR)) ? d.KURLAR : { usd:0, eur:0, tarih:'', kaynak:'' };
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
