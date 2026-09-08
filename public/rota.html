@@ -1290,7 +1290,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08m';
+window.ROTA_SURUM = 'v2026-09-08n';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -7216,6 +7216,12 @@ let MALZEME_FIYATLARI = VARSAYILAN_MALZEMELER();
 let KURLAR = { usd: 0, eur: 0, tarih: '', kaynak: '' };
 let maliyetTab = 'kalemler';
 function paraSimge(pb){ return pb === 'USD' ? '$' : (pb === 'EUR' ? '€' : '₺'); }
+// Türkçe ondalık: "15,5" da "15.5" da kabul edilir
+function virgulSayi(v){
+  if(v === '' || v === null || v === undefined) return 0;
+  return Number(String(v).trim().replace(',', '.')) || 0;
+}
+function virgulYaz(n){ return (n || n === 0) && n !== '' ? String(n).replace('.', ',') : ''; }
 function malzemeTL(mz){
   const f = Number(mz.fiyat) || 0;
   if(mz.para === 'USD') return f * (Number(KURLAR.usd) || 0);
@@ -7248,7 +7254,7 @@ async function kurGetir(zorla){
   }catch(e){ if(zorla) showToast('Kur alınamadı — elle girebilirsiniz.'); }
 }
 function kurElleDegistir(alan, deger){
-  KURLAR[alan] = Number(deger) || 0;
+  KURLAR[alan] = virgulSayi(deger);
   KURLAR.kaynak = 'Elle girildi'; KURLAR.tarih = new Date().toLocaleDateString('tr-TR');
   mxKurlaYenile();
   renderContent();
@@ -7282,15 +7288,15 @@ function maliyetView(id){
   const rows = m.items.map((r, i) => `
     <div class="mx-row">
       <input value="${r.ad || ''}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mxGuncelle(${i},'ad',this.value)">
-      <input type="number" value="${r.miktar ?? 1}" min="0" step="0.01" oninput="mxGuncelle(${i},'miktar',this.value)">
-      <input type="number" value="${r.fiyat ?? 0}" min="0" step="0.01" oninput="mxGuncelle(${i},'fiyat',this.value)">
+      <input inputmode="decimal" value="${virgulYaz(r.miktar ?? 1)}" oninput="mxGuncelle(${i},'miktar',this.value)">
+      <input inputmode="decimal" value="${virgulYaz(r.fiyat ?? 0)}" oninput="mxGuncelle(${i},'fiyat',this.value)">
       <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl((Number(r.miktar)||1)*(Number(r.fiyat)||0))}">
       <button class="li-remove" onclick="mxSatirSil(${i})">✕</button>
       <div class="mx-olcu">📐
         <span class="mx-bagli" id="mxMz_${i}">${mxBagliHtml(r, i)}</span>
-        <input type="number" min="0" placeholder="En (cm)" value="${r.en || ''}" oninput="mxOlcu(${i},'en',this.value)">
+        <input inputmode="decimal" placeholder="En (cm)" value="${r.en ? virgulYaz(r.en) : ''}" oninput="mxOlcu(${i},'en',this.value)">
         ×
-        <input type="number" min="0" placeholder="Boy (cm)" value="${r.boy || ''}" oninput="mxOlcu(${i},'boy',this.value)">
+        <input inputmode="decimal" placeholder="Boy (cm)" value="${r.boy ? virgulYaz(r.boy) : ''}" oninput="mxOlcu(${i},'boy',this.value)">
         <span class="m2sonuc" id="mxM2_${i}">${mxOlcuMetni(r)}</span>
       </div>
       <input class="mx-aciklama" value="${(r.aciklama || '').replace(/"/g,'&quot;')}"
@@ -7306,7 +7312,7 @@ function maliyetView(id){
           <select onchange="mzGuncelle(${i},'birim',this.value)">
             ${['m²','mt','adet'].map(b => `<option ${mz.birim === b ? 'selected' : ''}>${b}</option>`).join('')}
           </select>
-          <input type="number" min="0" step="0.01" value="${mz.fiyat || ''}" placeholder="0" oninput="mzGuncelle(${i},'fiyat',this.value)">
+          <input inputmode="decimal" value="${mz.fiyat ? virgulYaz(mz.fiyat) : ''}" placeholder="0" oninput="mzGuncelle(${i},'fiyat',this.value)">
           <select onchange="mzGuncelle(${i},'para',this.value)">
             ${['TL','USD','EUR'].map(pb => `<option ${mz.para === pb ? 'selected' : ''}>${pb}</option>`).join('')}
           </select>
@@ -7338,8 +7344,8 @@ function maliyetView(id){
     </div>
     <div class="kur-bar">
       💱 <b>Günlük Kur</b>
-      <label>$ Satış <input type="number" step="0.0001" min="0" value="${KURLAR.usd || ''}" placeholder="0" onchange="kurElleDegistir('usd', this.value)"></label>
-      <label>€ Satış <input type="number" step="0.0001" min="0" value="${KURLAR.eur || ''}" placeholder="0" onchange="kurElleDegistir('eur', this.value)"></label>
+      <label>$ Satış <input inputmode="decimal" value="${KURLAR.usd ? virgulYaz(KURLAR.usd) : ''}" placeholder="0" onchange="kurElleDegistir('usd', this.value)"></label>
+      <label>€ Satış <input inputmode="decimal" value="${KURLAR.eur ? virgulYaz(KURLAR.eur) : ''}" placeholder="0" onchange="kurElleDegistir('eur', this.value)"></label>
       <button class="btn" style="flex:0 0 auto;height:28px;font-size:11.5px;" onclick="kurGetir(true)">🔄 Güncelle</button>
       <span class="kur-kaynak">${KURLAR.kaynak ? notEsc(KURLAR.kaynak) + (KURLAR.tarih ? ' · ' + notEsc(KURLAR.tarih) : '') : 'Kur henüz alınmadı — Güncelle deyin ya da elle girin.'}</span>
     </div>
@@ -7373,7 +7379,7 @@ function mxOzetGuncelle(){
 function mxGuncelle(i, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
   const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r[alan] = (alan === 'ad' || alan === 'aciklama') ? deger : (deger === '' ? '' : Number(deger));
+  r[alan] = (alan === 'ad' || alan === 'aciklama') ? deger : (deger === '' ? '' : virgulSayi(deger));
   if(alan === 'ad') mxAdEslestir(i);
   const tut = document.getElementById('mxTutar' + i);
   if(tut) tut.value = tl((Number(r.miktar)||1) * (Number(r.fiyat)||0));
@@ -7458,8 +7464,8 @@ function mxSatirTazele(i){
   if(satir){
     const girisler = satir.querySelectorAll('input');
     if(document.activeElement !== girisler[0]) girisler[0].value = r.ad || '';
-    girisler[1].value = r.miktar ?? 1;
-    girisler[2].value = r.fiyat ?? 0;
+    if(document.activeElement !== girisler[1]) girisler[1].value = virgulYaz(r.miktar ?? 1);
+    if(document.activeElement !== girisler[2]) girisler[2].value = virgulYaz(r.fiyat ?? 0);
   }
   const tut = document.getElementById('mxTutar' + i);
   if(tut) tut.value = tl((Number(r.miktar) || 1) * (Number(r.fiyat) || 0));
@@ -7472,16 +7478,17 @@ function mxSatirTazele(i){
 function mxOlcu(i, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
   const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r[alan] = deger === '' ? '' : Number(deger);
+  r[alan] = deger === '' ? '' : virgulSayi(deger);
   mxHesapla(i);
   mxSatirTazele(i);
 }
 // ---- Tedarikçi fiyatları sekmesi ----
 function mzGuncelle(i, alan, deger){
   const mz = MALZEME_FIYATLARI[i]; if(!mz) return;
-  mz[alan] = alan === 'fiyat' ? (deger === '' ? 0 : Number(deger)) : deger;
+  mz[alan] = alan === 'fiyat' ? virgulSayi(deger) : deger;
   mxKurlaYenile();
-  if(alan === 'ad'){
+  if(alan === 'ad' || alan === 'fiyat'){
+    // yazarken ekran yenilenmez — sadece ₺ karşılığı tazelenir (odak kaybolmasın)
     const h = document.getElementById('mzTl' + i);
     if(h) h.textContent = malzemeTL(mz) ? tl(malzemeTL(mz)) + '/' + mz.birim : '—';
   } else renderContent();
