@@ -341,6 +341,16 @@ tr:last-child td{border-bottom:none;}
 .ch-durum.gri{background:var(--surface-sunk);color:var(--ink-2);}
 .ch-durum.iptal{background:var(--surface-sunk);color:var(--ink-3);}
 .cari-tablo-kap{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.ch-tablo tr.ch-tiklanir{cursor:pointer;}
+.ch-satir-btn{background:none;border:1px solid var(--line);border-radius:6px;width:30px;height:26px;
+  cursor:pointer;color:var(--ink-3);font-size:15px;line-height:1;font-family:inherit;}
+.ch-satir-btn:hover{background:var(--surface-sunk);color:var(--ink);border-color:var(--line-strong);}
+.ch-satir-menu{position:fixed;z-index:120;width:212px;background:var(--surface);
+  border:1px solid var(--line-strong);border-radius:8px;box-shadow:var(--shadow-md);overflow:hidden;}
+.ch-satir-menu button{display:block;width:100%;text-align:left;padding:10px 13px;background:none;
+  border:none;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink);cursor:pointer;font-family:inherit;}
+.ch-satir-menu button:hover{background:var(--surface-sunk);}
+.ch-menu-not{padding:8px 13px;font-size:11px;color:var(--ink-3);background:var(--surface-sunk);line-height:1.45;}
 .cari-tablo-kaydir{overflow-x:auto;}
 @media (max-width:880px){ .ch-kpi{grid-template-columns:1fr 1fr;} }
 .group-header{display:flex;justify-content:space-between;padding:6px 13px;background:var(--surface-sunk);
@@ -1329,7 +1339,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08u';
+window.ROTA_SURUM = 'v2026-09-08v';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4575,7 +4585,7 @@ function cariTumSatirlar(){
   GELIRLER.forEach(g => {
     if(!g.customerId && !g.client) return;
     satirlar.push({ key: g.customerId || chAdAnahtar(g.client), ad: g.client || '',
-      tip: 'tahsilat', tarih: g.tarih, vade: '', belgeNo: '',
+      tip: 'tahsilat', tarih: g.tarih, vade: '', belgeNo: g.belgeNo || '',
       aciklama: (g.tur || 'Tahsilat') + (g.hesap ? ' · ' + g.hesap : ''),
       borcK: 0, alacakK: Math.round((Number(g.tutar) || 0) * 100),
       kaynak: { tip: 'gelir', id: g.id } });
@@ -4663,7 +4673,7 @@ function chIslemMenuHtml(menuId, cid){
     <div class="new-menu-wrap">
       <button class="primary-btn" data-newmenu onclick="toggleNewMenu(event,'${menuId}')">İşlemler ⌄</button>
       <div class="new-menu" id="${menuId}">
-        <button onclick="gorevdenTahsilat('${cid || ''}')">＋ Tahsilat Ekle</button>
+        <button onclick="chModalAc('tahsilat','${cid || ''}')">＋ Tahsilat Ekle</button>
         <button onclick="chModalAc('odeme','${cid || ''}')">－ Ödeme Ekle</button>
         <button onclick="chModalAc('borc-dekontu','${cid || ''}')">📄 Borç Dekontu Ekle</button>
         <button onclick="chModalAc('alacak-dekontu','${cid || ''}')">📄 Alacak Dekontu Ekle</button>
@@ -4736,8 +4746,10 @@ function cariDefterView(){
   const cid = cst ? cst.id : '';
   const govde = sirali.map(r => {
     const i = d.rows.indexOf(r);
+    const tiklanir = r.kaynak.tip === 'teklif';
     return `
-    <tr class="${r.iptal ? 'ch-iptal' : ''}">
+    <tr class="${r.iptal ? 'ch-iptal' : ''} ${tiklanir ? 'ch-tiklanir' : ''}"
+      ${tiklanir ? `title="Teklifi açmak için tıklayın" onclick="chKaynagaGit('teklif','${r.kaynak.id}')"` : ''}>
       <td style="white-space:nowrap;">${chTarihTR(r.tarih)}</td>
       <td>${chRozet(r.tip)}</td>
       <td style="font-family:var(--font-mono);font-size:11.5px;">${notEsc(r.belgeNo) || '—'}</td>
@@ -4747,17 +4759,8 @@ function cariDefterView(){
       <td class="ch-sag" style="color:${r.alacakK ? 'var(--ok)' : 'var(--line-strong)'};">${r.alacakK ? chTL(r.alacakK) : '—'}</td>
       <td class="ch-sag" style="font-weight:700;">${r.iptal ? '—' : chTL(r.bakiyeK) + (r.bakiyeK < 0 ? ' (A)' : '')}</td>
       <td>${chDurumRozet(r.durum)}</td>
-      <td style="text-align:right;position:relative;">
-        <div class="new-menu-wrap" style="display:inline-block;">
-          <button class="mini-islem" data-newmenu style="font-size:15px;" onclick="toggleNewMenu(event,'chSatirMenu${i}')">⋯</button>
-          <div class="new-menu" id="chSatirMenu${i}" style="right:0;left:auto;">
-            <button onclick="chDetayModal('${key.replace(/'/g, "\\'")}',${i})">🔎 Detay Görüntüle</button>
-            ${r.kaynak.tip === 'teklif' ? `<button onclick="pushHistory(); goTo('teklifler'); openQuoteView('${r.kaynak.id}')">📄 İlgili Teklifi Aç</button>` : ''}
-            ${r.kaynak.tip === 'gelir' ? `<button onclick="pushHistory(); currentPage='on-muhasebe'; onMuhasebeSub='gelirler'; openSubmenu='on-muhasebe'; gelirStep='list'; renderNav(); renderContent(); tarayiciGecmisYaz();">💰 Gelirler'de Aç</button>` : ''}
-            ${r.kaynak.tip === 'manuel' && !r.iptal ? `<button onclick="chDuzenleModal('${r.kaynak.id}')">✏️ Düzenle</button>
-            <button style="color:var(--risk);" onclick="chIptalEt('${r.kaynak.id}')">🚫 İptal Et</button>` : ''}
-          </div>
-        </div>
+      <td style="text-align:right;">
+        <button class="ch-satir-btn" title="İşlemler" onclick="event.stopPropagation(); chSatirMenu(event,'${key.replace(/'/g, "\\'")}',${i})">⋯</button>
       </td>
     </tr>`; }).join('');
   return `
@@ -4820,9 +4823,10 @@ function chCariSecenekleri(secili){
     `<option value="${c.id}" ${secili === c.id ? 'selected' : ''}>${notEsc(c.name)}</option>`).join('');
 }
 function chModalAc(tur, onCid){
-  const baslik = tur === 'odeme' ? 'Ödeme Ekle' : tur === 'borc-dekontu' ? 'Borç Dekontu Ekle'
+  const baslik = tur === 'tahsilat' ? 'Tahsilat Ekle' : tur === 'odeme' ? 'Ödeme Ekle'
+    : tur === 'borc-dekontu' ? 'Borç Dekontu Ekle'
     : tur === 'alacak-dekontu' ? 'Alacak Dekontu Ekle' : 'Açılış Bakiyesi';
-  const odeme = tur === 'odeme';
+  const odeme = tur === 'odeme' || tur === 'tahsilat';   // ikisinde de kasa/banka + yöntem sorulur
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>${baslik}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="field"><label>Cari</label><select id="chCari">${chCariSecenekleri(onCid)}</select></div>
@@ -4835,7 +4839,7 @@ function chModalAc(tur, onCid){
       <div class="field"><label>Para Birimi</label><select id="chPara"><option>TL</option></select></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>${odeme ? 'Ödeme Tarihi' : 'İşlem Tarihi'}</label><input id="chTarih" value="${bugunTR()}"></div>
+      <div class="field"><label>${tur === 'tahsilat' ? 'Tahsilat Tarihi' : (tur === 'odeme' ? 'Ödeme Tarihi' : 'İşlem Tarihi')}</label><input id="chTarih" value="${bugunTR()}"></div>
       ${tur === 'borc-dekontu' ? `<div class="field"><label>Vade Tarihi</label><input id="chVade" placeholder="gg.aa.yyyy"></div>` : ''}
     </div>
     ${odeme ? `
@@ -4847,6 +4851,7 @@ function chModalAc(tur, onCid){
       <div class="field" style="flex:2;"><label>Açıklama</label><input id="chAciklama" placeholder="Açıklama"></div>
       <div class="field"><label>Belge No</label><input id="chBelge" placeholder="otomatik"></div>
     </div>
+    ${tur === 'tahsilat' ? `<div class="field"><label>Kategori</label>${kategoriSelectHtml('chKategori','gelir','')}</div>` : ''}
     <div class="field"><label>Not</label><input id="chNot" placeholder="İç not (isteğe bağlı)"></div>
     <button class="modal-submit" onclick="chKaydet('${tur}')">Kaydet</button>`;
   showModal();
@@ -4857,6 +4862,29 @@ function chKaydet(tur, duzenlenenId){
   const tutarK = chKurus(virgulSayi(document.getElementById('chTutar').value));
   if(!cid){ showToast('Cari seçin.'); return; }
   if(!tutarK){ showToast('Tutar girin.'); return; }
+  if(tur === 'tahsilat'){
+    // Tahsilat tek yerde tutulur: GELIRLER. Defter bu kaydı otomatik alacak olarak gösterir.
+    const hes = document.getElementById('chHesap');
+    if(hes && !hes.value){ showToast('Kasa / Banka seçimi zorunlu.'); return; }
+    const acik = document.getElementById('chAciklama').value.trim();
+    const yontem = document.getElementById('chYontem') ? document.getElementById('chYontem').value : '';
+    GELIRLER.unshift({
+      id: benzersizId('ge'),
+      customerId: cid,
+      client: cst ? cst.name : 'Müşteri seçilmedi',
+      hesap: hes ? hes.value : '',
+      tur: acik || ('Tahsilat' + (yontem ? ' · ' + yontem : '')),
+      tarih: document.getElementById('chTarih').value || bugunTR(),
+      tutar: tutarK / 100,
+      kategoriId: (document.getElementById('chKategori') || {}).value || null,
+      belgeNo: document.getElementById('chBelge').value.trim() || chBelgeNo('THL'),
+      notu: document.getElementById('chNot').value.trim(),
+      olusturan: chKullanici(),
+    });
+    closeModal(); renderContent();
+    showToast(`Tahsilat kaydedildi — ${chTL(tutarK)} (Gelirler'e de işlendi).`);
+    return;
+  }
   const gercekTur = tur === 'acilis' ? document.getElementById('chAcilisYon').value : tur;
   const onEk = { 'odeme':'ODM', 'borc-dekontu':'BDK', 'alacak-dekontu':'ADK', 'acilis-borc':'ACL', 'acilis-alacak':'ACL' }[gercekTur] || 'CH';
   const vadeEl = document.getElementById('chVade');
@@ -4941,6 +4969,39 @@ function chVirmanKaydet(){
   CARI_HAREKETLER.unshift(Object.assign({ id: benzersizId('ch'), customerId: hd, musteriAdi: hc.name, tip: 'virman-giris' }, ortak));
   closeModal(); renderContent();
   showToast(`Virman kaydedildi — ${chTL(tutarK)} (${belgeNo}).`);
+}
+// Satır menüsü — tablo kaydırma alanının dışında, sabit konumda açılır
+function chSatirMenu(e, key, i){
+  const eski = document.getElementById('chSatirMenuKat');
+  if(eski) eski.remove();
+  const d = cariDefter(key);
+  const r = d.rows[i]; if(!r) return;
+  const kat = document.createElement('div');
+  kat.id = 'chSatirMenuKat';
+  kat.className = 'ch-satir-menu';
+  kat.innerHTML = `
+    <button onclick="chMenuKapat(); chDetayModal('${key.replace(/'/g, "\\'")}',${i})">🔎 Detay Görüntüle</button>
+    ${r.kaynak.tip === 'teklif' ? `<button onclick="chMenuKapat(); chKaynagaGit('teklif','${r.kaynak.id}')">📄 İlgili Teklifi Aç</button>` : ''}
+    ${r.kaynak.tip === 'gelir' ? `<button onclick="chMenuKapat(); chKaynagaGit('gelir','${r.kaynak.id}')">💰 Gelirler'de Aç</button>` : ''}
+    ${r.kaynak.tip === 'manuel' && !r.iptal ? `<button onclick="chMenuKapat(); chDuzenleModal('${r.kaynak.id}')">✏️ Düzenle</button>
+      <button style="color:var(--risk);" onclick="chMenuKapat(); chIptalEt('${r.kaynak.id}')">🚫 İptal Et</button>` : ''}
+    ${r.kaynak.tip !== 'manuel' ? `<div class="ch-menu-not">Bu satır ${r.kaynak.tip === 'teklif' ? 'teklif' : 'tahsilat'} kaydından otomatik gelir — buradan düzenlenmez.</div>` : ''}`;
+  document.body.appendChild(kat);
+  const kn = e.currentTarget.getBoundingClientRect();
+  const yuk = kat.offsetHeight;
+  kat.style.left = Math.max(8, kn.right - 220) + 'px';
+  kat.style.top = (kn.bottom + yuk + 8 > window.innerHeight ? Math.max(8, kn.top - yuk - 4) : kn.bottom + 4) + 'px';
+  setTimeout(() => document.addEventListener('click', chMenuKapat, { once: true }), 0);
+}
+function chMenuKapat(){
+  const k = document.getElementById('chSatirMenuKat');
+  if(k) k.remove();
+}
+function chKaynagaGit(tip, id){
+  pushHistory();
+  if(tip === 'teklif'){ goTo('teklifler'); openQuoteView(id); return; }
+  currentPage = 'on-muhasebe'; onMuhasebeSub = 'gelirler'; openSubmenu = 'on-muhasebe'; gelirStep = 'list';
+  renderNav(); renderContent(); tarayiciGecmisYaz();
 }
 function chDetayModal(key, i){
   const d = cariDefter(key);
