@@ -432,6 +432,23 @@ tr:last-child td{border-bottom:none;}
   background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
 .mx-row input:focus{outline:none;border-color:var(--ink);}
 .mx-row .mx-tutar{font-family:var(--font-mono);font-weight:600;text-align:right;background:var(--surface-sunk);border-color:var(--line);}
+.mx-olcu{grid-column:1 / -1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);}
+.mx-olcu select{height:28px;padding:0 7px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;max-width:210px;}
+.mx-olcu input{height:28px;width:82px;padding:0 8px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;}
+.mx-olcu .m2sonuc{font-family:var(--font-mono);font-weight:700;color:var(--ok);}
+.kur-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;}
+.kur-bar b{font-family:var(--font-display);}
+.kur-bar label{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12px;}
+.kur-bar input{height:28px;width:96px;padding:0 8px;border:1px solid var(--line-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:12px;}
+.kur-bar .kur-kaynak{margin-left:auto;font-size:11px;color:var(--ink-3);font-style:normal;}
+.mz-head,.mz-row{display:grid;grid-template-columns:minmax(180px,1fr) 92px 110px 92px 120px 32px;gap:8px;align-items:center;}
+.mz-head{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);padding:0 7px 6px;}
+.mz-row{padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
+.mz-row input,.mz-row select{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
+.mz-row .mz-tl{font-family:var(--font-mono);font-weight:600;text-align:right;font-size:12px;color:var(--ink-2);}
 .mx-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;}
 .mx-chip{height:26px;padding:0 11px;border:1px dashed var(--line-strong);border-radius:999px;
   background:var(--surface);color:var(--ink-2);font-size:11.5px;cursor:pointer;font-family:inherit;}
@@ -1271,7 +1288,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08k';
+window.ROTA_SURUM = 'v2026-09-08l';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1331,6 +1348,7 @@ function veriOnar(){
   (PRODUCT_CATALOG || []).forEach(x => { if(!x.id){ x.id = benzersizId('pr'); degisti = true; } });
   (KASA_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ka'); degisti = true; } });
   (BANK_ACCOUNTS || []).forEach(x => { if(!x.id){ x.id = benzersizId('ba'); degisti = true; } });
+  (MALZEME_FIYATLARI || []).forEach(x => { if(!x.id){ x.id = benzersizId('mz'); degisti = true; } });
   (PERSONELLER || []).forEach(p => (p.hareketler || []).forEach(h => { if(!h.id){ h.id = benzersizId('hr'); degisti = true; } }));
   // Silinmiş teklife bağlı yetim işler ve sahipsiz plan blokları temizlenir
   const teklifIdleri = new Set(QUOTES.map(q => q.id));
@@ -7181,6 +7199,66 @@ function statusSlug(s){
 // ---------------- TEKLİF MALİYET HESABI ----------------
 // Her teklifin içine gömülü maliyet dökümü: q.maliyet = { items:[{ad, miktar, fiyat}] }
 // Müşteriye giden belgede GÖRÜNMEZ; iç maliyet ve kâr takibi içindir.
+// ---- Tedarikçi malzeme fiyatları + günlük kur ----
+function VARSAYILAN_MALZEMELER(){
+  return [
+    { id:'mz1', ad:'Kompozit Panel',   birim:'m²',   fiyat:0, para:'USD' },
+    { id:'mz2', ad:'Pleksi',           birim:'m²',   fiyat:0, para:'USD' },
+    { id:'mz3', ad:'Folyo',            birim:'m²',   fiyat:0, para:'TL'  },
+    { id:'mz4', ad:'Dijital Baskı',    birim:'m²',   fiyat:0, para:'TL'  },
+    { id:'mz5', ad:'Alüminyum Profil', birim:'mt',   fiyat:0, para:'EUR' },
+    { id:'mz6', ad:'LED Modül',        birim:'adet', fiyat:0, para:'USD' },
+  ];
+}
+let MALZEME_FIYATLARI = VARSAYILAN_MALZEMELER();
+let KURLAR = { usd: 0, eur: 0, tarih: '', kaynak: '' };
+let maliyetTab = 'kalemler';
+function paraSimge(pb){ return pb === 'USD' ? '$' : (pb === 'EUR' ? '€' : '₺'); }
+function malzemeTL(mz){
+  const f = Number(mz.fiyat) || 0;
+  if(mz.para === 'USD') return f * (Number(KURLAR.usd) || 0);
+  if(mz.para === 'EUR') return f * (Number(KURLAR.eur) || 0);
+  return f;
+}
+// Günlük kur: canlıda /api/kur (TCMB döviz satış), olmazsa piyasa kuru; elle de girilebilir
+async function kurGetir(zorla){
+  const bugun = new Date().toLocaleDateString('tr-TR');
+  if(!zorla && KURLAR.usd && KURLAR.cekilme === bugun) return;
+  try{
+    let d = null;
+    try{ const r = await fetch('/api/kur', { cache:'no-store' }); if(r.ok) d = await r.json(); }catch(e){}
+    if(!d || !d.usd){
+      const [ru, re] = await Promise.all([
+        fetch('https://open.er-api.com/v6/latest/USD').then(x => x.json()),
+        fetch('https://open.er-api.com/v6/latest/EUR').then(x => x.json()),
+      ]);
+      d = { usd: ru && ru.rates && ru.rates.TRY, eur: re && re.rates && re.rates.TRY, tarih:'', kaynak:'Piyasa (yaklaşık)' };
+    }
+    if(d && d.usd){
+      KURLAR.usd = Math.round(d.usd * 10000) / 10000;
+      KURLAR.eur = Math.round((d.eur || 0) * 10000) / 10000;
+      KURLAR.tarih = d.tarih || bugun; KURLAR.kaynak = d.kaynak || 'TCMB Döviz Satış';
+      KURLAR.cekilme = bugun;
+      mxKurlaYenile();
+      if(currentPage === 'teklifler' && teklifStep === 'maliyet') renderContent();
+      showToast(`Kur güncellendi: $${KURLAR.usd.toLocaleString('tr-TR')} · €${KURLAR.eur.toLocaleString('tr-TR')}`);
+    } else if(zorla) showToast('Kur alınamadı — elle girebilirsiniz.');
+  }catch(e){ if(zorla) showToast('Kur alınamadı — elle girebilirsiniz.'); }
+}
+function kurElleDegistir(alan, deger){
+  KURLAR[alan] = Number(deger) || 0;
+  KURLAR.kaynak = 'Elle girildi'; KURLAR.tarih = new Date().toLocaleDateString('tr-TR');
+  mxKurlaYenile();
+  renderContent();
+}
+// Kur değişince malzemeye bağlı tüm maliyet satırlarının TL fiyatı tazelenir
+function mxKurlaYenile(){
+  QUOTES.forEach(q => ((q.maliyet && q.maliyet.items) || []).forEach(r => {
+    if(!r.malzemeId) return;
+    const mz = MALZEME_FIYATLARI.find(x => x.id === r.malzemeId);
+    if(mz) r.fiyat = Math.round(malzemeTL(mz) * 100) / 100;
+  }));
+}
 const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası'];
 function ensureMaliyet(q){ if(!q.maliyet || !Array.isArray(q.maliyet.items)) q.maliyet = { items: [] }; return q.maliyet; }
 function maliyetToplam(q){
@@ -7188,7 +7266,8 @@ function maliyetToplam(q){
 }
 function openMaliyet(id){
   pushHistory();
-  teklifViewId = id; teklifStep = 'maliyet';
+  teklifViewId = id; teklifStep = 'maliyet'; maliyetTab = 'kalemler';
+  kurGetir(false);
   const q = QUOTES.find(x => x.id === id);
   if(q){ const m = ensureMaliyet(q); if(!m.items.length) m.items.push({ ad:'', miktar:1, fiyat:0 }); }
   renderContent();
@@ -7205,10 +7284,48 @@ function maliyetView(id){
       <input type="number" value="${r.fiyat ?? 0}" min="0" step="0.01" oninput="mxGuncelle(${i},'fiyat',this.value)">
       <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl((Number(r.miktar)||1)*(Number(r.fiyat)||0))}">
       <button class="li-remove" onclick="mxSatirSil(${i})">✕</button>
+      <div class="mx-olcu">📐
+        <select onchange="mxMalzemeSec(${i}, this.value)">
+          <option value="">Tedarikçi fiyatı seç…</option>
+          ${MALZEME_FIYATLARI.map(mz => `<option value="${mz.id}" ${r.malzemeId === mz.id ? 'selected' : ''}>${notEsc(mz.ad)} — ${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim}</option>`).join('')}
+        </select>
+        <input type="number" min="0" placeholder="En (cm)" value="${r.en || ''}" oninput="mxOlcu(${i},'en',this.value)">
+        ×
+        <input type="number" min="0" placeholder="Boy (cm)" value="${r.boy || ''}" oninput="mxOlcu(${i},'boy',this.value)">
+        <span class="m2sonuc" id="mxM2_${i}">${mxOlcuMetni(r)}</span>
+      </div>
       <input class="mx-aciklama" value="${(r.aciklama || '').replace(/"/g,'&quot;')}"
         placeholder="Açıklama — ör. X firmasından alındı, özel iskontolu fiyattır"
         oninput="mxGuncelle(${i},'aciklama',this.value)">
     </div>`).join('');
+  const solBlok = maliyetTab === 'fiyatlar' ? `
+      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
+        <div class="mz-head"><span>Malzeme</span><span>Birim</span><span>Fiyat</span><span>Döviz</span><span style="text-align:right;">Güncel ₺</span><span></span></div>
+        ${MALZEME_FIYATLARI.map((mz, i) => `
+        <div class="mz-row">
+          <input value="${notEsc(mz.ad)}" oninput="mzGuncelle(${i},'ad',this.value)">
+          <select onchange="mzGuncelle(${i},'birim',this.value)">
+            ${['m²','mt','adet'].map(b => `<option ${mz.birim === b ? 'selected' : ''}>${b}</option>`).join('')}
+          </select>
+          <input type="number" min="0" step="0.01" value="${mz.fiyat || ''}" placeholder="0" oninput="mzGuncelle(${i},'fiyat',this.value)">
+          <select onchange="mzGuncelle(${i},'para',this.value)">
+            ${['TL','USD','EUR'].map(pb => `<option ${mz.para === pb ? 'selected' : ''}>${pb}</option>`).join('')}
+          </select>
+          <span class="mz-tl" id="mzTl${i}">${malzemeTL(mz) ? tl(malzemeTL(mz)) + '/' + mz.birim : '—'}</span>
+          <button class="li-remove" onclick="mzSil(${i})">✕</button>
+        </div>`).join('')}
+        <button class="add-line-btn" onclick="mzEkle()">+ Malzeme Ekle</button>
+        <div class="hint" style="margin:10px 0 0;">Dövizli fiyatlar üstteki günlük satış kuruyla ₺'ye çevrilir ve maliyet satırlarına bu ₺ değeri yazılır.
+        Buradaki fiyatlar tüm tekliflerde ortak kullanılır.</div>
+      </div>` : `
+      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
+        <div class="mx-head"><span>Kalem</span><span>Miktar</span><span>Birim Maliyet</span><span style="text-align:right;">Tutar</span><span></span></div>
+        ${rows}
+        <button class="add-line-btn" onclick="mxSatirEkle('')">+ Satır Ekle</button>
+        <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
+        <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mxSatirEkle('${a}')">${a}</button>`).join('')}</div>
+        <div class="hint" style="margin:10px 0 0;">📐 Satırdaki <b>Tedarikçi fiyatı seç</b> + <b>En × Boy (cm)</b> girildiğinde m² ve birim maliyet otomatik hesaplanır.</div>
+      </div>`;
   return `
     <div class="page-head">
       <div style="display:flex; gap:12px; align-items:center;">
@@ -7217,14 +7334,19 @@ function maliyetView(id){
         <div class="page-sub">${q.no} · ${teklifMusteriAdi(q)} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
       </div>
     </div>
+    <div class="kur-bar">
+      💱 <b>Günlük Kur</b>
+      <label>$ Satış <input type="number" step="0.0001" min="0" value="${KURLAR.usd || ''}" placeholder="0" onchange="kurElleDegistir('usd', this.value)"></label>
+      <label>€ Satış <input type="number" step="0.0001" min="0" value="${KURLAR.eur || ''}" placeholder="0" onchange="kurElleDegistir('eur', this.value)"></label>
+      <button class="btn" style="flex:0 0 auto;height:28px;font-size:11.5px;" onclick="kurGetir(true)">🔄 Güncelle</button>
+      <span class="kur-kaynak">${KURLAR.kaynak ? notEsc(KURLAR.kaynak) + (KURLAR.tarih ? ' · ' + notEsc(KURLAR.tarih) : '') : 'Kur henüz alınmadı — Güncelle deyin ya da elle girin.'}</span>
+    </div>
+    <div class="hp-mod" style="margin-bottom:12px;display:inline-flex;">
+      <button class="${maliyetTab === 'kalemler' ? 'on' : ''}" onclick="maliyetTab='kalemler'; renderContent();">Maliyet Kalemleri</button>
+      <button class="${maliyetTab === 'fiyatlar' ? 'on' : ''}" onclick="maliyetTab='fiyatlar'; renderContent();">Tedarikçi Fiyatları</button>
+    </div>
     <div class="body-two" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
-      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
-        <div class="mx-head"><span>Kalem</span><span>Miktar</span><span>Birim Maliyet</span><span style="text-align:right;">Tutar</span><span></span></div>
-        ${rows}
-        <button class="add-line-btn" onclick="mxSatirEkle('')">+ Satır Ekle</button>
-        <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
-        <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mxSatirEkle('${a}')">${a}</button>`).join('')}</div>
-      </div>
+      ${solBlok}
       <div class="mx-ozet" style="flex:1; min-width:260px;">
         <h5 style="font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-3);margin:0 0 10px;">Özet</h5>
         <div class="t-row"><span>Toplam Maliyet:</span><span id="mxToplam">${tl(maliyetToplam(q))}</span></div>
@@ -7264,6 +7386,86 @@ function mxSatirEkle(ad){
 function mxSatirSil(i){
   const q = mxAktifTeklif(); if(!q) return;
   ensureMaliyet(q).items.splice(i, 1);
+  renderContent();
+}
+function mxOlcuMetni(r){
+  const mz = r.malzemeId ? MALZEME_FIYATLARI.find(x => x.id === r.malzemeId) : null;
+  if(!mz) return '';
+  if(mz.birim === 'm²'){
+    const m2 = (Number(r.en) || 0) * (Number(r.boy) || 0) / 10000;
+    return m2 ? '= ' + m2.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' m²' : 'En × Boy girin';
+  }
+  if(mz.birim === 'mt'){
+    const mt = (Number(r.boy) || 0) / 100;
+    return mt ? '= ' + mt.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' mt (Boy)' : 'Boy girin';
+  }
+  return 'adet: miktarı elle girin';
+}
+// Seçili malzemeye göre miktar (m²/mt) ve birim maliyet (₺) otomatik yazılır
+function mxHesapla(i){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r || !r.malzemeId) return;
+  const mz = MALZEME_FIYATLARI.find(x => x.id === r.malzemeId); if(!mz) return;
+  if(mz.birim === 'm²'){
+    const m2 = (Number(r.en) || 0) * (Number(r.boy) || 0) / 10000;
+    if(m2) r.miktar = Math.round(m2 * 100) / 100;
+  } else if(mz.birim === 'mt'){
+    const mt = (Number(r.boy) || 0) / 100;
+    if(mt) r.miktar = Math.round(mt * 100) / 100;
+  }
+  r.fiyat = Math.round(malzemeTL(mz) * 100) / 100;
+  if(!r.ad) r.ad = mz.ad;
+  if((mz.para === 'USD' || mz.para === 'EUR') && !KURLAR.usd) showToast('Kur girilmemiş — üstteki kur alanını doldurun.');
+}
+function mxSatirTazele(i){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  const satir = document.querySelectorAll('.mx-row')[i];
+  if(satir){
+    const girisler = satir.querySelectorAll('input');
+    girisler[0].value = r.ad || '';
+    girisler[1].value = r.miktar ?? 1;
+    girisler[2].value = r.fiyat ?? 0;
+  }
+  const tut = document.getElementById('mxTutar' + i);
+  if(tut) tut.value = tl((Number(r.miktar) || 1) * (Number(r.fiyat) || 0));
+  const m2 = document.getElementById('mxM2_' + i);
+  if(m2) m2.textContent = mxOlcuMetni(r);
+  mxOzetGuncelle();
+}
+function mxMalzemeSec(i, mzId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  r.malzemeId = mzId || null;
+  if(mzId) mxHesapla(i);
+  renderContent();
+}
+function mxOlcu(i, alan, deger){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  r[alan] = deger === '' ? '' : Number(deger);
+  mxHesapla(i);
+  mxSatirTazele(i);
+}
+// ---- Tedarikçi fiyatları sekmesi ----
+function mzGuncelle(i, alan, deger){
+  const mz = MALZEME_FIYATLARI[i]; if(!mz) return;
+  mz[alan] = alan === 'fiyat' ? (deger === '' ? 0 : Number(deger)) : deger;
+  mxKurlaYenile();
+  if(alan === 'ad'){
+    const h = document.getElementById('mzTl' + i);
+    if(h) h.textContent = malzemeTL(mz) ? tl(malzemeTL(mz)) + '/' + mz.birim : '—';
+  } else renderContent();
+}
+function mzEkle(){
+  MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: '', birim: 'm²', fiyat: 0, para: 'TL' });
+  renderContent();
+}
+function mzSil(i){
+  const mz = MALZEME_FIYATLARI[i]; if(!mz) return;
+  const kullanan = QUOTES.reduce((t, q) => t + (((q.maliyet && q.maliyet.items) || []).filter(r => r.malzemeId === mz.id).length), 0);
+  if(!confirm(`${mz.ad || 'Malzeme'} silinsin mi?` + (kullanan ? `\n${kullanan} maliyet satırı bu fiyata bağlı — satırlar kalır ama artık kurla güncellenmez.` : ''))) return;
+  MALZEME_FIYATLARI.splice(i, 1);
   renderContent();
 }
 
@@ -7982,6 +8184,7 @@ function collectState(){
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
     KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, BILDIRIMLER,
+    MALZEME_FIYATLARI, KURLAR,
   };
 }
 function applyState(d){
@@ -8000,6 +8203,8 @@ function applyState(d){
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   DIS_ALIMLAR = arr('DIS_ALIMLAR'); BILDIRIMLER = arr('BILDIRIMLER');
+  MALZEME_FIYATLARI = Array.isArray(d.MALZEME_FIYATLARI) && d.MALZEME_FIYATLARI.length ? d.MALZEME_FIYATLARI : VARSAYILAN_MALZEMELER();
+  KURLAR = (d.KURLAR && typeof d.KURLAR === 'object' && !Array.isArray(d.KURLAR)) ? d.KURLAR : { usd:0, eur:0, tarih:'', kaynak:'' };
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   window.__onarimYapildi = (typeof veriOnar === 'function') ? !!veriOnar() : false;   // çift kimlik + yetim kayıt onarımı
   if(d.AGENCY && typeof d.AGENCY === 'object'){
