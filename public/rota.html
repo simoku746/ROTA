@@ -436,6 +436,8 @@ tr:last-child td{border-bottom:none;}
 .mx-olcu select{height:28px;padding:0 7px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;max-width:210px;}
 .mx-olcu input{height:28px;width:82px;padding:0 8px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;}
 .mx-olcu .m2sonuc{font-family:var(--font-mono);font-weight:700;color:var(--ok);}
+.mx-bagli{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);
+  background:var(--surface);border:1px dashed var(--line-strong);border-radius:6px;padding:4px 8px;max-width:300px;}
 .kur-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);
   border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;}
 .kur-bar b{font-family:var(--font-display);}
@@ -1288,7 +1290,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08l';
+window.ROTA_SURUM = 'v2026-09-08m';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -7279,16 +7281,13 @@ function maliyetView(id){
   const c = CUSTOMERS.find(x => x.id === q.customerId);
   const rows = m.items.map((r, i) => `
     <div class="mx-row">
-      <input value="${r.ad || ''}" placeholder="Kalem adı (ör. Folyo baskı)" oninput="mxGuncelle(${i},'ad',this.value)">
+      <input value="${r.ad || ''}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mxGuncelle(${i},'ad',this.value)">
       <input type="number" value="${r.miktar ?? 1}" min="0" step="0.01" oninput="mxGuncelle(${i},'miktar',this.value)">
       <input type="number" value="${r.fiyat ?? 0}" min="0" step="0.01" oninput="mxGuncelle(${i},'fiyat',this.value)">
       <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl((Number(r.miktar)||1)*(Number(r.fiyat)||0))}">
       <button class="li-remove" onclick="mxSatirSil(${i})">✕</button>
       <div class="mx-olcu">📐
-        <select onchange="mxMalzemeSec(${i}, this.value)">
-          <option value="">Tedarikçi fiyatı seç…</option>
-          ${MALZEME_FIYATLARI.map(mz => `<option value="${mz.id}" ${r.malzemeId === mz.id ? 'selected' : ''}>${notEsc(mz.ad)} — ${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim}</option>`).join('')}
-        </select>
+        <span class="mx-bagli" id="mxMz_${i}">${mxBagliHtml(r, i)}</span>
         <input type="number" min="0" placeholder="En (cm)" value="${r.en || ''}" oninput="mxOlcu(${i},'en',this.value)">
         ×
         <input type="number" min="0" placeholder="Boy (cm)" value="${r.boy || ''}" oninput="mxOlcu(${i},'boy',this.value)">
@@ -7324,7 +7323,10 @@ function maliyetView(id){
         <button class="add-line-btn" onclick="mxSatirEkle('')">+ Satır Ekle</button>
         <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
         <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mxSatirEkle('${a}')">${a}</button>`).join('')}</div>
-        <div class="hint" style="margin:10px 0 0;">📐 Satırdaki <b>Tedarikçi fiyatı seç</b> + <b>En × Boy (cm)</b> girildiğinde m² ve birim maliyet otomatik hesaplanır.</div>
+        <div class="hint" style="margin:10px 0 0;">📐 Kalem adına <b>listeden malzeme</b> seçip <b>En × Boy (cm)</b> girildiğinde m² ve birim maliyet otomatik hesaplanır.</div>
+        <datalist id="mxMalzemeListesi">
+          ${MALZEME_FIYATLARI.filter(mz => mz.ad).map(mz => `<option value="${notEsc(mz.ad)}">${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim}</option>`).join('')}
+        </datalist>
       </div>`;
   return `
     <div class="page-head">
@@ -7372,13 +7374,45 @@ function mxGuncelle(i, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
   const r = ensureMaliyet(q).items[i]; if(!r) return;
   r[alan] = (alan === 'ad' || alan === 'aciklama') ? deger : (deger === '' ? '' : Number(deger));
+  if(alan === 'ad') mxAdEslestir(i);
   const tut = document.getElementById('mxTutar' + i);
   if(tut) tut.value = tl((Number(r.miktar)||1) * (Number(r.fiyat)||0));
   mxOzetGuncelle();
 }
+// Kalem adı bir tedarikçi malzemesiyle birebir eşleşirse otomatik bağlanır
+function mxAdEslestir(i){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  const ad = String(r.ad || '').trim().toLowerCase();
+  if(!ad){ r.malzemeId = null; mxSatirTazele(i); return; }
+  const mz = MALZEME_FIYATLARI.find(x => String(x.ad || '').trim().toLowerCase() === ad);
+  if(mz && r.malzemeId !== mz.id){
+    r.malzemeId = mz.id;
+    mxHesapla(i);
+    mxSatirTazele(i);
+  }
+}
+function mxBaglantiKaldir(i){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  r.malzemeId = null;
+  mxSatirTazele(i);
+}
+function mxBagliHtml(r, i){
+  const mz = r.malzemeId ? MALZEME_FIYATLARI.find(x => x.id === r.malzemeId) : null;
+  if(!mz) return '<span style="color:var(--ink-3);">serbest kalem</span>';
+  return `🔗 ${notEsc(mz.ad)} · ${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim} → ${tl(malzemeTL(mz))}
+    <span class="mini-islem sil" title="Malzeme bağlantısını kaldır" onclick="mxBaglantiKaldir(${i})">✕</span>`;
+}
 function mxSatirEkle(ad){
   const q = mxAktifTeklif(); if(!q) return;
-  ensureMaliyet(q).items.push({ ad: ad || '', miktar: 1, fiyat: 0 });
+  const items = ensureMaliyet(q).items;
+  items.push({ ad: ad || '', miktar: 1, fiyat: 0 });
+  if(ad){
+    const i = items.length - 1;
+    const mz = MALZEME_FIYATLARI.find(x => String(x.ad || '').trim().toLowerCase() === String(ad).trim().toLowerCase());
+    if(mz){ items[i].malzemeId = mz.id; mxHesapla(i); }
+  }
   renderContent();
   const inputs = document.querySelectorAll('.mx-row input:first-child');
   const son = inputs[inputs.length - 1]; if(son && !ad) son.focus();
@@ -7423,7 +7457,7 @@ function mxSatirTazele(i){
   const satir = document.querySelectorAll('.mx-row')[i];
   if(satir){
     const girisler = satir.querySelectorAll('input');
-    girisler[0].value = r.ad || '';
+    if(document.activeElement !== girisler[0]) girisler[0].value = r.ad || '';
     girisler[1].value = r.miktar ?? 1;
     girisler[2].value = r.fiyat ?? 0;
   }
@@ -7431,14 +7465,9 @@ function mxSatirTazele(i){
   if(tut) tut.value = tl((Number(r.miktar) || 1) * (Number(r.fiyat) || 0));
   const m2 = document.getElementById('mxM2_' + i);
   if(m2) m2.textContent = mxOlcuMetni(r);
+  const bagli = document.getElementById('mxMz_' + i);
+  if(bagli) bagli.innerHTML = mxBagliHtml(r, i);
   mxOzetGuncelle();
-}
-function mxMalzemeSec(i, mzId){
-  const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r.malzemeId = mzId || null;
-  if(mzId) mxHesapla(i);
-  renderContent();
 }
 function mxOlcu(i, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
