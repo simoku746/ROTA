@@ -1290,7 +1290,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08n';
+window.ROTA_SURUM = 'v2026-09-08p';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1693,7 +1693,7 @@ function openProductModal(id){
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>${p ? 'Ürünü Düzenle' : 'Yeni Ürün / Hizmet'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="field"><label>Ürün / Hizmet Adı</label><input id="prodName" value="${p ? notEsc(p.name) : ''}" placeholder="Örn. Neon Tabela Üretimi"></div>
-    <div class="field"><label>Fiyat</label><input id="prodPrice" type="number" value="${p ? p.price : ''}" placeholder="0"></div>
+    <div class="field"><label>Fiyat</label><input id="prodPrice" inputmode="decimal" value="${p ? virgulYaz(p.price) : ''}" placeholder="0"></div>
     <button class="modal-submit" onclick="submitProduct('${p ? p.id : ''}')">Kaydet</button>
   `;
   showModal();
@@ -1701,7 +1701,7 @@ function openProductModal(id){
 function submitProduct(id){
   const name = document.getElementById('prodName').value.trim();
   if(!name) return;
-  const price = Number(document.getElementById('prodPrice').value) || 0;
+  const price = virgulSayi(document.getElementById('prodPrice').value);
   const p = id ? PRODUCT_CATALOG.find(x => x.id === id) : null;
   if(p){ p.name = name; p.price = price; }
   else PRODUCT_CATALOG.push({ id: benzersizId('pr'), name, price });
@@ -2190,9 +2190,13 @@ function openPlanYazdir(){
         `<option ${planDepartman === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
     <div class="field"><label>Kağıt</label>
       <select id="pyKagit"><option value="A4">A4 Yatay</option><option value="A3">A3 Yatay</option></select></div>
-    <label class="checkbox-row" style="display:flex;align-items:center;gap:8px;margin:2px 0 10px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
+    <label class="checkbox-row" style="display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
       <input type="checkbox" id="pyHaftaSonu" ${planHaftaSonuDolu() ? 'checked' : ''} style="width:16px;height:16px;">
       Cumartesi–Pazar dahil et <span style="color:var(--ink-3);font-weight:400;">(mesai planlandıysa)</span>
+    </label>
+    <label class="checkbox-row" style="display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
+      <input type="checkbox" id="pySadeceIsli" style="width:16px;height:16px;">
+      Yalnız o hafta planı olan personeli yazdır <span style="color:var(--ink-3);font-weight:400;">(boş satırlar çıkmaz)</span>
     </label>
     <div class="hint" style="margin-top:0;">Seçilen alanın tüm personeli görüntülenen haftayla birlikte
       <b>tek sayfaya</b> sığdırılır; yazı boyu kişi sayısına göre otomatik ölçeklenir.</div>
@@ -2208,10 +2212,11 @@ function planYazdir(){
   const alan = document.getElementById('pyAlan').value;
   const kagit = document.getElementById('pyKagit').value;
   const haftaSonu = !!(document.getElementById('pyHaftaSonu') && document.getElementById('pyHaftaSonu').checked);
+  const sadeceIsli = !!(document.getElementById('pySadeceIsli') && document.getElementById('pySadeceIsli').checked);
   closeModal();
   const w = window.open('', '_blank');
   if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
-  w.document.write(planYazdirHtml(alan, kagit, haftaSonu));
+  w.document.write(planYazdirHtml(alan, kagit, haftaSonu, sadeceIsli));
   w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch(err) {} }, 400);
 }
@@ -2221,40 +2226,75 @@ function planYazdirRenk(ad){
   for(let i = 0; i < t.length; i++) hsh = (hsh * 31 + t.charCodeAt(i)) >>> 0;
   return PLAN_YAZDIR_HEX[hsh % PLAN_YAZDIR_HEX.length];
 }
-function planYazdirHtml(alan, kagit, haftaSonu){
+function planYazdirHtml(alan, kagit, haftaSonu, sadeceIsli){
   const sec = PLAN_DEPARTMANLAR[alan] || PLAN_DEPARTMANLAR['Tümü'];
-  const ekip = PERSONELLER.filter(p => !p.arsiv && (!sec.deps || sec.deps.includes(p.departman || '')));
   const gunler = haftaSonu ? planHaftaGunleri() : planHaftaGunleri().slice(0, 5);
   const bugunIso = planIso(new Date());
-  // Kullanılabilir alan (mm): sayfa − 7mm kenar boşlukları
+  let ekip = PERSONELLER.filter(p => !p.arsiv && (!sec.deps || sec.deps.includes(p.departman || '')));
+  if(sadeceIsli) ekip = ekip.filter(p => planKisiHaftaDk(p.id, gunler) > 0);
+  // Sayfa ölçüleri (mm, 7mm kenar boşluğu düşülmüş) ve OKUNABİLİRLİK TABANI:
+  // satır 11mm'nin altına inmez — sığmayan personel sonraki sayfaya taşar.
   const W = kagit === 'A3' ? 406 : 283;
   const H = kagit === 'A3' ? 283 : 196;
-  const rowH = (H - 12 - 2 - 9) / Math.max(ekip.length, 1);   // başlık 12mm, boşluk 2mm, gün başlığı 9mm
-  const mod = rowH >= 24 ? 'genis' : (rowH >= 15 ? 'orta' : 'dar');
+  const kullanilabilir = H - 12 - 2 - 9;
+  const MIN_SATIR = 11, MAX_SATIR = 26;
+  const kapasite = Math.max(1, Math.floor(kullanilabilir / MIN_SATIR));
+  const sayfaSayisi = Math.max(1, Math.ceil(ekip.length / kapasite));
+  const sayfadaKisi = Math.max(1, Math.ceil(ekip.length / sayfaSayisi));
+  const rowH = Math.min(MAX_SATIR, Math.max(MIN_SATIR, kullanilabilir / sayfadaKisi));
+  const mod = rowH >= 22 ? 'genis' : (rowH >= 15 ? 'orta' : 'dar');
   const maxChip = mod === 'genis' ? 5 : (mod === 'orta' ? 3 : 2);
   const baslik = alan === 'Tümü' ? 'Haftalık Program' : alan + ' Haftalık Programı';
   const son = gunler[gunler.length - 1];
   const aralik = `${gunler[0].getDate()} ${PLAN_AYLAR[gunler[0].getMonth()]} – ${son.getDate()} ${PLAN_AYLAR[son.getMonth()]} ${son.getFullYear()}` + (haftaSonu ? '' : ' · hafta içi');
-  const satirlar = ekip.map(p => {
+
+  const chipHtml = t => mod === 'dar'
+    ? `<div class="chip tek" style="background:${planYazdirRenk(t.projectName)};"><b>${notEsc(t.taskName)}</b> · ${notEsc(t.projectName)} · ${t.startTime}</div>`
+    : `<div class="chip" style="background:${planYazdirRenk(t.projectName)};"><b>${notEsc(t.taskName)}</b><i>${notEsc(t.projectName)}</i><u>${t.startTime} · ${dkToSaat(t.durationMinutes)}</u></div>`;
+
+  const kisiSatiri = p => {
     const hafta = planKisiHaftaDk(p.id, gunler);
-    return `
-      <div class="hucre ad"><b>${notEsc(p.name)}</b><i>${notEsc(p.unvan || p.departman || '')}</i><u>${hafta ? dkToSaat(hafta) : '—'}</u></div>
-      ${gunler.map(d => { const iso = planIso(d);
-        const isler = planKisiGorevleri(p.id, iso);
-        const gorunen = isler.slice(0, maxChip);
-        const kalan = isler.length - gorunen.length;
-        return `<div class="hucre ${iso === bugunIso ? 'bugun' : ''}">
-          ${gorunen.map(t => `<div class="chip" style="background:${planYazdirRenk(t.projectName)};">
-            <b>${notEsc(t.taskName)}</b><i>${notEsc(t.projectName)}</i><u>${t.startTime} · ${dkToSaat(t.durationMinutes)}</u>
-          </div>`).join('')}
-          ${kalan > 0 ? `<div class="fazla">+${kalan} iş daha</div>` : ''}
-        </div>`; }).join('')}`;
-  }).join('');
+    const adHucre = mod === 'dar'
+      ? `<div class="hucre ad"><b>${notEsc(p.name)}</b><i>${notEsc(p.unvan || p.departman || '')}${hafta ? ' · ' + dkToSaat(hafta) : ''}</i></div>`
+      : `<div class="hucre ad"><b>${notEsc(p.name)}</b><i>${notEsc(p.unvan || p.departman || '')}</i><u>${hafta ? dkToSaat(hafta) : '—'}</u></div>`;
+    return adHucre + gunler.map(d => { const iso = planIso(d);
+      const isler = planKisiGorevleri(p.id, iso);
+      const gorunen = isler.slice(0, maxChip);
+      const kalan = isler.length - gorunen.length;
+      return `<div class="hucre ${iso === bugunIso ? 'bugun' : ''}">
+        ${gorunen.map(chipHtml).join('')}
+        ${kalan > 0 ? `<div class="fazla">+${kalan} iş daha</div>` : ''}
+      </div>`; }).join('');
+  };
+
+  const gunBasliklari = `
+    <div class="gunbas">Personel<span>${ekip.length} kişi</span></div>
+    ${gunler.map(d => { const iso = planIso(d);
+      return `<div class="gunbas ${iso === bugunIso ? 'bugun' : ''}">${PLAN_GUNLER[(d.getDay()+6)%7]}<span>${d.getDate()} ${PLAN_AYLAR[d.getMonth()]}</span></div>`; }).join('')}`;
+
+  const sayfalar = [];
+  for(let sf = 0; sf < sayfaSayisi; sf++){
+    const grup = ekip.slice(sf * sayfadaKisi, (sf + 1) * sayfadaKisi);
+    sayfalar.push(`
+    <div class="alan">
+      <div class="bas">
+        <img src="${AGENCY.logo}" alt="">
+        <div class="orta"><h1>${baslik}</h1><div class="aralik">${aralik}</div></div>
+        <div class="sag">${ekip.length} personel · ${kagit} yatay${sayfaSayisi > 1 ? ` · Sayfa ${sf + 1}/${sayfaSayisi}` : ''}<br>Yazdırma: ${new Date().toLocaleDateString('tr-TR')}</div>
+      </div>
+      <div class="tablo" style="grid-template-rows:9mm repeat(${Math.max(grup.length, 1)}, ${rowH.toFixed(2)}mm);">
+        ${gunBasliklari}
+        ${grup.map(kisiSatiri).join('') || '<div style="grid-column:1/-1;padding:6mm;text-align:center;color:#64748B;">Bu alanda personel yok.</div>'}
+      </div>
+    </div>`);
+  }
+
   return `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${baslik}</title><style>
     @page{size:${kagit} landscape;margin:7mm;}
     *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     body{font-family:'Segoe UI',Arial,sans-serif;color:#1E293B;}
-    .alan{width:${W}mm;height:${H}mm;overflow:hidden;display:flex;flex-direction:column;}
+    .alan{width:${W}mm;height:${H}mm;overflow:hidden;display:flex;flex-direction:column;page-break-after:always;}
+    .alan:last-child{page-break-after:auto;}
     .bas{height:12mm;flex:0 0 12mm;display:flex;justify-content:space-between;align-items:center;
       border-bottom:2px solid #DC2626;margin-bottom:2mm;}
     .bas img{height:9mm;}
@@ -2262,44 +2302,34 @@ function planYazdirHtml(alan, kagit, haftaSonu){
     .bas h1{font-size:13pt;letter-spacing:.3px;}
     .bas .aralik{font-size:8.5pt;color:#64748B;}
     .bas .sag{font-size:7.5pt;color:#94A3B8;text-align:right;}
-    .tablo{flex:1;display:grid;grid-template-columns:34mm repeat(${gunler.length},1fr);
-      grid-template-rows:9mm repeat(${Math.max(ekip.length,1)},1fr);
+    .tablo{display:grid;grid-template-columns:38mm repeat(${gunler.length},1fr);
       border:1px solid #94A3B8;overflow:hidden;}
     .gunbas,.hucre{border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;overflow:hidden;}
     .gunbas{background:#1E293B;color:#fff;display:flex;flex-direction:column;justify-content:center;
-      padding:0 2mm;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
-    .gunbas span{font-weight:400;font-size:7pt;color:#CBD5E1;text-transform:none;}
+      padding:0 2mm;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+    .gunbas span{font-weight:400;font-size:7.5pt;color:#CBD5E1;text-transform:none;}
     .gunbas.bugun{background:#DC2626;}
     .hucre{padding:1mm;}
     .hucre.bugun{background:#FFF7ED;}
-    .hucre.ad{background:#F1F5F9;display:flex;flex-direction:column;justify-content:center;padding:1mm 2mm;}
-    .hucre.ad i{font-style:normal;color:#64748B;}
+    .hucre.ad{background:#F1F5F9;display:flex;flex-direction:column;justify-content:center;padding:0.6mm 2mm;line-height:1.3;}
+    .hucre.ad b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hucre.ad i{font-style:normal;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .hucre.ad u{text-decoration:none;color:#334155;font-weight:700;}
-    .chip{border:0.3mm solid #94A3B8;border-radius:1mm;padding:0.6mm 1mm;margin-bottom:0.7mm;line-height:1.25;}
+    .chip{border:0.3mm solid #94A3B8;border-radius:1mm;padding:0.6mm 1mm;margin-bottom:0.7mm;line-height:1.3;}
     .chip b{display:block;}
     .chip i{display:block;font-style:normal;color:#334155;}
     .chip u{text-decoration:none;color:#475569;}
+    .chip.tek{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .chip.tek b{display:inline;}
     .fazla{font-weight:700;color:#DC2626;}
-    body.genis .hucre.ad b{font-size:9pt;} body.genis .hucre.ad i,body.genis .hucre.ad u{font-size:7pt;}
-    body.genis .chip{font-size:7.5pt;} body.genis .chip u,body.genis .fazla{font-size:6.5pt;}
-    body.orta .hucre.ad b{font-size:8pt;} body.orta .hucre.ad i,body.orta .hucre.ad u{font-size:6.5pt;}
-    body.orta .chip{font-size:6.5pt;} body.orta .chip u,body.orta .fazla{font-size:6pt;}
-    body.dar .hucre.ad b{font-size:7pt;} body.dar .hucre.ad i,body.dar .hucre.ad u{font-size:5.8pt;}
-    body.dar .chip{font-size:5.8pt;} body.dar .chip i{font-size:5.4pt;} body.dar .chip u,body.dar .fazla{font-size:5.2pt;}
+    body.genis .hucre.ad b{font-size:10pt;} body.genis .hucre.ad i,body.genis .hucre.ad u{font-size:7.5pt;}
+    body.genis .chip{font-size:8pt;} body.genis .chip u,body.genis .fazla{font-size:7pt;}
+    body.orta .hucre.ad b{font-size:9pt;} body.orta .hucre.ad i,body.orta .hucre.ad u{font-size:7pt;}
+    body.orta .chip{font-size:7pt;} body.orta .chip u,body.orta .fazla{font-size:6.5pt;}
+    body.dar .hucre.ad b{font-size:8.5pt;} body.dar .hucre.ad i{font-size:6.5pt;}
+    body.dar .chip{font-size:6.8pt;} body.dar .fazla{font-size:6pt;}
   </style></head><body class="${mod}">
-    <div class="alan">
-      <div class="bas">
-        <img src="${AGENCY.logo}" alt="">
-        <div class="orta"><h1>${baslik}</h1><div class="aralik">${aralik}</div></div>
-        <div class="sag">${ekip.length} personel · ${kagit} yatay<br>Yazdırma: ${new Date().toLocaleDateString('tr-TR')}</div>
-      </div>
-      <div class="tablo">
-        <div class="gunbas">Personel<span>${ekip.length} kişi</span></div>
-        ${gunler.map(d => { const iso = planIso(d);
-          return `<div class="gunbas ${iso === bugunIso ? 'bugun' : ''}">${PLAN_GUNLER[(d.getDay()+6)%7]}<span>${d.getDate()} ${PLAN_AYLAR[d.getMonth()]}</span></div>`; }).join('')}
-        ${satirlar || '<div style="grid-column:1/-1;padding:6mm;text-align:center;color:#64748B;">Bu alanda personel yok.</div>'}
-      </div>
-    </div>
+    ${sayfalar.join('')}
   </body></html>`;
 }
 
@@ -5694,9 +5724,9 @@ function ieRender(id){
         ${e.kalemler.map((k, i) => `<tr>
           <td><input value="${notEsc(k.tanim || '')}" placeholder="Örn. Lightbox görsel baskı" onchange="ieKalem('${id}',${i},'tanim',this.value)"></td>
           <td><input value="${notEsc(k.kod || '')}" placeholder="LB-001" style="width:70px;" onchange="ieKalem('${id}',${i},'kod',this.value)"></td>
-          <td><input type="number" value="${k.adet || ''}" placeholder="1" style="width:52px;" onchange="ieKalem('${id}',${i},'adet',this.value)"></td>
-          <td><input type="number" value="${k.en || ''}" placeholder="0" style="width:72px;" onchange="ieKalem('${id}',${i},'en',this.value)"></td>
-          <td><input type="number" value="${k.boy || ''}" placeholder="0" style="width:72px;" onchange="ieKalem('${id}',${i},'boy',this.value)"></td>
+          <td><input inputmode="decimal" value="${k.adet ? virgulYaz(k.adet) : ''}" placeholder="1" style="width:52px;" onchange="ieKalem('${id}',${i},'adet',this.value)"></td>
+          <td><input inputmode="decimal" value="${k.en ? virgulYaz(k.en) : ''}" placeholder="0" style="width:72px;" onchange="ieKalem('${id}',${i},'en',this.value)"></td>
+          <td><input inputmode="decimal" value="${k.boy ? virgulYaz(k.boy) : ''}" placeholder="0" style="width:72px;" onchange="ieKalem('${id}',${i},'boy',this.value)"></td>
           <td><input value="${notEsc(k.malzeme || '')}" placeholder="Backlit PVC / UV" onchange="ieKalem('${id}',${i},'malzeme',this.value)"></td>
           <td style="text-align:center;"><span class="mini-islem sil" onclick="ieKalemSil('${id}',${i})">✕</span></td>
         </tr>`).join('')}
@@ -5805,7 +5835,7 @@ function ieCheck(id, grup, ad, deger){
 }
 function ieKalem(id, i, ad, deger){
   const j = JOBS.find(x => x.id === id); if(!j || !j.isEmri.kalemler[i]) return;
-  j.isEmri.kalemler[i][ad] = deger;
+  j.isEmri.kalemler[i][ad] = (ad === 'adet' || ad === 'en' || ad === 'boy') ? (deger === '' ? '' : virgulSayi(deger)) : deger;
   ieKirli();
 }
 function ieTedarik(id, i, ad, deger){
@@ -7021,11 +7051,11 @@ function renderLineItems(){
         <div class="ac-list" id="acList${idx}"></div>
         <input class="li-detail" value="${notEsc(it.detail || '')}" placeholder="Açıklama — müşteri belgesindeki Açıklama sütununda görünür" oninput="updateLine(${idx},'detail',this.value)">
       </div>
-      <input type="number" value="${it.qty}" min="1" oninput="updateLine(${idx},'qty',this.value)">
+      <input inputmode="decimal" value="${virgulYaz(it.qty)}" oninput="updateLine(${idx},'qty',this.value)">
       <select id="liUnit${idx}" onchange="updateLine(${idx},'unit',this.value)">
         ${LINE_UNITS.map(x=>`<option value="${x.key}" ${u===x.key?'selected':''}>${x.label}</option>`).join('')}
       </select>
-      <input type="number" value="${it.price}" min="0" oninput="updateLine(${idx},'price',this.value)">
+      <input inputmode="decimal" value="${virgulYaz(it.price)}" oninput="updateLine(${idx},'price',this.value)">
       <select onchange="updateLine(${idx},'kdv',this.value)">
         ${[0,1,8,10,20].map(r=>`<option value="${r}" ${it.kdv===r?'selected':''}>%${r}</option>`).join('')}
       </select>
@@ -7046,10 +7076,10 @@ function dimLineHtml(idx){
   const isM2 = (u === 'm2');
   return `<div class="li-dims">
     <span class="li-dims-label">${isM2 ? 'Ölçü' : 'Uzunluk'}</span>
-    <input type="number" min="0" id="liW${idx}" value="${it.w||''}"
+    <input inputmode="decimal" id="liW${idx}" value="${it.w ? virgulYaz(it.w) : ''}"
       placeholder="${isM2 ? 'en' : 'uzunluk'}" oninput="updateLine(${idx},'w',this.value)">
     ${isM2 ? `<span>×</span>
-    <input type="number" min="0" id="liH${idx}" value="${it.h||''}"
+    <input inputmode="decimal" id="liH${idx}" value="${it.h ? virgulYaz(it.h) : ''}"
       placeholder="boy" oninput="updateLine(${idx},'h',this.value)">` : ''}
     <span>cm</span>
     <span class="li-res" id="liM${idx}">${fmt2(lineQty(it))} ${unitShort(it)}</span>
