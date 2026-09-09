@@ -306,6 +306,12 @@ tr:last-child td{border-bottom:none;}
   justify-content:space-between;align-items:center;border-top:1px solid var(--line);}
 .empty-state{padding:22px 16px;font-size:12px;color:var(--ink-3);text-align:center;}
 /* Cari Hareketleri */
+.ch-kapsam{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.ch-kapsam-btn{padding:6px 12px;border:1px solid var(--line);background:var(--surface);border-radius:999px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:inherit;}
+.ch-kapsam-btn b{font-weight:700;opacity:.75;margin-left:2px;}
+.ch-kapsam-btn:hover{border-color:var(--line-strong);}
+.ch-kapsam-btn.aktif{background:var(--ink);color:#fff;border-color:var(--ink);}
+.ch-kapsam-btn.aktif b{opacity:.85;}
 .cari-ara-kutu{display:flex;align-items:center;gap:8px;margin:10px;padding:0 11px;height:32px;
   background:var(--surface);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-3);}
 .cari-ara-kutu input{border:none;outline:none;flex:1;font-size:12.5px;background:transparent;color:var(--ink);font-family:inherit;}
@@ -1372,7 +1378,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09g';
+window.ROTA_SURUM = 'v2026-09-09h';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4948,6 +4954,7 @@ function aktUygula(){
       <div><b>${acilisGuncel}</b><span>açılış güncellendi</span></div>
     </div>
     ${atlanan ? `<div class="hint">${atlanan} satır bakiyesiz olduğu için atlandı.</div>` : ''}
+    <div class="hint">Bakiyesi ve hareketi olmayan cariler listede <b>"Tüm cariler"</b> sekmesinde görünür — <b>Bakiyeli</b> ve <b>Hareketli</b> sekmeleri onları gizler.</div>
     ${birlesenler.length ? `<div class="akt-uyari">ℹ ${birlesenler.length} satır, dosyadaki başka bir satırla <b>aynı cariye</b> denk geldiği
       için ayrı kart açılmadı (aynı cari kodu ya da aynı VKN + aynı ünvan). Tutarları o kartta toplandı.
       <div class="akt-uyari-liste">${birlesenler.slice(0, 8).map(x =>
@@ -4974,6 +4981,7 @@ function aktUygula(){
 // Kaynaklar: kabul edilmiş teklifler (satış faturası olarak düşer, çift kayıt yok),
 // GELIRLER'deki tahsilatlar (otomatik düşer) ve CARI_HAREKETLER'deki manuel kayıtlar
 // (ödeme, borç/alacak dekontu, virman, açılış). Manuel kayıtlar silinmez — iptal edilir (audit).
+let chListeKapsam = 'hareketli';   // Cari listesi kapsami: bakiyeli | hareketli | tumu
 let cariSecili = null;                 // seçili cari anahtarı (customerId ya da 'ad:...')
 let chFiltre = { ara: '', tur: '', yon: '', bas: '', bit: '' };
 let chYeniUstte = false;
@@ -5085,7 +5093,7 @@ function cariDefter(key){
 }
 
 // Cari listesi: tüm anahtarların özetleri (ad çözümü CUSTOMERS öncelikli)
-function cariOzetListesi(){
+function cariOzetListesi(hepsi){
   const map = new Map();
   cariTumSatirlar().forEach(r => {
     if(r.iptal) return;
@@ -5094,13 +5102,23 @@ function cariOzetListesi(){
     if(r.ad && (!c.ad || c.ad === 'Müşteri seçilmedi')) c.ad = r.ad;
     c.borcK += r.borcK; c.alacakK += r.alacakK;
   });
-  return [...map.values()].map(c => {
+  let sonuc = [...map.values()].map(c => {
     const cst = CUSTOMERS.find(x => x.id === c.key);
     if(cst) c.ad = cst.name;
     c.bakiyeK = c.borcK - c.alacakK;
     return c;
-  }).filter(c => c.borcK || c.alacakK)
-    .sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
+  });
+  if(hepsi){
+    // Hareketi olmayan cari kartları da listeye katılır (Zirve'den gelen sıfır bakiyeli cariler dahil)
+    const varOlan = new Set(sonuc.map(c => c.key));
+    CUSTOMERS.forEach(cst => {
+      if(varOlan.has(cst.id)) return;
+      sonuc.push({ key: cst.id, ad: cst.name, borcK: 0, alacakK: 0, bakiyeK: 0, hareketsiz: true });
+    });
+  } else {
+    sonuc = sonuc.filter(c => c.borcK || c.alacakK);
+  }
+  return sonuc.sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
 }
 function chBakiyeMetni(k){
   if(k > 0) return '<span class="ch-yon tahsil">Tahsil Edilecek</span>';
@@ -5132,24 +5150,36 @@ function chIslemMenuHtml(menuId, cid){
 }
 
 function cariListesiView(){
-  const liste = cariOzetListesi();
+  const tumListe = cariOzetListesi(true);
+  const hareketli = tumListe.filter(c => c.borcK || c.alacakK);
+  const bakiyeli = tumListe.filter(c => c.bakiyeK);
+  const liste = chListeKapsam === 'tumu' ? tumListe
+    : chListeKapsam === 'bakiyeli' ? bakiyeli : hareketli;
   const iptalSayi = (CARI_HAREKETLER || []).filter(h => h.iptal).length;
+  const sek = (deger, etiket, sayi) =>
+    `<button class="ch-kapsam-btn ${chListeKapsam === deger ? 'aktif' : ''}" onclick="chKapsamSec('${deger}')">${etiket} <b>${sayi}</b></button>`;
   return `
     <div class="list-page-head"><div><div class="page-title">Cari Hareketleri</div>
       <div class="page-sub">Kabul edilen teklifler satış faturası olarak, girilen tahsilatlar otomatik düşer. Cariye tıklayın.</div></div>
       ${chIslemMenuHtml('chListeMenu', '')}</div>
     <div class="ledger-main">
+      <div class="ch-kapsam">
+        ${sek('bakiyeli', 'Bakiyeli', bakiyeli.length)}
+        ${sek('hareketli', 'Hareketli', hareketli.length)}
+        ${sek('tumu', 'Tüm cariler', tumListe.length)}
+      </div>
       <div class="cari-ara-kutu">🔍 <input id="chListeAra" placeholder="Cari ara" oninput="chListeAra(this.value)"></div>
       <div class="ledger-row" style="font-weight:700;"><span>Cari</span><span>Bakiye</span></div>
-      ${liste.length ? '' : '<div class="empty-state">Henüz cari hareketi yok — teklif kabul edildiğinde, tahsilat girildiğinde ya da İşlemler menüsünden kayıt açıldığında burada görünür.</div>'}
+      ${liste.length ? '' : '<div class="empty-state">Bu görünümde cari yok — teklif kabul edildiğinde, tahsilat girildiğinde ya da İşlemler menüsünden kayıt açıldığında burada görünür.</div>'}
       ${liste.map(c => `
         <div class="ledger-row ch-cari-satir" data-ad="${notEsc(c.ad).toLowerCase()}" style="cursor:pointer;align-items:center;" onclick="cariAc('${c.key.replace(/'/g, "\\'")}')">
-          <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}</div>
+          <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}${c.hareketsiz ? ' <span class="ch-durum gri" style="margin-left:6px;">Hareketsiz</span>' : ''}</div>
           <div class="ledger-amount" style="color:${c.bakiyeK > 0 ? 'var(--ok)' : (c.bakiyeK < 0 ? 'var(--risk)' : 'var(--ink-3)')};">${chTL(c.bakiyeK)}${chBakiyeMetni(c.bakiyeK)}</div>
         </div>`).join('')}
-      <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} cari${iptalSayi ? ' · ' + iptalSayi + ' iptal kayıt saklı' : ''}</span></div>
+      <div class="ledger-footer"><span>🔻 Görünen: ${liste.length} cari · toplam ${tumListe.length} cari kartı${iptalSayi ? ' · ' + iptalSayi + ' iptal kayıt saklı' : ''}</span></div>
     </div>`;
 }
+function chKapsamSec(v){ chListeKapsam = v; renderContent(); }
 function chListeAra(v){
   const q = v.trim().toLowerCase();
   document.querySelectorAll('.ch-cari-satir').forEach(r => {
