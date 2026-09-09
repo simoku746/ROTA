@@ -1370,7 +1370,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09d';
+window.ROTA_SURUM = 'v2026-09-09f';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4688,12 +4688,19 @@ function aktDurum(tip){
   return 'Müşteri';
 }
 function aktMevcutBul(k){
-  if(k.vkn){
-    const v = CUSTOMERS.find(c => (c.vkn || '').replace(/\s/g, '') === k.vkn);
+  // 1) Cari kodu — muhasebede benzersizdir, en güvenilir anahtar
+  if(k.kod){
+    const v = CUSTOMERS.find(c => (c.cariKodu || '') === k.kod);
     if(v) return v;
   }
   const ad = aktNorm(k.name);
-  return CUSTOMERS.find(c => aktNorm(c.name) === ad) || null;
+  // 2) VKN + aynı ünvan (aynı VKN'li farklı şubeler ayrı kart kalsın)
+  if(k.vkn){
+    const v = CUSTOMERS.find(c => (c.vkn || '').replace(/\s/g, '') === k.vkn && aktNorm(c.name) === ad);
+    if(v) return v;
+  }
+  // 3) Cari kodu olmayan kartlarda ünvan eşleşmesi
+  return CUSTOMERS.find(c => aktNorm(c.name) === ad && !c.cariKodu) || null;
 }
 function openCariAktarim(){
   AKT = { satirlar: [], eslesme: {}, basliklar: [], hata: '' };
@@ -4828,6 +4835,8 @@ function aktOnizleGoster(){
     <label class="akt-secim"><input type="checkbox" id="aktKart" checked> Müşteri kartlarını oluştur / bilgilerini güncelle</label>
     <label class="akt-secim"><input type="checkbox" id="aktBakiye" checked> Açılış bakiyelerini cari hareketlerine işle</label>
     <label class="akt-secim"><input type="checkbox" id="aktSifir"> Bakiyesi sıfır olan carileri de aktar</label>
+    <label class="akt-secim" style="color:var(--risk);"><input type="checkbox" id="aktTemiz">
+      Önceki Excel aktarımını temizleyip baştan aktar <span style="color:var(--ink-3);font-weight:400;">(yalnızca aktarımla gelen, işi/teklifi olmayan kartlar silinir)</span></label>
     <div style="display:flex;gap:8px;margin-top:12px;">
       <button class="btn" style="flex:0 0 auto;" onclick="openCariAktarim()">← Geri</button>
       <button class="modal-submit" style="margin:0;flex:1;" onclick="aktUygula()">${k.length} Satırı Aktar</button>
@@ -4840,11 +4849,29 @@ function aktUygula(){
   const bugun = bugunTR();
   const damga = 'zirve-aktarim';
   let yeniKart = 0, guncelKart = 0, acilisYeni = 0, acilisGuncel = 0, atlanan = 0;
+  const buAktarimda = new Set();      // bu çalıştırmada açılan kartlar
+  const birlesenler = [];             // aynı cariye denk gelen satırlar
+  let temizlenen = 0, korunan = 0;
+  if(document.getElementById('aktTemiz') && document.getElementById('aktTemiz').checked){
+    // Yalnız aktarımla gelen ve hiçbir teklif/işe bağlanmamış kartlar silinir
+    const kullanilan = new Set([
+      ...QUOTES.map(q => q.customerId),
+      ...JOBS.map(j => j.customerId),
+      ...GELIRLER.map(g => g.customerId),
+    ].filter(Boolean));
+    const silinecek = CUSTOMERS.filter(c => c.aktarimKaynak === damga && !kullanilan.has(c.id));
+    korunan = CUSTOMERS.filter(c => c.aktarimKaynak === damga && kullanilan.has(c.id)).length;
+    const silinenIdler = new Set(silinecek.map(c => c.id));
+    CUSTOMERS = CUSTOMERS.filter(c => !silinenIdler.has(c.id));
+    CARI_HAREKETLER = CARI_HAREKETLER.filter(h => !(h.aktarim === damga && silinenIdler.has(h.customerId)));
+    temizlenen = silinecek.length;
+  }
 
   AKT.satirlar.forEach(k => {
     const bakiyeVar = Math.abs(k.borc) >= 0.01 || Math.abs(k.alacak) >= 0.01;
     if(!sifirDahil && !bakiyeVar && !k.kod){ atlanan++; return; }
     let c = aktMevcutBul(k);
+    if(c && buAktarimda.has(c.id)) birlesenler.push({ ad: k.name, kod: k.kod, hedef: c.name, hedefKod: c.cariKodu || '' });
     if(!c && kartYap){
       c = {
         id: benzersizId('c'),
@@ -4854,6 +4881,7 @@ function aktUygula(){
         durum: aktDurum(k.tip), unvan: '', dateAdded: bugun,
       };
       CUSTOMERS.push(c);
+      buAktarimda.add(c.id);
       yeniKart++;
     } else if(c && kartYap){
       let d = false;
@@ -4914,6 +4942,13 @@ function aktUygula(){
       <div><b>${acilisGuncel}</b><span>açılış güncellendi</span></div>
     </div>
     ${atlanan ? `<div class="hint">${atlanan} satır bakiyesiz olduğu için atlandı.</div>` : ''}
+    ${birlesenler.length ? `<div class="akt-uyari">ℹ ${birlesenler.length} satır, dosyadaki başka bir satırla <b>aynı cariye</b> denk geldiği
+      için ayrı kart açılmadı (aynı cari kodu ya da aynı VKN + aynı ünvan). Tutarları o kartta toplandı.
+      <div class="akt-uyari-liste">${birlesenler.slice(0, 8).map(x =>
+        `<div>• ${notEsc(x.ad)}${x.kod ? ` <span style="opacity:.6;">${notEsc(x.kod)}</span>` : ''} → <b>${notEsc(x.hedef)}</b>${x.hedefKod ? ` <span style="opacity:.6;">${notEsc(x.hedefKod)}</span>` : ''}</div>`).join('')}
+        ${birlesenler.length > 8 ? `<div style="opacity:.7;">… ve ${birlesenler.length - 8} satır daha</div>` : ''}</div></div>` : ''}
+    ${temizlenen ? `<div class="hint">${temizlenen} eski aktarım kartı temizlendi${korunan ? `, ${korunan} kart teklif/işe bağlı olduğu için korundu` : ''}.</div>` : ''}
+    <div class="hint">Toplam <b>${AKT.satirlar.length}</b> satır işlendi · <b>${CUSTOMERS.length}</b> cari kartı var.</div>
     <div class="hint">Açılış kayıtları <b>Zirve devir bakiyesi</b> açıklamasıyla işlendi. Aynı dosyayı tekrar
       aktarırsanız çift kayıt oluşmaz — mevcut açılış tutarları güncellenir.</div>
     <button class="modal-submit" onclick="closeModal()">Tamam</button>`;
