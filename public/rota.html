@@ -861,13 +861,6 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .rap-donut-ic b{font-family:var(--font-mono);font-size:12.5px;font-weight:700;letter-spacing:-.4px;line-height:1.2;}
 .rap-donut-ic span{font-size:10.5px;color:var(--ink-3);font-weight:600;}
 .rap-donut-ad{font-size:12px;font-weight:700;letter-spacing:.2px;text-align:center;}
-.rap-cipler{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
-.rap-cip{padding:7px 13px;border:1px solid var(--line);background:var(--surface);border-radius:999px;
-  font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:inherit;
-  border-left:3px solid var(--cip);}
-.rap-cip b{font-family:var(--font-mono);font-weight:700;margin-left:4px;}
-.rap-cip:hover{border-color:var(--line-strong);}
-.rap-cip.aktif{background:var(--cip);border-color:var(--cip);color:#fff;}
 .rap-grup-basi{cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px;
   background:var(--surface-sunk,#f4f6f8);border-bottom:1px solid var(--line);border-left:3px solid var(--grup);
   font-size:12px;font-weight:700;color:var(--grup);}
@@ -1452,7 +1445,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09u';
+window.ROTA_SURUM = 'v2026-09-09v';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3845,7 +3838,7 @@ function rapAcikRaporView(yon){
   cariler.forEach(c => c.acik.forEach(r => { toplamlar[r.vadeDurum] += r.kalan; }));
   const genel = toplamlar.gecmis + toplamlar.ileri + toplamlar.yok;
 
-  const secili = RAP_VADE_GRUP.filter(g => !rapVade || rapVade === g.key);
+  const secili = RAP_VADE_GRUP;
   const govde = secili.map(g => {
     const liste = cariler.map(c => ({ ...c, satirlar: c.acik.filter(r => r.vadeDurum === g.key) }))
       .filter(c => c.satirlar.length)
@@ -3872,10 +3865,6 @@ function rapAcikRaporView(yon){
         </details>`).join('')}`;
   }).join('');
 
-  const cip = (deger, ad, tutarK, renk) => `
-    <button class="rap-cip ${rapVade === deger ? 'aktif' : ''}" onclick="rapVadeSec('${deger}')"
-      style="--cip:${renk};">${ad} <b>${chTL(tutarK)}</b></button>`;
-
   return `
     <div class="list-page-head"><div><div class="page-title">${odeme ? 'Ödemeler Raporu' : 'Tahsilatlar Raporu'}</div>
       <div class="page-sub">${odeme ? 'Tedarikçilere ödenmemiş borçlar' : 'Müşterilerden tahsil edilmemiş alacaklar'} — cari kartlardaki bakiyelerden hesaplanır.</div></div>
@@ -3884,12 +3873,6 @@ function rapAcikRaporView(yon){
       ${rapDonut('Toplam', genel, 1, odeme ? 'var(--risk)' : 'var(--ok)')}
       ${rapDonut('Vadesi Gelmemiş', toplamlar.ileri, genel ? toplamlar.ileri / genel : 0, 'var(--signal)')}
     </div>
-    <div class="rap-cipler">
-      ${cip('', 'Tümü', genel, 'var(--ink)')}
-      ${cip('gecmis', 'Vadesi Geçmiş', toplamlar.gecmis, 'var(--risk)')}
-      ${cip('ileri', 'İleri Tarihli', toplamlar.ileri, 'var(--signal)')}
-      ${cip('yok', 'Vade Tarihi Yok', toplamlar.yok, 'var(--ink-3)')}
-    </div>
     ${rapFiltreBar(false)}
     ${govde ? `<div class="rap-tablo">
       <div class="rap-baslik"><span>Cari</span><span class="sag">Belge</span><span class="sag">Toplam</span>
@@ -3897,7 +3880,6 @@ function rapAcikRaporView(yon){
       ${govde}</div>`
       : `<div class="empty-state">Bu aralıkta ${odeme ? 'ödenecek borç' : 'tahsil edilecek alacak'} görünmüyor.</div>`}`;
 }
-function rapVadeSec(v){ rapVade = v; renderContent(); }
 function rapGrupAcKapa(k){ rapGrupKapali[k] = !rapGrupKapali[k]; renderContent(); }
 
 // ---------- 3-4) ALIŞ / SATIŞ RAPORU ----------
