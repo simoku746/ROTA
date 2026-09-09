@@ -363,6 +363,8 @@ tr:last-child td{border-bottom:none;}
 .akt-uyari{background:var(--signal-soft);color:var(--ink-2);border-left:3px solid var(--signal);border-radius:7px;
   padding:9px 12px;font-size:12px;line-height:1.5;margin:8px 0;}
 .akt-uyari-liste{margin-top:6px;font-size:11.5px;line-height:1.6;max-height:120px;overflow:auto;}
+.akt-denetim{background:var(--surface-sunk);border-radius:8px;padding:9px 12px;margin-top:10px;
+  font-size:11.5px;line-height:1.7;color:var(--ink-2);font-family:var(--font-mono);}
 .akt-bilgi{background:var(--surface-sunk);color:var(--ink-2);border-radius:7px;padding:9px 12px;font-size:12px;}
 .akt-ozet{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;}
 .akt-ozet div{background:var(--surface-sunk);border-radius:8px;padding:9px 11px;text-align:center;}
@@ -1370,7 +1372,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09f';
+window.ROTA_SURUM = 'v2026-09-09g';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4694,9 +4696,10 @@ function aktMevcutBul(k){
     if(v) return v;
   }
   const ad = aktNorm(k.name);
-  // 2) VKN + aynı ünvan (aynı VKN'li farklı şubeler ayrı kart kalsın)
+  // 2) VKN + aynı ünvan — ancak iki tarafın da kodu varsa ve kodlar farklıysa AYRI cari sayılır
   if(k.vkn){
-    const v = CUSTOMERS.find(c => (c.vkn || '').replace(/\s/g, '') === k.vkn && aktNorm(c.name) === ad);
+    const v = CUSTOMERS.find(c => (c.vkn || '').replace(/\s/g, '') === k.vkn && aktNorm(c.name) === ad
+      && !(k.kod && c.cariKodu && c.cariKodu !== k.kod));
     if(v) return v;
   }
   // 3) Cari kodu olmayan kartlarda ünvan eşleşmesi
@@ -4929,6 +4932,9 @@ function aktUygula(){
     yaz('acilis-alacak', k.alacak);
   });
 
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();   // sunucuya kayıt tetiklenir
+  const beklenen = AKT.satirlar.length - atlanan;
+  const olusan = yeniKart + guncelKart + birlesenler.length;
   closeModal();
   cariSecili = null;
   currentPage = 'on-muhasebe'; onMuhasebeSub = 'cari-hareketleri'; openSubmenu = 'on-muhasebe';
@@ -4948,7 +4954,13 @@ function aktUygula(){
         `<div>• ${notEsc(x.ad)}${x.kod ? ` <span style="opacity:.6;">${notEsc(x.kod)}</span>` : ''} → <b>${notEsc(x.hedef)}</b>${x.hedefKod ? ` <span style="opacity:.6;">${notEsc(x.hedefKod)}</span>` : ''}</div>`).join('')}
         ${birlesenler.length > 8 ? `<div style="opacity:.7;">… ve ${birlesenler.length - 8} satır daha</div>` : ''}</div></div>` : ''}
     ${temizlenen ? `<div class="hint">${temizlenen} eski aktarım kartı temizlendi${korunan ? `, ${korunan} kart teklif/işe bağlı olduğu için korundu` : ''}.</div>` : ''}
-    <div class="hint">Toplam <b>${AKT.satirlar.length}</b> satır işlendi · <b>${CUSTOMERS.length}</b> cari kartı var.</div>
+    <div class="akt-denetim">
+      <div>Dosyadaki satır: <b>${AKT.satirlar.length}</b></div>
+      <div>Yeni kart: <b>${yeniKart}</b> · Mevcut karta yazıldı: <b>${guncelKart}</b> · Aynı cariye denk gelen: <b>${birlesenler.length}</b> · Atlanan: <b>${atlanan}</b></div>
+      <div>Toplam cari kartı (aktarım sonrası): <b>${CUSTOMERS.length}</b></div>
+      ${yeniKart + birlesenler.length + atlanan + guncelKart !== AKT.satirlar.length
+        ? `<div style="color:var(--risk);">⚠ Sayılar tutmuyor — ekran görüntüsü alıp iletin.</div>` : ''}
+    </div>
     <div class="hint">Açılış kayıtları <b>Zirve devir bakiyesi</b> açıklamasıyla işlendi. Aynı dosyayı tekrar
       aktarırsanız çift kayıt oluşmaz — mevcut açılış tutarları güncellenir.</div>
     <button class="modal-submit" onclick="closeModal()">Tamam</button>`;
