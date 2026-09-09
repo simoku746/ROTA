@@ -837,6 +837,21 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
   border-radius:6px;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:8px;}
 .modal-submit:hover{opacity:.85;}
 
+.rap-yazdir-btn{height:34px;flex:0 0 auto;white-space:nowrap;}
+.rap-7,.rap-baslik.rap-7{grid-template-columns:96px minmax(160px,2fr) 1fr 1fr 1fr 1fr 108px;}
+.rap-kod{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);}
+.rap-tel{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rap-genis{overflow-x:auto;}
+.rap-genis .rap-7{min-width:820px;}
+.rap-aylik-kap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);}
+.rap-aylik{border-collapse:collapse;width:100%;min-width:1180px;font-size:11.5px;}
+.rap-aylik th{background:var(--surface-sunk,#f4f5f7);border-bottom:1px solid var(--line);padding:8px 7px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);text-align:left;position:sticky;top:0;}
+.rap-aylik td{border-bottom:1px solid var(--line);padding:6px 7px;}
+.rap-aylik .sag{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.rap-aylik tbody tr:hover td{background:var(--surface-sunk,#f7f8fa);}
+.rap-aylik tfoot td{font-weight:700;background:var(--surface-sunk,#eef1f4);border-top:2px solid var(--line-strong);}
+.rap-aylik .rap-ad{font-weight:600;max-width:240px;}
 /* ---------- Raporlar (cari tabanlı) ---------- */
 .rap-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
 .rap-kpi-kutu{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;}
@@ -1412,7 +1427,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09n';
+window.ROTA_SURUM = 'v2026-09-09p';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1555,6 +1570,7 @@ const RAPORLAR_SUBS = [
   { key:'tahsilatlar-raporu', label:'Tahsilatlar Raporu' },
   { key:'alis-raporu', label:'Alış Raporu' },
   { key:'satis-raporu', label:'Satış Raporu' },
+  { key:'cari-durum', label:'Cari Hesap Durumu' },
   { key:'gelir-gider-raporu', label:'Gelir Gider Raporu' },
   { key:'kdv-raporu', label:'KDV Raporu' },
   { key:'kasa-banka-raporu', label:'Kasa\\Banka Raporu' },
@@ -3193,6 +3209,7 @@ function raporlarView(){
   if(raporlarSub==='tahsilatlar-raporu') return tahsilatlarRaporuView();
   if(raporlarSub==='alis-raporu') return alisSatisRaporuView('alis');
   if(raporlarSub==='satis-raporu') return alisSatisRaporuView('satis');
+  if(raporlarSub==='cari-durum') return cariDurumRaporuView();
   if(raporlarSub==='gelir-gider-raporu') return kategoriRaporuView();
   if(raporlarSub==='kdv-raporu') return kdvRaporuView();
   if(raporlarSub==='kasa-banka-raporu') return kasaBankaRaporuView();
@@ -3288,6 +3305,289 @@ function kategoriRaporuView(){
     ${gelirGiderCariTablosu()}`;
 }
 
+// ================= RAPOR YAZDIRMA =================
+const RAP_AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const RAP_SATIR_SAYISI = { 'a4-yatay': 26, 'a4-dikey': 36, 'a3-yatay': 40, 'a3-dikey': 56 };
+
+function rapYazdirDugmesi(){
+  return `<button class="btn rap-yazdir-btn" onclick="rapYazdirModal()">🖨 Yazdır</button>`;
+}
+function rapYazdirModal(){
+  const v = rapYazdirVeri();
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Raporu Yazdır</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="hint" style="margin-top:0;"><b>${notEsc(v.baslik)}</b> — ${v.satirlar.length} satır yazdırılacak.
+      Ekrandaki tarih aralığı ve filtreler çıktıya da uygulanır.</div>
+    <div class="field"><label>Kağıt / Yön</label>
+      <select id="ryKagit">
+        <option value="a4-yatay">A4 — Yatay</option>
+        <option value="a4-dikey">A4 — Dikey</option>
+        <option value="a3-yatay">A3 — Yatay</option>
+        <option value="a3-dikey">A3 — Dikey</option>
+      </select></div>
+    <label class="akt-secim"><input type="checkbox" id="ryToplam" checked> Sayfa altına ara toplam, sona genel toplam ekle</label>
+    <label class="akt-secim"><input type="checkbox" id="ryZebra" checked> Satırları açık gri şeritlerle ayır</label>
+    <button class="modal-submit" onclick="rapYazdirBas()">Yazdır</button>`;
+  showModal();
+  const k = document.getElementById('ryKagit');
+  if(k && v.kolonlar.length > 8) k.value = 'a3-yatay';
+}
+function rapYazdirBas(){
+  const kagit = document.getElementById('ryKagit').value;
+  const toplamVar = document.getElementById('ryToplam').checked;
+  const zebra = document.getElementById('ryZebra').checked;
+  const v = rapYazdirVeri();
+  closeModal();
+  if(!v.satirlar.length){ showToast('Yazdırılacak kayıt yok.'); return; }
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
+  w.document.write(rapYazdirHtml(v, kagit, toplamVar, zebra));
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch(e){} }, 450);
+}
+
+// Ortak çıktı iskeleti — sayfalara böler, her sayfada başlık satırını tekrarlar
+const RAP_SAYFA_MM = {   // kenar boşluğu düşülmüş net içerik ölçüsü
+  'a4-yatay': [279, 192], 'a4-dikey': [192, 279], 'a3-yatay': [402, 279], 'a3-dikey': [279, 402],
+};
+function rapYazdirHtml(v, kagit, toplamVar, zebra){
+  const [boy, yon] = kagit.split('-');
+  const [enMm, boyMm] = RAP_SAYFA_MM[kagit] || RAP_SAYFA_MM['a4-yatay'];
+  const satirBasina = RAP_SATIR_SAYISI[kagit] || 26;
+  const sayfalar = [];
+  for(let i = 0; i < v.satirlar.length; i += satirBasina) sayfalar.push(v.satirlar.slice(i, i + satirBasina));
+  const bugun = new Date().toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const sagMi = i => v.kolonlar[i] && v.kolonlar[i].sag;
+  const hucre = (h, i) => `<td class="${sagMi(i) ? 'sag' : ''}">${h == null ? '' : h}</td>`;
+  const bicim = v.kolonlar.length > 8 ? chTLKisa : chTL;         // aylık matriste sütun dar, TL eki yazılmaz
+  const etiketSutun = v.kolonlar.length > 1 ? 1 : 0;
+  const toplamSatiri = (dizi, etiket) => v.kolonlar.map((k, i) => {
+    if(k.topla){
+      const t = dizi.reduce((s, r) => s + (Number(r.ham && r.ham[i]) || 0), 0);
+      return `<td class="sag">${t ? bicim(t) : ''}</td>`;
+    }
+    return `<td>${i === etiketSutun ? etiket : ''}</td>`;
+  }).join('');
+  const araToplam = dizi => toplamSatiri(dizi, 'Ara toplam');
+  const genelToplam = toplamSatiri(v.satirlar, 'GENEL TOPLAM');
+  const govde = sayfalar.map((sf, si) => `
+    <section class="sayfa">
+      <div class="bas">${notEsc(v.baslik)}</div>
+      <div class="ust">
+        <span class="firma">${notEsc(AGENCY.name)}</span>
+        <span>${notEsc(v.altBaslik || '')}</span>
+        <span class="tarih">${bugun}</span>
+      </div>
+      <table>
+        <colgroup><col style="width:34px;">${v.kolonlar.map(k => `<col${k.g ? ` style="width:${k.g};"` : ''}>`).join('')}</colgroup>
+        <thead><tr><th class="no">No</th>${v.kolonlar.map(k => `<th class="${k.sag ? 'sag' : ''}">${notEsc(k.ad)}</th>`).join('')}</tr></thead>
+        <tbody>${sf.map((r, i) => `<tr><td class="no">${si * satirBasina + i + 1}</td>${r.hucreler.map(hucre).join('')}</tr>`).join('')}</tbody>
+        ${toplamVar ? `<tfoot>
+          ${sayfalar.length > 1 ? `<tr class="ara"><td></td>${araToplam(sf)}</tr>` : ''}
+          ${si === sayfalar.length - 1 ? `<tr class="genel"><td></td>${genelToplam}</tr>` : ''}
+        </tfoot>` : ''}
+      </table>
+      <div class="alt">
+        <span>${notEsc(v.not || 'ROTA — Dekant Endüstriyel Reklam')}</span>
+        <span>${si + 1} / ${sayfalar.length}</span>
+      </div>
+    </section>`).join('');
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${notEsc(v.baslik)}</title><style>
+    @page{ size:${boy.toUpperCase()} ${yon === 'yatay' ? 'landscape' : 'portrait'}; margin:9mm; }
+    *{box-sizing:border-box;}
+    body{margin:0;font:11px/1.4 'Segoe UI',system-ui,-apple-system,sans-serif;color:#111827;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sayfa{page-break-after:always;break-after:page;display:flex;flex-direction:column;
+      width:${enMm}mm;height:${boyMm}mm;overflow:hidden;}
+    .sayfa:last-child{page-break-after:auto;break-after:auto;}
+    .bas{background:#0F172A;color:#fff;text-align:center;padding:9px 12px;border-radius:5px;
+      font-size:14px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;}
+    .ust{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:9px 2px 7px;font-size:10.5px;color:#475569;}
+    .ust .firma{font-weight:700;color:#0F172A;font-size:11.5px;}
+    .ust .tarih{font-variant-numeric:tabular-nums;}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    th{background:#E2E8F0;border:1px solid #94A3B8;padding:5px 6px;font-size:9.5px;font-weight:700;
+      text-transform:uppercase;letter-spacing:.4px;color:#0F172A;text-align:left;}
+    td{border:1px solid #CBD5E1;padding:3.5px 6px;font-size:10.5px;vertical-align:top;word-wrap:break-word;}
+    ${zebra ? 'tbody tr:nth-child(even) td{background:#F8FAFC;}' : ''}
+    th.sag,td.sag{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    th.no,td.no{width:34px;text-align:right;color:#64748B;font-size:9.5px;}
+    tfoot td{font-weight:700;background:#EEF2F6;border-top:1.5px solid #64748B;font-size:10.5px;}
+    tfoot tr.genel td{background:#0F172A;color:#fff;border-color:#0F172A;}
+    .alt{margin-top:auto;padding-top:6px;display:flex;justify-content:space-between;
+      font-size:9px;color:#64748B;border-top:1px solid #E2E8F0;}
+    .kucuk{font-size:9.5px;color:#64748B;display:block;}
+    ${v.kolonlar.length > 8 ? 'td,th{padding:2.5px 3px;font-size:9px;} th{font-size:8.5px;letter-spacing:0;}' : ''}
+  </style></head><body>${govde}</body></html>`;
+}
+
+// Ekrandaki rapora göre yazdırma verisi
+function rapYazdirVeri(){
+  if(raporlarSub === 'odemeler-raporu')    return rapVeriAcik('odeme');
+  if(raporlarSub === 'tahsilatlar-raporu') return rapVeriAcik('tahsilat');
+  if(raporlarSub === 'alis-raporu')        return rapVeriAlisSatis('alis');
+  if(raporlarSub === 'satis-raporu')       return rapVeriAlisSatis('satis');
+  if(raporlarSub === 'cari-durum')         return rapVeriCariDurum();
+  if(raporlarSub === 'gelir-gider-raporu') return rapVeriGelirGider();
+  return { baslik:'Rapor', altBaslik:'', kolonlar:[], satirlar:[] };
+}
+function rapAralikMetni(){
+  const g = i => i.split('-').reverse().join('.');
+  return g(rapBas) + ' – ' + g(rapBit);
+}
+function rapAraSuz(liste){
+  const q = rapAra.trim().toLowerCase();
+  return q ? liste.filter(c => (c.ad || '').toLowerCase().includes(q)) : liste;
+}
+
+function rapVeriAcik(yon){
+  const odeme = yon === 'odeme';
+  const bugun = chTarihSira(new Date().toLocaleDateString('tr-TR'));
+  const veri = rapAraSuz(rapDefterler().map(c => {
+    const acik = c.d.rows.filter(r => !r.iptal && (odeme ? (r.alacakK && r.alacakKalanK > 0) : (r.borcK && r.kalanK > 0)) && rapTarihAralikta(r.tarih))
+      .map(r => ({ ...r, tutarK: odeme ? r.alacakK : r.borcK, kalan: odeme ? r.alacakKalanK : r.kalanK }));
+    const gecen = acik.filter(r => r.vade && chTarihSira(r.vade) < bugun).reduce((s, r) => s + r.kalan, 0);
+    return { ...c, adet: acik.length, toplamK: acik.reduce((s, r) => s + r.tutarK, 0),
+      kalan: acik.reduce((s, r) => s + r.kalan, 0), gecen };
+  }).filter(c => c.kalan > 0).sort((a, b) => b.kalan - a.kalan));
+  return {
+    baslik: odeme ? 'Ödemeler Raporu' : 'Tahsilatlar Raporu',
+    altBaslik: rapAralikMetni(),
+    not: odeme ? 'Açık alış faturaları ve borç kayıtları — cari bakiyelerinden hesaplanmıştır.'
+               : 'Açık satış faturaları ve alacak kayıtları — cari bakiyelerinden hesaplanmıştır.',
+    kolonlar: [ { ad:'Cari Kodu' }, { ad:'Cari Adı' }, { ad:'Belge', sag:true },
+                { ad:'Toplam', sag:true, topla:true }, { ad:'Vadesi Geçen', sag:true, topla:true },
+                { ad: odeme ? 'Kalan Borç' : 'Kalan Alacak', sag:true, topla:true } ],
+    satirlar: veri.map(c => ({
+      hucreler: [ rapCariKodu(c.key), notEsc(c.ad), String(c.adet), chTL(c.toplamK), c.gecen ? chTL(c.gecen) : '—', chTL(c.kalan) ],
+      ham: [ 0, 0, 0, c.toplamK, c.gecen, c.kalan ],
+    })),
+  };
+}
+function rapCariKodu(key){
+  const c = CUSTOMERS.find(x => x.id === key);
+  return notEsc((c && c.cariKodu) || '');
+}
+
+function rapVeriAlisSatis(kind){
+  const alis = kind === 'alis';
+  const belgeTip = alis ? 'alis-faturasi' : 'satis-faturasi';
+  const veri = rapAraSuz(rapDefterler().map(c => {
+    const rows = c.d.rows.filter(r => !r.iptal && r.tip === belgeTip && rapTarihAralikta(r.tarih));
+    const aylar = new Array(12).fill(0);
+    rows.forEach(r => {
+      const t = chTarihSira(r.tarih); if(!t) return;
+      const ay = parseInt(t.slice(5, 7), 10) - 1;
+      if(ay >= 0 && ay < 12) aylar[ay] += alis ? r.alacakK : r.borcK;
+    });
+    return { ...c, aylar, toplamK: aylar.reduce((s, x) => s + x, 0) };
+  }).filter(c => c.toplamK).sort((a, b) => a.ad.localeCompare(b.ad, 'tr')));
+  if(rapGorunum === 'aylik'){
+    return {
+      baslik: alis ? 'Cari Alış Listesi' : 'Cari Satış Listesi',
+      altBaslik: rapAralikMetni(),
+      not: 'Faturalandırılmamış kayıtlar dahil değildir.',
+      kolonlar: [ { ad:'Cari Kodu', g:'72px' }, { ad:'Cari Adı', g:'19%' },
+        ...RAP_AYLAR.map(a => ({ ad:a, sag:true, topla:true })),
+        { ad:'Toplam', sag:true, topla:true, g:'8%' } ],
+      satirlar: veri.map(c => ({
+        hucreler: [ rapCariKodu(c.key), notEsc(c.ad), ...c.aylar.map(x => x ? chTLKisa(x) : ''), chTLKisa(c.toplamK) ],
+        ham: [ 0, 0, ...c.aylar, c.toplamK ],
+      })),
+    };
+  }
+  return {
+    baslik: alis ? 'Alış Raporu' : 'Satış Raporu',
+    altBaslik: rapAralikMetni(),
+    kolonlar: [ { ad:'Cari Kodu' }, { ad:'Cari Adı' }, { ad:'Belge', sag:true },
+                { ad:'Toplam', sag:true, topla:true },
+                { ad: alis ? 'Ödenen' : 'Tahsil Edilen', sag:true, topla:true },
+                { ad:'Kalan', sag:true, topla:true } ],
+    satirlar: veri.map(c => {
+      const rows = c.d.rows.filter(r => !r.iptal && r.tip === belgeTip && rapTarihAralikta(r.tarih));
+      const kalanK = rows.reduce((s, r) => s + (alis ? (r.alacakKalanK || 0) : (r.kalanK || 0)), 0);
+      return { hucreler: [ rapCariKodu(c.key), notEsc(c.ad), String(rows.length), chTL(c.toplamK), chTL(c.toplamK - kalanK), chTL(kalanK) ],
+        ham: [ 0, 0, 0, c.toplamK, c.toplamK - kalanK, kalanK ] };
+    }),
+  };
+}
+
+function rapVeriCariDurum(){
+  const veri = rapAraSuz(rapDefterler().map(c => ({ ...c, borcK: c.d.borcK, alacakK: c.d.alacakK, bakiyeK: c.d.bakiyeK })))
+    .filter(c => c.borcK || c.alacakK)
+    .sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
+  return {
+    baslik: 'Cari Hesap Durum Raporu',
+    altBaslik: `${veri.length} cari`,
+    not: 'Bakiye = Toplam Borç − Toplam Alacak.',
+    kolonlar: [ { ad:'Cari Kodu', g:'80px' }, { ad:'Cari Adı', g:'30%' }, { ad:'Borç', sag:true, topla:true },
+                { ad:'Alacak', sag:true, topla:true }, { ad:'Borç Bakiye', sag:true, topla:true },
+                { ad:'Alacak Bakiye', sag:true, topla:true }, { ad:'Telefon', g:'110px' } ],
+    satirlar: veri.map(c => {
+      const cst = CUSTOMERS.find(x => x.id === c.key) || {};
+      const bb = c.bakiyeK > 0 ? c.bakiyeK : 0, ab = c.bakiyeK < 0 ? -c.bakiyeK : 0;
+      return { hucreler: [ rapCariKodu(c.key), notEsc(c.ad), c.borcK ? chTL(c.borcK) : '', c.alacakK ? chTL(c.alacakK) : '',
+                 bb ? chTL(bb) : '', ab ? chTL(ab) : '', notEsc(cst.phone || '') ],
+        ham: [ 0, 0, c.borcK, c.alacakK, bb, ab, 0 ] };
+    }),
+  };
+}
+
+function rapVeriGelirGider(){
+  const veri = rapAraSuz(rapDefterler().map(c => {
+    const rows = c.d.rows.filter(r => !r.iptal && rapTarihAralikta(r.tarih));
+    const tahsilat = rows.filter(r => r.tip === 'tahsilat').reduce((s, r) => s + r.alacakK, 0);
+    const odeme = rows.filter(r => r.tip === 'odeme').reduce((s, r) => s + r.borcK, 0);
+    return { ...c, tahsilat, odeme, net: tahsilat - odeme, bakiyeK: c.d.bakiyeK };
+  }).filter(c => c.tahsilat || c.odeme).sort((a, b) => (b.tahsilat + b.odeme) - (a.tahsilat + a.odeme)));
+  return {
+    baslik: 'Cari Bazlı Nakit Akışı',
+    altBaslik: rapAralikMetni(),
+    kolonlar: [ { ad:'Cari Kodu' }, { ad:'Cari Adı' }, { ad:'Tahsilat', sag:true, topla:true },
+                { ad:'Ödeme', sag:true, topla:true }, { ad:'Net', sag:true, topla:true },
+                { ad:'Güncel Bakiye', sag:true, topla:true } ],
+    satirlar: veri.map(c => ({
+      hucreler: [ rapCariKodu(c.key), notEsc(c.ad), c.tahsilat ? chTL(c.tahsilat) : '', c.odeme ? chTL(c.odeme) : '', chTL(c.net), chTL(c.bakiyeK) ],
+      ham: [ 0, 0, c.tahsilat, c.odeme, c.net, c.bakiyeK ],
+    })),
+  };
+}
+
+// Aylık matriste sığsın diye kısa biçim (kuruş yuvarlanmaz, binlik ayracı korunur)
+function chTLKisa(k){
+  return (k / 100).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ---- Cari Hesap Durumu ekranı ----
+function cariDurumRaporuView(){
+  const v = rapVeriCariDurum();
+  const toplamBorc = v.satirlar.reduce((s, r) => s + r.ham[2], 0);
+  const toplamAlacak = v.satirlar.reduce((s, r) => s + r.ham[3], 0);
+  const bb = v.satirlar.reduce((s, r) => s + r.ham[4], 0);
+  const ab = v.satirlar.reduce((s, r) => s + r.ham[5], 0);
+  return `
+    <div class="list-page-head"><div><div class="page-title">Cari Hesap Durumu</div>
+      <div class="page-sub">Tüm carilerin toplam borç, alacak ve bakiye dökümü.</div></div>
+      ${rapYazdirDugmesi()}</div>
+    ${rapKpi([['Toplam borç', chTL(toplamBorc)], ['Toplam alacak', chTL(toplamAlacak)],
+              ['Tahsil edilecek', chTL(bb), 'var(--ok)'], ['Ödenecek', chTL(ab), 'var(--risk)']])}
+    ${rapFiltreBar(false)}
+    <div class="rap-tablo rap-genis">
+      <div class="rap-baslik rap-7"><span>Cari Kodu</span><span>Cari Adı</span><span class="sag">Borç</span>
+        <span class="sag">Alacak</span><span class="sag">Borç Bak.</span><span class="sag">Alacak Bak.</span><span>Telefon</span></div>
+      ${v.satirlar.length ? v.satirlar.map(r => `
+        <div class="rap-cari rap-duz rap-7" data-ad="${r.hucreler[1].toLowerCase()}">
+          <span class="rap-kod">${r.hucreler[0] || '—'}</span>
+          <span class="rap-ad">${r.hucreler[1]}</span>
+          <span class="sag">${r.hucreler[2] || '—'}</span>
+          <span class="sag">${r.hucreler[3] || '—'}</span>
+          <span class="sag" style="color:var(--ok);">${r.hucreler[4] || '—'}</span>
+          <span class="sag" style="color:var(--risk);">${r.hucreler[5] || '—'}</span>
+          <span class="rap-tel">${r.hucreler[6] || '—'}</span>
+        </div>`).join('') : '<div class="empty-state">Hareketi olan cari yok.</div>'}
+    </div>`;
+}
+
+
 function donut(color, big, small, label){
   return `
     <div class="donut" style="background:conic-gradient(${color} 0deg 350deg, transparent 350deg 360deg);">
@@ -3301,6 +3601,7 @@ let rapBas = new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0, 10)
 let rapBit = new Date().toISOString().slice(0, 10);
 let rapAra = '';
 let rapSadeceAcik = true;
+let rapGorunum = 'cari';           // Alış/Satış raporu görünümü: cari | aylik
 
 function rapTarihAralikta(trTarih){
   const t = chTarihSira(trTarih);                 // yyyy-aa-gg
@@ -3390,7 +3691,8 @@ function odemelerRaporuView(){
     </details>`);
   return `
     <div class="list-page-head"><div><div class="page-title">Ödemeler Raporu</div>
-      <div class="page-sub">Tedarikçilere ödenmemiş borçlar — cari kartlardaki bakiyelerden hesaplanır.</div></div></div>
+      <div class="page-sub">Tedarikçilere ödenmemiş borçlar — cari kartlardaki bakiyelerden hesaplanır.</div></div>
+      ${rapYazdirDugmesi()}</div>
     ${rapKpi([['Toplam ödenecek', chTL(toplam), 'var(--risk)'],
               ['Vadesi geçen', chTL(gecen), gecen ? 'var(--risk)' : 'var(--ink-3)'],
               ['Vadesi gelmemiş', chTL(toplam - gecen)],
@@ -3427,7 +3729,8 @@ function tahsilatlarRaporuView(){
     </details>`);
   return `
     <div class="list-page-head"><div><div class="page-title">Tahsilatlar Raporu</div>
-      <div class="page-sub">Müşterilerden tahsil edilmemiş alacaklar — cari kartlardaki bakiyelerden hesaplanır.</div></div></div>
+      <div class="page-sub">Müşterilerden tahsil edilmemiş alacaklar — cari kartlardaki bakiyelerden hesaplanır.</div></div>
+      ${rapYazdirDugmesi()}</div>
     ${rapKpi([['Toplam tahsil edilecek', chTL(toplam), 'var(--ok)'],
               ['Vadesi geçen', chTL(gecen), gecen ? 'var(--risk)' : 'var(--ink-3)'],
               ['Vadesi gelmemiş', chTL(toplam - gecen)],
@@ -3466,14 +3769,42 @@ function alisSatisRaporuView(kind){
   return `
     <div class="list-page-head"><div><div class="page-title">${alis ? 'Alış Raporu' : 'Satış Raporu'}</div>
       <div class="page-sub">${alis ? 'Tedarikçilerden yapılan alışlar (giderlerde cari seçilmiş kayıtlar).'
-        : 'Kabul edilen ve faturalanan teklifler — cari kartlarındaki satış faturaları.'}</div></div></div>
+        : 'Kabul edilen ve faturalanan teklifler — cari kartlarındaki satış faturaları.'}</div></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="ch-sira-sec" onchange="rapGorunum=this.value; renderContent();">
+          <option value="cari" ${rapGorunum === 'cari' ? 'selected' : ''}>Cari bazlı özet</option>
+          <option value="aylik" ${rapGorunum === 'aylik' ? 'selected' : ''}>Aylık dağılım (Ocak–Aralık)</option>
+        </select>
+        ${rapYazdirDugmesi()}
+      </div></div>
     ${rapKpi([[alis ? 'Toplam alış' : 'Toplam satış', chTL(toplam)],
               [alis ? 'Ödenen' : 'Tahsil edilen', chTL(toplam - kalan), 'var(--ok)'],
               ['Kalan', chTL(kalan), kalan ? 'var(--risk)' : 'var(--ink-3)'],
               ['Belge / Cari', belgeAdet + ' / ' + veri.length]])}
     ${rapFiltreBar(false)}
-    ${rapCariTablo(satirlar, ['Cari', 'Belge', 'Toplam', alis ? 'Ödenen' : 'Tahsil Edilen', 'Kalan'],
-      `Bu aralıkta ${alis ? 'alış' : 'satış'} kaydı yok.`)}`;
+    ${rapGorunum === 'aylik' ? rapAylikTablo(kind)
+      : rapCariTablo(satirlar, ['Cari', 'Belge', 'Toplam', alis ? 'Ödenen' : 'Tahsil Edilen', 'Kalan'],
+        `Bu aralıkta ${alis ? 'alış' : 'satış'} kaydı yok.`)}`;
+}
+
+// Zirve'deki 'Cari Alış / Satış Listesi' gibi 12 aylık matris
+function rapAylikTablo(kind){
+  const v = rapVeriAlisSatis(kind);
+  if(!v.satirlar.length) return `<div class="empty-state">Bu aralıkta ${kind === 'alis' ? 'alış' : 'satış'} kaydı yok.</div>`;
+  const genel = RAP_AYLAR.map((_, ai) => v.satirlar.reduce((s, r) => s + r.ham[ai + 2], 0));
+  const genelToplam = v.satirlar.reduce((s, r) => s + r.ham[14], 0);
+  return `
+    <div class="rap-aylik-kap">
+      <table class="rap-aylik">
+        <thead><tr><th>Cari Kodu</th><th>Cari Adı</th>${RAP_AYLAR.map(a => `<th class="sag">${a}</th>`).join('')}<th class="sag">Toplam</th></tr></thead>
+        <tbody>${v.satirlar.map(r => `<tr class="rap-cari" data-ad="${r.hucreler[1].toLowerCase()}">
+          <td class="rap-kod">${r.hucreler[0] || '—'}</td><td class="rap-ad">${r.hucreler[1]}</td>
+          ${r.hucreler.slice(2, 14).map(x => `<td class="sag">${x || ''}</td>`).join('')}
+          <td class="sag"><b>${r.hucreler[14]}</b></td></tr>`).join('')}</tbody>
+        <tfoot><tr><td></td><td>GENEL TOPLAM</td>${genel.map(x => `<td class="sag">${x ? chTLKisa(x) : ''}</td>`).join('')}
+          <td class="sag">${chTLKisa(genelToplam)}</td></tr></tfoot>
+      </table>
+    </div>`;
 }
 
 // ---------- 5) GELİR-GİDER: cari kırılımı ----------
@@ -3496,7 +3827,7 @@ function gelirGiderCariTablosu(){
     </div>`);
   return `
     <div class="rap-bolum-baslik">Cari Bazlı Nakit Akışı
-      <span>Tahsilat ${chTL(tT)} · Ödeme ${chTL(tO)} · Net ${chTL(tT - tO)}</span></div>
+      <span>Tahsilat ${chTL(tT)} · Ödeme ${chTL(tO)} · Net ${chTL(tT - tO)} &nbsp; ${rapYazdirDugmesi()}</span></div>
     ${rapFiltreBar(false)}
     ${rapCariTablo(satirlar, ['Cari', 'Tahsilat', 'Ödeme', 'Net', 'Güncel Bakiye'],
       'Bu aralıkta cariye bağlı tahsilat / ödeme yok.')}`;
