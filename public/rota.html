@@ -13,7 +13,7 @@
 <title>ROTA — İş Akışı Sistemi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Chivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Chivo:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    ROTA — Tasarım Sistemi
@@ -61,7 +61,13 @@
 
   --font-display:'Roboto Condensed',-apple-system,sans-serif;
   --font-body:'Chivo',-apple-system,sans-serif;
-  --font-mono:'Space Mono',ui-monospace,monospace;
+  /* Finansal rakamlar ve kodlar. IBM Plex Sans gerçek tabular rakamlara sahiptir;
+     Space Mono'ya göre çok daha dar, uzun tutarlar taşmaz. */
+  --font-mono:'IBM Plex Sans',-apple-system,'Segoe UI',sans-serif;
+
+  /* --- Tipografi belirteçleri --- */
+  --fw-regular:400; --fw-medium:500; --fw-semibold:600; --fw-bold:700;
+  --fs-kucuk:12px; --fs-ikincil:13px; --fs-govde:13.5px; --fs-tutar:14px; --fs-kpi:24px;
 
   /* Eski değişken adları için eşleme (satır içi stiller bozulmasın) */
   --bg:var(--canvas); --sidebar-bg:var(--surface); --card-bg:var(--surface);
@@ -104,6 +110,8 @@ html.dark{
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;background:var(--canvas);color:var(--ink);
   font-family:var(--font-body);font-size:13.5px;line-height:19px;
+  /* Aynı sütundaki rakamların basamakları hizalansın */
+  font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;
   -webkit-font-smoothing:antialiased;}
 button,input,select,textarea{font-family:inherit;}
 
@@ -571,7 +579,7 @@ tr:last-child td{border-bottom:none;}
   border:2px solid #EA580C; border-radius:10px;}
 .quote-doc-banner-name{font-family:'Roboto Condensed',-apple-system,sans-serif; font-size:27px; font-weight:700;
   letter-spacing:3px; color:#fff; text-transform:uppercase;}
-.quote-doc-banner-slogan{font-family:'Space Mono',ui-monospace,monospace; font-size:10.5px; color:#FDBA74;
+.quote-doc-banner-slogan{font-family:var(--font-mono);letter-spacing:.4px; font-size:10.5px; color:#FDBA74;
   margin-top:6px; letter-spacing:2px; text-transform:uppercase;}
 .quote-doc-banner.has-logo{background:#fff; border:none; border-radius:0;
   border-bottom:2px solid #C8211D; margin:20px 24px 20px; padding:4px 0 16px;}
@@ -848,19 +856,20 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .rap-aylik th{background:var(--surface-sunk,#f4f5f7);border-bottom:1px solid var(--line);padding:8px 7px;
   font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);text-align:left;position:sticky;top:0;}
 .rap-aylik td{border-bottom:1px solid var(--line);padding:6px 7px;}
-.rap-aylik .sag{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.rap-aylik .sag{text-align:right;font-family:var(--font-mono);font-size:13px;
+  font-weight:var(--fw-medium);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .rap-aylik tbody tr:hover td{background:var(--surface-sunk,#f7f8fa);}
 .rap-aylik tfoot td{font-weight:700;background:var(--surface-sunk,#eef1f4);border-top:2px solid var(--line-strong);}
 .rap-aylik .rap-ad{font-weight:600;max-width:240px;}
 .rap-donut-serit{display:flex;justify-content:center;align-items:flex-start;gap:64px;flex-wrap:wrap;
   background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 14px;margin-bottom:12px;}
 .rap-donut-kutu{display:flex;flex-direction:column;align-items:center;gap:9px;}
-.rap-donut{width:128px;height:128px;border-radius:50%;display:grid;place-items:center;}
-.rap-donut-ic{width:96px;height:96px;padding:0 6px;text-align:center;border-radius:50%;background:var(--surface);display:flex;
-  flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 0 1px var(--line) inset;}
-.rap-donut-ic b{font-family:var(--font-mono);font-size:12.5px;font-weight:700;letter-spacing:-.4px;line-height:1.2;}
-.rap-donut-ic span{font-size:10.5px;color:var(--ink-3);font-weight:600;}
-.rap-donut-ad{font-size:12px;font-weight:700;letter-spacing:.2px;text-align:center;}
+.rap-donut{width:156px;height:156px;border-radius:50%;display:grid;place-items:center;}
+.rap-donut-ic{width:122px;height:122px;padding:0 8px;text-align:center;border-radius:50%;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px var(--line) inset;}
+.rap-donut-ic b{font-family:var(--font-mono);font-weight:var(--fw-semibold);letter-spacing:-.5px;
+  line-height:1.15;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.rap-donut-ad{font-size:12.5px;font-weight:var(--fw-semibold);letter-spacing:.3px;text-align:center;}
 .rap-grup-basi{cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px;
   background:var(--surface-sunk,#f4f6f8);border-bottom:1px solid var(--line);border-left:3px solid var(--grup);
   font-size:12px;font-weight:700;color:var(--grup);}
@@ -870,11 +879,50 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .rap-grup-ikon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
   margin-right:8px;border:1px solid var(--grup);border-radius:4px;font-style:normal;font-size:10px;line-height:1;}
 .rap-grup-basi.kapali{opacity:.82;}
+.kdv-tablo-kap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);}
+.kdv-tablo{border-collapse:collapse;width:100%;min-width:980px;font-size:12.5px;}
+.kdv-tablo th{background:var(--surface-sunk,#f4f5f7);border-bottom:1px solid var(--line);padding:9px 10px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);text-align:left;}
+.kdv-tablo td{border-bottom:1px solid var(--line);padding:9px 10px;}
+.kdv-tablo .sag{text-align:right;font-family:var(--font-mono);font-size:var(--fs-tutar);
+  font-weight:var(--fw-medium);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.kdv-satir{cursor:pointer;}
+.kdv-satir:hover td{background:var(--surface-sunk,#f7f8fa);}
+.kdv-satir.acik td{background:var(--surface-sunk,#f2f5f7);font-weight:600;}
+.kdv-tablo tfoot td{font-weight:700;background:var(--surface-sunk,#eef1f4);border-top:2px solid var(--line-strong);}
+.kdv-detay-satir td{background:var(--surface-sunk,#fafbfc);padding:0;}
+.kdv-detay{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:14px 18px 18px;}
+.kdv-detay > div{padding:0 22px;}
+.kdv-detay > div:first-child{padding-left:0;}
+.kdv-detay > div:last-child{padding-right:0;border-left:1px solid var(--line);}
+.kdv-detay h4{margin:0 0 8px;font-family:var(--font-display);font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3);}
+.kdv-detay h4 span{background:var(--line);color:var(--ink-2);border-radius:999px;padding:1px 7px;margin-left:5px;font-size:11px;}
+.kdv-belge{display:grid;grid-template-columns:70px minmax(0,1fr) 56px 92px 92px;gap:8px;align-items:center;
+  padding:5px 0;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-2);}
+.kdv-belge:first-of-type{border-top:none;}
+.kdv-belge-ad{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--ink);}
+.kdv-belge-no{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-3);}
+.kdv-belge .sag{text-align:right;font-family:var(--font-mono);white-space:nowrap;}
+.kdv-bos{font-size:11.5px;color:var(--ink-3);padding:6px 0;}
+@media(max-width:820px){ .kdv-detay{grid-template-columns:1fr;}
+  .kdv-detay > div{padding:0;} .kdv-detay > div:last-child{border-left:none;border-top:1px solid var(--line);padding-top:14px;margin-top:14px;} }
+/* ---------- Finansal değerler ---------- */
+.fin,.fin-lg,.fin-total{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-feature-settings:'tnum' 1;white-space:nowrap;letter-spacing:-.1px;}
+.fin{font-size:var(--fs-tutar);font-weight:var(--fw-medium);}
+.fin-lg{font-size:18px;font-weight:var(--fw-semibold);}
+.fin-total{font-size:var(--fs-tutar);font-weight:var(--fw-semibold);}
+.fin-pos{color:var(--ok);}
+.fin-neg{color:var(--risk);}
+.fin-bekleyen{color:var(--signal);}
+.fin-notr{color:var(--ink-3);}
 /* ---------- Raporlar (cari tabanlı) ---------- */
 .rap-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
 .rap-kpi-kutu{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;}
 .rap-kpi-kutu span{font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-3);}
-.rap-kpi-kutu b{font-size:17px;font-family:var(--font-mono);font-weight:700;}
+.rap-kpi-kutu b{font-size:var(--fs-kpi);font-family:var(--font-mono);font-weight:var(--fw-semibold);
+  letter-spacing:-.4px;line-height:1.15;}
 .rap-arac{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
 .rap-tarih{height:32px;padding:0 8px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font-size:12.5px;font-family:inherit;}
 .rap-tablo{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);}
@@ -887,7 +935,7 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .rap-cari>summary:hover,.rap-cari.rap-duz:hover{background:var(--surface-sunk,#f7f8fa);}
 .rap-cari.rap-duz{cursor:pointer;font-size:13px;}
 .rap-ad{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rap-cari .sag{font-family:var(--font-mono);font-size:12.5px;}
+.rap-cari .sag{font-family:var(--font-mono);font-size:var(--fs-tutar);font-weight:var(--fw-medium);}
 .rap-belge{display:grid;grid-template-columns:minmax(150px,1.4fr) 1.6fr 1fr .9fr .9fr;gap:10px;align-items:center;
   padding:7px 14px 7px 26px;font-size:12px;color:var(--ink-2);background:var(--surface-sunk,#fafbfc);border-top:1px solid var(--line);}
 .rap-belge-no{font-family:var(--font-mono);font-size:11px;}
@@ -1445,7 +1493,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09v';
+window.ROTA_SURUM = 'v2026-09-09z';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3476,6 +3524,7 @@ function rapYazdirVeri(){
   if(raporlarSub === 'alis-raporu')  return rapVeriAlisSatis('alis');
   if(raporlarSub === 'satis-raporu') return rapVeriAlisSatis('satis');
   if(raporlarSub === 'cari-durum')         return rapVeriCariDurum();
+  if(raporlarSub === 'kdv-raporu')         return rapVeriKdv();
   if(raporlarSub === 'gelir-gider-raporu') return rapVeriGelirGider();
   return { baslik:'Rapor', altBaslik:'', kolonlar:[], satirlar:[] };
 }
@@ -3642,6 +3691,25 @@ function rapVeriCariDurum(){
   };
 }
 
+function rapVeriKdv(){
+  const d = kdvDonemleri();
+  return {
+    baslik: 'KDV Raporu',
+    altBaslik: d.length ? d[d.length - 1].ad + ' – ' + d[0].ad : '',
+    not: 'Beyanname yerine geçmez; tevkifat, istisna ve iade işlemlerini içermez.',
+    kolonlar: [ { ad:'Dönem', g:'15%' },
+      { ad:'Satış Matrahı', sag:true, topla:true }, { ad:'Hesaplanan KDV', sag:true, topla:true },
+      { ad:'Alış Matrahı', sag:true, topla:true }, { ad:'İndirilecek KDV', sag:true, topla:true },
+      { ad:'Devreden (önceki)', sag:true }, { ad:'Ödenecek', sag:true, topla:true },
+      { ad:'Sonraki aya devir', sag:true } ],
+    satirlar: d.map(x => ({
+      hucreler: [ x.ad, chTL(x.satisMatrahK), chTL(x.hesaplananK), chTL(x.alisMatrahK), chTL(x.indirilecekK),
+                  x.oncekiDevirK ? chTL(x.oncekiDevirK) : '', x.odenecekK ? chTL(x.odenecekK) : '',
+                  x.devredenK ? chTL(x.devredenK) : '' ],
+      ham: [ 0, x.satisMatrahK, x.hesaplananK, x.alisMatrahK, x.indirilecekK, 0, x.odenecekK, 0 ],
+    })),
+  };
+}
 function rapVeriGelirGider(){
   if(rapKirilim === 'gunluk'){
     const satir = [];
@@ -3809,10 +3877,14 @@ function rapVadeDurumu(r, bugun){
 // Halka grafik — dolu kısım oranı kadar renkli
 function rapDonut(etiket, tutarK, oran, renk){
   const derece = Math.max(0, Math.min(1, oran)) * 360;
+  const metin = chTL(tutarK);
+  // Tutar halkanın içine tek satırda sığsın: uzunluğa göre punto küçülür.
+  const u = metin.length;
+  const punto = u > 17 ? 12.5 : u > 14 ? 14 : u > 11 ? 16 : 18;
   return `
     <div class="rap-donut-kutu">
       <div class="rap-donut" style="background:conic-gradient(${renk} 0deg ${derece.toFixed(1)}deg, var(--surface-sunk,#eceff3) ${derece.toFixed(1)}deg 360deg);">
-        <div class="rap-donut-ic"><b>${chTL(tutarK)}</b><span>${Math.round(oran * 100)}%</span></div>
+        <div class="rap-donut-ic"><b style="font-size:${punto}px;">${metin}</b></div>
       </div>
       <div class="rap-donut-ad" style="color:${renk};">${etiket}</div>
     </div>`;
@@ -3949,30 +4021,119 @@ function gelirGiderCariTablosu(){
 }
 
 
+// ---------------- KDV RAPORU ----------------
+// Hesaplanan KDV: durumu "Faturalandı" olan teklifler (satır bazında KDV oranı).
+// İndirilecek KDV: gider kayıtlarındaki KDV (tutar KDV dahil girilir, matrah/KDV ayrışır).
+// Devir: bir ayda indirilecek fazlaysa fark sonraki aya "devreden KDV" olarak taşınır.
+function kdvAyAdi(anahtar){
+  const d = new Date(anahtar + '-01T00:00:00');
+  return isNaN(d) ? anahtar : d.toLocaleDateString('tr-TR', { month:'long', year:'numeric' });
+}
+function kdvAyAnahtar(tarih){
+  const t = chTarihSira(tarih);                 // yyyy-aa-gg
+  return t ? t.slice(0, 7) : '';
+}
+function kdvSatislar(){
+  return QUOTES.filter(q => q.status === 'Faturalandı' && q.date).map(q => {
+    const cst = CUSTOMERS.find(x => x.id === q.customerId);
+    return { ay: kdvAyAnahtar(q.date), tarih: q.date, belgeNo: q.no || '',
+      ad: (cst && cst.name) || q.musteriAdi || 'Müşteri',
+      matrahK: Math.round(quoteSub(q) * 100), kdvK: Math.round(quoteKdvAmount(q) * 100),
+      kaynak: { tip:'teklif', id: q.id } };
+  }).filter(x => x.ay);
+}
+function kdvAlislar(){
+  return (GIDERLER || []).filter(g => g.kdvK && g.tarih).map(g => ({
+    ay: kdvAyAnahtar(g.tarih), tarih: g.tarih, belgeNo: g.belgeNo || '',
+    ad: g.client || g.tur || 'Gider', oran: g.kdvOran || 0,
+    matrahK: g.matrahK || 0, kdvK: g.kdvK || 0,
+  })).filter(x => x.ay);
+}
+// Aylar eskiden yeniye hesaplanır ki devir doğru aksın; gösterimde ters çevrilir.
 function kdvDonemleri(){
-  const m = new Map();
-  QUOTES.filter(q => q.status === 'Faturalandı' && q.date).forEach(q => {
-    const k = String(q.date).slice(0,7);
-    m.set(k, (m.get(k)||0) + quoteKdvAmount(q));
+  const sat = kdvSatislar(), alis = kdvAlislar();
+  const aylar = [...new Set([...sat, ...alis].map(x => x.ay))].sort();
+  let devirK = 0;
+  const satirlar = aylar.map(ay => {
+    const s = sat.filter(x => x.ay === ay), a = alis.filter(x => x.ay === ay);
+    const hesaplananK = s.reduce((t, x) => t + x.kdvK, 0);
+    const indirilecekK = a.reduce((t, x) => t + x.kdvK, 0);
+    const oncekiDevirK = devirK;
+    const netK = hesaplananK - indirilecekK - oncekiDevirK;
+    const odenecekK = netK > 0 ? netK : 0;
+    const sonrakiDevirK = netK < 0 ? -netK : 0;
+    devirK = sonrakiDevirK;
+    return { ay, ad: kdvAyAdi(ay), hesaplananK, indirilecekK, oncekiDevirK, odenecekK, devredenK: sonrakiDevirK,
+      satisMatrahK: s.reduce((t, x) => t + x.matrahK, 0), alisMatrahK: a.reduce((t, x) => t + x.matrahK, 0),
+      satisBelge: s.length, alisBelge: a.length, satislar: s, alislar: a };
   });
-  return [...m.entries()].sort((a,b) => b[0].localeCompare(a[0])).map(([k,kdv]) => {
-    const d = new Date(k + '-01T00:00:00');
-    return { ad: d.toLocaleDateString('tr-TR',{month:'long',year:'numeric'}), kdv };
-  });
+  return satirlar.reverse();
 }
-function kdvRaporuView(){
-  return `
-    <div class="list-page-head"><div class="page-title">KDV Raporu</div></div>
-    <div class="warn-banner">⚠️ Bu rapor sadece fikir vermek için hazırlanmıştır. Tutarlar gerçek KDV'den farklı olabilir. Şirketinizin ödemesi gereken KDV tutarını göstermez.</div>
-    <div class="filter-bar" style="border-radius:12px 12px 0 0;"><span>🔍 ${new Date().getFullYear()}</span></div>
-    <div class="report-body">
-      <div class="kb-row header"><span>Dönem</span><span>Hesaplanan KDV Tutarı</span></div>
-      ${kdvDonemleri().length ? kdvDonemleri().map(d => `<div class="kb-row"><span>${d.ad}</span><span>${tl(d.kdv)} &nbsp;&nbsp;&nbsp; İndirilecek: ${tl(0)} &nbsp;&nbsp;&nbsp; Net: ${tl(d.kdv)}</span></div>`).join('')
-        : '<div class="empty-state">Faturalanmış teklif yok — KDV, durumu "Faturalandı" olan tekliflerden hesaplanır.</div>'}
-    </div>
-  `;
-}
+let kdvAcikAy = '';
+function kdvAyAcKapa(ay){ kdvAcikAy = kdvAcikAy === ay ? '' : ay; renderContent(); }
 
+function kdvRaporuView(){
+  const donemler = kdvDonemleri();
+  const sonDevir = donemler.length ? donemler[0].devredenK : 0;
+  const toplamOdenecek = donemler.reduce((t, d) => t + d.odenecekK, 0);
+  const buAy = kdvAyAnahtar(bugunTR());
+  const suanki = donemler.find(d => d.ay === buAy);
+  return `
+    <div class="list-page-head"><div><div class="page-title">KDV Raporu</div>
+      <div class="page-sub">Hesaplanan KDV faturalanmış tekliflerden, indirilecek KDV gider kayıtlarından gelir. Aya tıklayın.</div></div>
+      ${rapYazdirDugmesi()}</div>
+    <div class="warn-banner">⚠️ Bu rapor beyanname yerine geçmez; tevkifat, istisna ve iade işlemlerini içermez. Mali müşavirinizin hesabıyla karşılaştırın.</div>
+    ${rapKpi([
+      ['Bu ay hesaplanan', suanki ? chTL(suanki.hesaplananK) : '—'],
+      ['Bu ay indirilecek', suanki ? chTL(suanki.indirilecekK) : '—', 'var(--ok)'],
+      ['Bu ay ödenecek', suanki ? chTL(suanki.odenecekK) : '—', suanki && suanki.odenecekK ? 'var(--risk)' : 'var(--ink-3)'],
+      ['Sonraki aya devreden', chTL(sonDevir), sonDevir ? 'var(--signal)' : 'var(--ink-3)'],
+    ])}
+    ${donemler.length ? `
+    <div class="kdv-tablo-kap">
+      <table class="kdv-tablo">
+        <thead><tr>
+          <th>Dönem</th><th class="sag">Satış Matrahı</th><th class="sag">Hesaplanan KDV</th>
+          <th class="sag">Alış Matrahı</th><th class="sag">İndirilecek KDV</th>
+          <th class="sag">Devreden (önceki)</th><th class="sag">Ödenecek</th><th class="sag">Sonraki aya devir</th>
+        </tr></thead>
+        <tbody>${donemler.map(d => `
+          <tr class="kdv-satir ${kdvAcikAy === d.ay ? 'acik' : ''}" onclick="kdvAyAcKapa('${d.ay}')">
+            <td><i class="rap-grup-ikon" style="--grup:var(--ink-3);">${kdvAcikAy === d.ay ? '—' : '＋'}</i>${d.ad}</td>
+            <td class="sag">${chTL(d.satisMatrahK)}</td>
+            <td class="sag">${chTL(d.hesaplananK)}</td>
+            <td class="sag">${chTL(d.alisMatrahK)}</td>
+            <td class="sag" style="color:var(--ok);">${chTL(d.indirilecekK)}</td>
+            <td class="sag" style="color:var(--ink-3);">${d.oncekiDevirK ? chTL(d.oncekiDevirK) : '—'}</td>
+            <td class="sag"><b style="color:${d.odenecekK ? 'var(--risk)' : 'var(--ink-3)'};">${d.odenecekK ? chTL(d.odenecekK) : '—'}</b></td>
+            <td class="sag" style="color:var(--signal);">${d.devredenK ? chTL(d.devredenK) : '—'}</td>
+          </tr>
+          ${kdvAcikAy === d.ay ? `<tr class="kdv-detay-satir"><td colspan="8">
+            <div class="kdv-detay">
+              <div>
+                <h4>Satış belgeleri <span>${d.satisBelge}</span></h4>
+                ${d.satislar.length ? d.satislar.map(x => `<div class="kdv-belge" onclick="event.stopPropagation(); chKaynagaGit('teklif','${x.kaynak.id}')">
+                  <span>${chTarihTR(x.tarih)}</span><span class="kdv-belge-ad">${notEsc(x.ad)}</span>
+                  <span class="kdv-belge-no">${notEsc(x.belgeNo)}</span>
+                  <span class="sag">${chTL(x.matrahK)}</span><span class="sag"><b>${chTL(x.kdvK)}</b></span>
+                </div>`).join('') : '<div class="kdv-bos">Bu ay faturalanmış teklif yok.</div>'}
+              </div>
+              <div>
+                <h4>Alış belgeleri <span>${d.alisBelge}</span></h4>
+                ${d.alislar.length ? d.alislar.map(x => `<div class="kdv-belge">
+                  <span>${chTarihTR(x.tarih)}</span><span class="kdv-belge-ad">${notEsc(x.ad)}</span>
+                  <span class="kdv-belge-no">%${x.oran}</span>
+                  <span class="sag">${chTL(x.matrahK)}</span><span class="sag"><b>${chTL(x.kdvK)}</b></span>
+                </div>`).join('') : '<div class="kdv-bos">Bu ay KDV\'li gider kaydı yok.</div>'}
+              </div>
+            </div></td></tr>` : ''}
+        `).join('')}</tbody>
+        <tfoot><tr><td>TOPLAM</td><td colspan="5"></td>
+          <td class="sag">${chTL(toplamOdenecek)}</td><td class="sag">${chTL(sonDevir)}</td></tr></tfoot>
+      </table>
+    </div>`
+    : `<div class="empty-state">Henüz KDV doğuran kayıt yok. Hesaplanan KDV için teklif durumunu <b>Faturalandı</b> yapın; indirilecek KDV için giderleri KDV oranıyla girin.</div>`}`;
+}
 function kasaBankaHareketleri(){
   return [...GELIRLER.map(g => ({ ...g, gelir:true })), ...GIDERLER.map(g => ({ ...g, gelir:false }))]
     .sort((a,b) => trTarihMs(b.tarih) - trTarihMs(a.tarih));
@@ -4303,7 +4464,7 @@ const GIDER_FORMLARI = {
 const BANKA_GIDER_TURLERI = ['Havale / EFT Masrafı','Hesap İşletim Ücreti','Kredi Kartı Komisyonu','Kredi Faizi','Diğer'];
 const VERGI_TURLERI = ['KDV','Muhtasar','Damga Vergisi','Gelir / Kurumlar Vergisi','MTV','Diğer'];
 const TEKRAR_SIKLIK = ['Aylık','3 Aylık','6 Aylık','Yıllık'];
-function openGiderForm(tur){ giderFormTur = tur; giderStep = 'form'; renderContent(); tarayiciGecmisYaz(); }
+function openGiderForm(tur){ giderFormTur = tur; giderStep = 'form'; renderContent(); tarayiciGecmisYaz(); gKdvBilgiYaz(); }
 
 function giderlerView(){
   if(giderStep === 'form') return giderEkleForm();
@@ -4376,9 +4537,11 @@ function giderEkleForm(){
         <div class="field"><label>Kategori</label>${kategoriSelectHtml('gKategori','gider','')}</div>
         <div class="field"><label>Açıklama</label><input id="gAciklama" placeholder="Açıklama"></div>
         <div class="field-row">
-          <div class="field" style="flex:2;"><label>Tutar</label><input type="number" id="gTutar" placeholder="0"></div>
+          <div class="field" style="flex:2;"><label>Tutar <span style="color:var(--ink-3);font-weight:400;">(KDV dahil)</span></label><input type="number" id="gTutar" placeholder="0" oninput="gKdvBilgiYaz()"></div>
           <div class="field"><label>&nbsp;</label><select id="gParaBirimi"><option>TL</option><option>$</option><option>€</option></select></div>
+          <div class="field"><label>KDV</label><select id="gKdv" onchange="gKdvBilgiYaz()">${KDV_ORANLARI.map(o => `<option value="${o}" ${o === 20 ? 'selected' : ''}>%${o}</option>`).join('')}</select></div>
         </div>
+        <div class="hint" id="gKdvBilgi" style="margin:-6px 0 10px;"></div>
       </div>
       <div class="form-page-footer">
         <button class="back-btn" onclick="giderStep='list'; renderContent();">←</button>
@@ -4386,6 +4549,23 @@ function giderEkleForm(){
       </div>
     </div>
   `;
+}
+const KDV_ORANLARI = [20, 10, 1, 0];
+// KDV dahil tutardan matrah ve KDV ayrıştırır (kuruş, tam sayı)
+function kdvAyir(dahilTutar, oran){
+  const dahilK = Math.round((Number(dahilTutar) || 0) * 100);
+  const o = Number(oran) || 0;
+  const matrahK = Math.round(dahilK / (1 + o / 100));
+  return { dahilK, matrahK, kdvK: dahilK - matrahK, oran: o };
+}
+function gKdvBilgiYaz(){
+  const kutu = document.getElementById('gKdvBilgi'); if(!kutu) return;
+  const t = (document.getElementById('gTutar') || {}).value;
+  const o = (document.getElementById('gKdv') || {}).value;
+  const a = kdvAyir(t, o);
+  kutu.innerHTML = a.dahilK
+    ? `Matrah <b>${chTL(a.matrahK)}</b> · KDV <b>${chTL(a.kdvK)}</b> · Toplam <b>${chTL(a.dahilK)}</b>`
+    : 'Tutarı KDV dahil yazın; matrah ve KDV otomatik ayrışır.';
 }
 function submitGider(){
   const f = GIDER_FORMLARI[giderFormTur] || GIDER_FORMLARI.odeme;
@@ -4405,6 +4585,9 @@ function submitGider(){
     id: benzersizId('gi'),
     client: baslik,
     customerId: cust ? cust.id : null,
+    kdvOran: Number(val('gKdv')) || 0,
+    kdvK: kdvAyir(tutar, val('gKdv')).kdvK,
+    matrahK: kdvAyir(tutar, val('gKdv')).matrahK,
     cariTip: cust ? (val('gCariEtki') || 'alis-odeme') : null,
     hesap: val('gHesap'),
     tur: aciklama ? tur + ' — ' + aciklama : tur,
@@ -4427,7 +4610,10 @@ function openGiderDuzenle(id){
     <div class="field"><label>Tarih</label><input id="giTarih" value="${notEsc(g.tarih || '')}"></div>
     <div class="field"><label>Hesap</label><select id="giHesap">${hesapSecenekleri()}</select></div>
     <div class="field"><label>Kategori</label>${kategoriSelectHtml('giKategori','gider', g.kategoriId || '')}</div>
-    <div class="field"><label>Tutar (₺)</label><input id="giTutar" type="number" value="${Number(g.tutar) || 0}"></div>
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Tutar (₺, KDV dahil)</label><input id="giTutar" type="number" value="${Number(g.tutar) || 0}"></div>
+      <div class="field"><label>KDV</label><select id="giKdv">${KDV_ORANLARI.map(o => `<option value="${o}" ${Number(g.kdvOran || 0) === o ? 'selected' : ''}>%${o}</option>`).join('')}</select></div>
+    </div>
     <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
       <input type="checkbox" id="giOdendi" ${g.odendi ? 'checked' : ''} style="width:16px;height:16px;">
       Ödendi olarak işaretle
@@ -4446,6 +4632,8 @@ function submitGiderDuzenle(id){
   g.hesap = document.getElementById('giHesap').value;
   g.kategoriId = document.getElementById('giKategori').value || null;
   g.tutar = tutar;
+  const gi = kdvAyir(tutar, document.getElementById('giKdv').value);
+  g.kdvOran = gi.oran; g.kdvK = gi.kdvK; g.matrahK = gi.matrahK;
   g.odendi = document.getElementById('giOdendi').checked;
   closeModal(); renderContent();
   showToast('Gider kaydı güncellendi.');
