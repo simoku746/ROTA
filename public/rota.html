@@ -852,15 +852,15 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .rap-aylik tbody tr:hover td{background:var(--surface-sunk,#f7f8fa);}
 .rap-aylik tfoot td{font-weight:700;background:var(--surface-sunk,#eef1f4);border-top:2px solid var(--line-strong);}
 .rap-aylik .rap-ad{font-weight:600;max-width:240px;}
-.rap-donut-serit{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;
+.rap-donut-serit{display:flex;justify-content:center;align-items:flex-start;gap:64px;flex-wrap:wrap;
   background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 14px;margin-bottom:12px;}
 .rap-donut-kutu{display:flex;flex-direction:column;align-items:center;gap:9px;}
-.rap-donut{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;}
-.rap-donut-ic{width:80px;height:80px;border-radius:50%;background:var(--surface);display:flex;
+.rap-donut{width:128px;height:128px;border-radius:50%;display:grid;place-items:center;}
+.rap-donut-ic{width:96px;height:96px;padding:0 6px;text-align:center;border-radius:50%;background:var(--surface);display:flex;
   flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 0 1px var(--line) inset;}
-.rap-donut-ic b{font-family:var(--font-mono);font-size:12.5px;font-weight:700;letter-spacing:-.2px;}
+.rap-donut-ic b{font-family:var(--font-mono);font-size:12.5px;font-weight:700;letter-spacing:-.4px;line-height:1.2;}
 .rap-donut-ic span{font-size:10.5px;color:var(--ink-3);font-weight:600;}
-.rap-donut-ad{font-size:11.5px;font-weight:700;letter-spacing:.2px;text-align:center;}
+.rap-donut-ad{font-size:12px;font-weight:700;letter-spacing:.2px;text-align:center;}
 .rap-cipler{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
 .rap-cip{padding:7px 13px;border:1px solid var(--line);background:var(--surface);border-radius:999px;
   font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:inherit;
@@ -868,11 +868,15 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .rap-cip b{font-family:var(--font-mono);font-weight:700;margin-left:4px;}
 .rap-cip:hover{border-color:var(--line-strong);}
 .rap-cip.aktif{background:var(--cip);border-color:var(--cip);color:#fff;}
-.rap-grup-basi{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px;
+.rap-grup-basi{cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px;
   background:var(--surface-sunk,#f4f6f8);border-bottom:1px solid var(--line);border-left:3px solid var(--grup);
   font-size:12px;font-weight:700;color:var(--grup);}
 .rap-grup-basi span:last-child{color:var(--ink-2);font-weight:600;}
 .rap-grup-basi b{font-family:var(--font-mono);color:var(--grup);}
+.rap-grup-basi:hover{filter:brightness(.97);}
+.rap-grup-ikon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+  margin-right:8px;border:1px solid var(--grup);border-radius:4px;font-style:normal;font-size:10px;line-height:1;}
+.rap-grup-basi.kapali{opacity:.82;}
 /* ---------- Raporlar (cari tabanlı) ---------- */
 .rap-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
 .rap-kpi-kutu{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;}
@@ -1448,7 +1452,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09t';
+window.ROTA_SURUM = 'v2026-09-09u';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3734,6 +3738,7 @@ let rapBit = new Date().toISOString().slice(0, 10);
 let rapAra = '';
 let rapSadeceAcik = true;
 let rapVade = '';                  // Vade durumu filtresi: '' | gecmis | ileri | yok
+let rapGrupKapali = {};            // Simge durumuna küçültülmüş vade grupları
 let rapKirilim = 'ozet';           // Yazdırma kırılımı: ozet | gunluk | aylik | ceyrek | yillik
 
 function rapTarihAralikta(trTarih){
@@ -3848,11 +3853,12 @@ function rapAcikRaporView(yon){
       .sort((a, b) => b.kalan - a.kalan);
     if(!liste.length) return '';
     return `
-      <div class="rap-grup-basi" style="--grup:${g.renk};">
-        <span>${g.ad}</span>
+      <div class="rap-grup-basi ${rapGrupKapali[g.key] ? 'kapali' : ''}" style="--grup:${g.renk};"
+        onclick="rapGrupAcKapa('${g.key}')" title="${rapGrupKapali[g.key] ? 'Aç' : 'Simge durumuna küçült'}">
+        <span><i class="rap-grup-ikon">${rapGrupKapali[g.key] ? '＋' : '—'}</i>${g.ad}</span>
         <span>${liste.length} cari · <b>${chTL(toplamlar[g.key])}</b></span>
       </div>
-      ${liste.map(c => `
+      ${rapGrupKapali[g.key] ? '' : liste.map(c => `
         <details class="rap-cari" data-ad="${notEsc(c.ad).toLowerCase()}">
           <summary onclick="event.stopPropagation();">
             <span class="rap-ad">${notEsc(c.ad)}${c.tedarikci ? ' <span class="ch-durum turuncu">Tedarikçi</span>' : ''}</span>
@@ -3876,9 +3882,7 @@ function rapAcikRaporView(yon){
       ${rapYazdirDugmesi()}</div>
     <div class="rap-donut-serit">
       ${rapDonut('Toplam', genel, 1, odeme ? 'var(--risk)' : 'var(--ok)')}
-      ${rapDonut('Vadesi Geçmiş', toplamlar.gecmis, genel ? toplamlar.gecmis / genel : 0, 'var(--risk)')}
-      ${rapDonut('İleri Tarihli', toplamlar.ileri, genel ? toplamlar.ileri / genel : 0, 'var(--signal)')}
-      ${rapDonut('Vade Tarihi Yok', toplamlar.yok, genel ? toplamlar.yok / genel : 0, 'var(--ink-3)')}
+      ${rapDonut('Vadesi Gelmemiş', toplamlar.ileri, genel ? toplamlar.ileri / genel : 0, 'var(--signal)')}
     </div>
     <div class="rap-cipler">
       ${cip('', 'Tümü', genel, 'var(--ink)')}
@@ -3894,6 +3898,7 @@ function rapAcikRaporView(yon){
       : `<div class="empty-state">Bu aralıkta ${odeme ? 'ödenecek borç' : 'tahsil edilecek alacak'} görünmüyor.</div>`}`;
 }
 function rapVadeSec(v){ rapVade = v; renderContent(); }
+function rapGrupAcKapa(k){ rapGrupKapali[k] = !rapGrupKapali[k]; renderContent(); }
 
 // ---------- 3-4) ALIŞ / SATIŞ RAPORU ----------
 function alisSatisRaporuView(kind){
