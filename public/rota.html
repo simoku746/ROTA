@@ -1427,7 +1427,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09p';
+window.ROTA_SURUM = 'v2026-09-09r';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1570,6 +1570,8 @@ const RAPORLAR_SUBS = [
   { key:'tahsilatlar-raporu', label:'Tahsilatlar Raporu' },
   { key:'alis-raporu', label:'Alış Raporu' },
   { key:'satis-raporu', label:'Satış Raporu' },
+  { key:'cari-satis-listesi', label:'Cari Satış Listesi (Aylık)' },
+  { key:'cari-alis-listesi', label:'Cari Alış Listesi (Aylık)' },
   { key:'cari-durum', label:'Cari Hesap Durumu' },
   { key:'gelir-gider-raporu', label:'Gelir Gider Raporu' },
   { key:'kdv-raporu', label:'KDV Raporu' },
@@ -3209,6 +3211,8 @@ function raporlarView(){
   if(raporlarSub==='tahsilatlar-raporu') return tahsilatlarRaporuView();
   if(raporlarSub==='alis-raporu') return alisSatisRaporuView('alis');
   if(raporlarSub==='satis-raporu') return alisSatisRaporuView('satis');
+  if(raporlarSub==='cari-satis-listesi') return cariAylikListeView('satis');
+  if(raporlarSub==='cari-alis-listesi') return cariAylikListeView('alis');
   if(raporlarSub==='cari-durum') return cariDurumRaporuView();
   if(raporlarSub==='gelir-gider-raporu') return kategoriRaporuView();
   if(raporlarSub==='kdv-raporu') return kdvRaporuView();
@@ -3424,11 +3428,14 @@ function rapYazdirHtml(v, kagit, toplamVar, zebra){
 function rapYazdirVeri(){
   if(raporlarSub === 'odemeler-raporu')    return rapVeriAcik('odeme');
   if(raporlarSub === 'tahsilatlar-raporu') return rapVeriAcik('tahsilat');
-  if(raporlarSub === 'alis-raporu')        return rapVeriAlisSatis('alis');
-  if(raporlarSub === 'satis-raporu')       return rapVeriAlisSatis('satis');
+  if(raporlarSub === 'alis-raporu' || raporlarSub === 'cari-alis-listesi')   return rapVeriAlisSatis('alis');
+  if(raporlarSub === 'satis-raporu' || raporlarSub === 'cari-satis-listesi') return rapVeriAlisSatis('satis');
   if(raporlarSub === 'cari-durum')         return rapVeriCariDurum();
   if(raporlarSub === 'gelir-gider-raporu') return rapVeriGelirGider();
   return { baslik:'Rapor', altBaslik:'', kolonlar:[], satirlar:[] };
+}
+function rapAylikMi(){
+  return raporlarSub === 'cari-alis-listesi' || raporlarSub === 'cari-satis-listesi' || rapGorunum === 'aylik';
 }
 function rapAralikMetni(){
   const g = i => i.split('-').reverse().join('.');
@@ -3481,7 +3488,7 @@ function rapVeriAlisSatis(kind){
     });
     return { ...c, aylar, toplamK: aylar.reduce((s, x) => s + x, 0) };
   }).filter(c => c.toplamK).sort((a, b) => a.ad.localeCompare(b.ad, 'tr')));
-  if(rapGorunum === 'aylik'){
+  if(rapAylikMi()){
     return {
       baslik: alis ? 'Cari Alış Listesi' : 'Cari Satış Listesi',
       altBaslik: rapAralikMetni(),
@@ -3782,9 +3789,29 @@ function alisSatisRaporuView(kind){
               ['Kalan', chTL(kalan), kalan ? 'var(--risk)' : 'var(--ink-3)'],
               ['Belge / Cari', belgeAdet + ' / ' + veri.length]])}
     ${rapFiltreBar(false)}
-    ${rapGorunum === 'aylik' ? rapAylikTablo(kind)
+    ${rapAylikMi() ? rapAylikTablo(kind)
       : rapCariTablo(satirlar, ['Cari', 'Belge', 'Toplam', alis ? 'Ödenen' : 'Tahsil Edilen', 'Kalan'],
         `Bu aralıkta ${alis ? 'alış' : 'satış'} kaydı yok.`)}`;
+}
+
+// Aylık liste ekranı (Zirve: Cari Alış / Cari Satış Listesi)
+function cariAylikListeView(kind){
+  const alis = kind === 'alis';
+  const v = rapVeriAlisSatis(kind);
+  const toplam = v.satirlar.reduce((s, r) => s + r.ham[14], 0);
+  const aylik = RAP_AYLAR.map((_, i) => v.satirlar.reduce((s, r) => s + r.ham[i + 2], 0));
+  const enYuksek = aylik.reduce((m, x, i) => x > aylik[m] ? i : m, 0);
+  const dolu = aylik.filter(x => x).length;
+  return `
+    <div class="list-page-head"><div><div class="page-title">${alis ? 'Cari Alış Listesi' : 'Cari Satış Listesi'}</div>
+      <div class="page-sub">Her cari bir satır, aylara göre ${alis ? 'alış' : 'satış'} tutarları — seçilen tarih aralığındaki kayıtlar.</div></div>
+      ${rapYazdirDugmesi()}</div>
+    ${rapKpi([['Toplam ' + (alis ? 'alış' : 'satış'), chTL(toplam)],
+              ['Cari sayısı', String(v.satirlar.length)],
+              ['Hareketli ay', String(dolu)],
+              ['En yüksek ay', aylik[enYuksek] ? RAP_AYLAR[enYuksek] + ' · ' + chTL(aylik[enYuksek]) : '—']])}
+    ${rapFiltreBar(false)}
+    ${rapAylikTablo(kind)}`;
 }
 
 // Zirve'deki 'Cari Alış / Satış Listesi' gibi 12 aylık matris
