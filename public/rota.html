@@ -1376,7 +1376,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09j';
+window.ROTA_SURUM = 'v2026-09-09k';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3743,7 +3743,7 @@ function giderEkleForm(){
   const tarihLabel = (giderFormTur === 'tekrarlayan') ? 'Başlangıç Tarihi' : 'Ödeme Tarihi';
   let ustAlanlar = '';
   if(giderFormTur === 'odeme')
-    ustAlanlar = `<div class="field"><label>Tedarikçi</label><select id="gTedarikci">${custOptions}</select></div>`;
+    ustAlanlar = '';
   else if(giderFormTur === 'sigorta')
     ustAlanlar = `<div class="field"><label>Prim Dönemi</label><input id="gDonem" type="month"></div>`;
   else if(giderFormTur === 'banka')
@@ -3759,6 +3759,15 @@ function giderEkleForm(){
     <div class="form-page">
       <div class="form-block">
         ${ustAlanlar}
+        <div class="field"><label>Tedarikçi / Cari${giderFormTur === 'odeme' ? '' : ' <span style="color:var(--ink-3);font-weight:400;">(isteğe bağlı)</span>'}</label>
+          <select id="gTedarikci">${custOptions}</select>
+          <div class="hint" style="margin-top:4px;">Cari seçilirse bu tutar seçilen carinin hesabına da işlenir.</div></div>
+        <div class="field"><label>Cariye nasıl işlensin?</label>
+          <select id="gCariEtki">
+            <option value="odeme" ${giderFormTur === 'odeme' ? 'selected' : ''}>Ödeme — cariye olan borcumuzu azaltır</option>
+            <option value="alis" ${giderFormTur === 'tekrarlayan' ? 'selected' : ''}>Alış faturası — cariye borç doğurur (henüz ödenmedi)</option>
+            <option value="alis-odeme" ${giderFormTur !== 'odeme' && giderFormTur !== 'tekrarlayan' ? 'selected' : ''}>Alış + peşin ödeme — bakiyeyi değiştirmez, geçmişte görünür</option>
+          </select></div>
         <div class="field"><label>${tarihLabel}</label><input id="gTarih" value="${bugunTR()}"></div>
         <div class="field"><label>Hesap</label><select id="gHesap">${hesapSecenekleri()}</select></div>
         <div class="field"><label>Kategori</label>${kategoriSelectHtml('gKategori','gider','')}</div>
@@ -3782,7 +3791,7 @@ function submitGider(){
   if(!tutar){ showToast('Tutar girin.'); return; }
   const cust = CUSTOMERS.find(c => c.id === val('gTedarikci'));
   let baslik = null, tur = f.tur;
-  if(giderFormTur === 'odeme')            baslik = cust ? cust.name : null;
+  if(cust) baslik = cust.name;
   else if(giderFormTur === 'tekrarlayan'){ baslik = val('gAd') || 'Tekrarlayan Gider';
                                            tur = f.tur + ' · ' + val('gSiklik'); }
   else if(giderFormTur === 'sigorta')      tur = f.tur + (val('gDonem') ? ' · ' + val('gDonem') : '');
@@ -3792,6 +3801,8 @@ function submitGider(){
   GIDERLER.unshift({
     id: benzersizId('gi'),
     client: baslik,
+    customerId: cust ? cust.id : null,
+    cariTip: cust ? (val('gCariEtki') || 'alis-odeme') : null,
     hesap: val('gHesap'),
     tur: aciklama ? tur + ' — ' + aciklama : tur,
     tarih: val('gTarih'),
@@ -4979,6 +4990,7 @@ function aktUygula(){
 // GELIRLER'deki tahsilatlar (otomatik düşer) ve CARI_HAREKETLER'deki manuel kayıtlar
 // (ödeme, borç/alacak dekontu, virman, açılış). Manuel kayıtlar silinmez — iptal edilir (audit).
 let cariSecili = null;                 // seçili cari anahtarı (customerId ya da 'ad:...')
+let chListeTip = '';               // Cari listesi tipi: '' | 'musteri' | 'tedarikci'
 let chListeSira = 'tahsil';        // Cari listesi siralamasi: tahsil | odeme | buyuk | ad
 let chListeSadeceBakiyeli = false; // Bakiyesi sifir olanlari gizle
 let chFiltre = { ara: '', tur: '', yon: '', bas: '', bit: '' };
@@ -5042,6 +5054,28 @@ function cariTumSatirlar(){
       aciklama: (g.tur || 'Tahsilat') + (g.hesap ? ' · ' + g.hesap : ''),
       borcK: 0, alacakK: Math.round((Number(g.tutar) || 0) * 100),
       kaynak: { tip: 'gelir', id: g.id } });
+  });
+  // Giderler → tedarikçi cari hareketleri (yalnızca cari seçilmiş kayıtlar)
+  (GIDERLER || []).forEach(g => {
+    if(!g.customerId) return;
+    const tutarK = Math.round((Number(g.tutar) || 0) * 100);
+    if(!tutarK) return;
+    const cst = CUSTOMERS.find(x => x.id === g.customerId);
+    const ad = (cst && cst.name) || g.client || '';
+    // cariTip: 'odeme' → sadece ödeme (borcumuzu azaltır)
+    //          'alis'  → sadece alış faturası (borç doğurur)
+    //          'alis-odeme' → alış + peşin ödeme (net etkisiz, geçmiş görünür)
+    const etki = g.cariTip || (g.odendi ? 'alis-odeme' : 'alis');
+    if(etki !== 'odeme'){
+      satirlar.push({ key: g.customerId, ad, tip: 'alis-faturasi', tarih: g.tarih, vade: g.vade || '',
+        belgeNo: g.belgeNo || '', aciklama: g.tur || 'Alış',
+        borcK: 0, alacakK: tutarK, kaynak: { tip: 'gider', id: g.id } });
+    }
+    if(etki !== 'alis'){
+      satirlar.push({ key: g.customerId, ad, tip: 'odeme', tarih: g.tarih, vade: '',
+        belgeNo: g.belgeNo || '', aciklama: (etki === 'odeme' ? (g.tur || 'Ödeme') : 'Ödeme') + (g.hesap ? ' · ' + g.hesap : ''),
+        borcK: tutarK, alacakK: 0, kaynak: { tip: 'gider', id: g.id } });
+    }
   });
   (CARI_HAREKETLER || []).forEach(h => {
     const t = CH_TURLER[h.tip]; if(!t) return;
@@ -5149,6 +5183,13 @@ function chIslemMenuHtml(menuId, cid){
 
 function cariListesiView(){
   let liste = cariOzetListesi(true);
+  if(chListeTip){
+    liste = liste.filter(c => {
+      const cst = CUSTOMERS.find(x => x.id === c.key);
+      const ted = !!cst && cst.durum === 'Tedarikçi';
+      return chListeTip === 'tedarikci' ? ted : !ted;
+    });
+  }
   if(chListeSadeceBakiyeli) liste = liste.filter(c => c.bakiyeK);
   const sira = {
     tahsil: (a, b) => b.bakiyeK - a.bakiyeK,
@@ -5167,6 +5208,11 @@ function cariListesiView(){
     <div class="ledger-main">
       <div class="ch-liste-arac">
         <div class="cari-ara-kutu" style="margin:0;flex:1;">🔍 <input id="chListeAra" placeholder="Cari ara" oninput="chListeAra(this.value)"></div>
+        <select class="ch-sira-sec" onchange="chTipSec(this.value)">
+          <option value="" ${chListeTip === '' ? 'selected' : ''}>Tüm cariler</option>
+          <option value="musteri" ${chListeTip === 'musteri' ? 'selected' : ''}>Müşteriler</option>
+          <option value="tedarikci" ${chListeTip === 'tedarikci' ? 'selected' : ''}>Tedarikçiler</option>
+        </select>
         <select class="ch-sira-sec" onchange="chSiraSec(this.value)">
           <option value="tahsil" ${chListeSira === 'tahsil' ? 'selected' : ''}>Tahsil edilecek en üstte</option>
           <option value="odeme" ${chListeSira === 'odeme' ? 'selected' : ''}>Ödenecek en üstte</option>
@@ -5184,13 +5230,14 @@ function cariListesiView(){
       ${liste.length ? '' : '<div class="empty-state">Bu görünümde cari yok. “Sadece bakiyeli” seçiliyse kaldırıp tekrar deneyin.</div>'}
       ${liste.map(c => `
         <div class="ledger-row ch-cari-satir" data-ad="${notEsc(c.ad).toLowerCase()}" style="cursor:pointer;align-items:center;" onclick="cariAc('${c.key.replace(/'/g, "\\'")}')">
-          <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}</div>
+          <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}${(CUSTOMERS.find(x => x.id === c.key) || {}).durum === 'Tedarikçi' ? ' <span class="ch-durum turuncu" style="margin-left:6px;">Tedarikçi</span>' : ''}</div>
           <div class="ledger-amount" style="color:${c.bakiyeK > 0 ? 'var(--ok)' : (c.bakiyeK < 0 ? 'var(--risk)' : 'var(--ink-3)')};">${chTL(c.bakiyeK)}${chBakiyeMetni(c.bakiyeK)}</div>
         </div>`).join('')}
       <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} cari${iptalSayi ? ' · ' + iptalSayi + ' iptal kayıt saklı' : ''}</span></div>
     </div>`;
 }
 function chSiraSec(v){ chListeSira = v; renderContent(); }
+function chTipSec(v){ chListeTip = v; renderContent(); }
 function chSadeceBakiyeli(v){ chListeSadeceBakiyeli = v; renderContent(); }
 function chListeAra(v){
   const q = v.trim().toLowerCase();
@@ -5373,6 +5420,31 @@ function chKaydet(tur, duzenlenenId){
     });
     closeModal(); renderContent();
     showToast(`Tahsilat kaydedildi — ${chTL(tutarK)} (Gelirler'e de işlendi).`);
+    return;
+  }
+  if(tur === 'odeme' && !duzenlenenId){
+    // Ödeme tek yerde tutulur: GİDERLER. Defter bu kaydı otomatik borç (ödeme) olarak gösterir.
+    const hes = document.getElementById('chHesap');
+    if(hes && !hes.value){ showToast('Kasa / Banka seçimi zorunlu.'); return; }
+    const acik = document.getElementById('chAciklama').value.trim();
+    const yontem = document.getElementById('chYontem') ? document.getElementById('chYontem').value : '';
+    GIDERLER.unshift({
+      id: benzersizId('gi'),
+      customerId: cid,
+      cariTip: 'odeme',
+      client: cst ? cst.name : 'Cari seçilmedi',
+      hesap: hes ? hes.value : '',
+      tur: acik || ('Ödeme' + (yontem ? ' · ' + yontem : '')),
+      tarih: document.getElementById('chTarih').value || bugunTR(),
+      tutar: tutarK / 100,
+      odendi: true,
+      kategoriId: null,
+      belgeNo: document.getElementById('chBelge').value.trim() || chBelgeNo('ODM'),
+      notu: document.getElementById('chNot').value.trim(),
+      olusturan: chKullanici(),
+    });
+    closeModal(); renderContent();
+    showToast(`Ödeme kaydedildi — ${chTL(tutarK)} (Giderler'e de işlendi).`);
     return;
   }
   const gercekTur = tur === 'acilis' ? document.getElementById('chAcilisYon').value : tur;
