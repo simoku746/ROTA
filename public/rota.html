@@ -310,6 +310,11 @@ tr:last-child td{border-bottom:none;}
 .ch-sira-sec{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;}
 .ch-sadece{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap;}
 .ch-liste-toplam{display:flex;gap:18px;flex-wrap:wrap;padding:8px 12px;margin-bottom:8px;background:var(--surface-2,#f6f7f9);border:1px solid var(--line);border-radius:8px;font-size:12.5px;color:var(--ink-2);}
+.ch-virman-onizle{margin:-4px 0 12px;}
+.ch-vo-satir{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;font-size:12.5px;
+  background:var(--surface-sunk,#f6f7f9);border:1px solid var(--line);border-radius:7px;margin-top:6px;}
+.ch-vo-satir span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2);}
+.ch-vo-satir b,.ch-vo-satir span:last-child{font-family:var(--font-mono);white-space:nowrap;}
 .cari-ara-kutu{display:flex;align-items:center;gap:8px;margin:10px;padding:0 11px;height:32px;
   background:var(--surface);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-3);}
 .cari-ara-kutu input{border:none;outline:none;flex:1;font-size:12.5px;background:transparent;color:var(--ink);font-family:inherit;}
@@ -1407,7 +1412,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09m';
+window.ROTA_SURUM = 'v2026-09-09n';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5156,8 +5161,8 @@ const CH_TURLER = {
   'odeme':          { ad: 'Ödeme',                   sinif: 'kirmizi', yon: 'borc'   },
   'borc-dekontu':   { ad: 'Borç Dekontu',            sinif: 'kirmizi', yon: 'borc'   },
   'alacak-dekontu': { ad: 'Alacak Dekontu',          sinif: 'yesil',   yon: 'alacak' },
-  'virman-cikis':   { ad: 'Virman (Çıkış)',          sinif: 'mor',     yon: 'borc'   },
-  'virman-giris':   { ad: 'Virman (Giriş)',          sinif: 'mor',     yon: 'alacak' },
+  'virman-cikis':   { ad: 'Virman (Çıkış)',          sinif: 'mor',     yon: 'alacak' },
+  'virman-giris':   { ad: 'Virman (Giriş)',          sinif: 'mor',     yon: 'borc'   },
   'acilis-borc':    { ad: 'Açılış Bakiyesi (Borç)',  sinif: 'gri',     yon: 'borc'   },
   'acilis-alacak':  { ad: 'Açılış Bakiyesi (Alacak)',sinif: 'gri',     yon: 'alacak' },
 };
@@ -5663,16 +5668,35 @@ function chIptalEt(id){
 function chVirmanModal(onCid){
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>Virman / Cari Transfer</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="hint" style="margin-top:0;">Bir carideki alacağı başka cariye taşır — iki karşılıklı kayıt oluşturur, tek işlem olarak izlenir.</div>
-    <div class="field"><label>Kaynak Cari (alacağı azalır)</label><select id="chVKaynak">${chCariSecenekleri(onCid)}</select></div>
-    <div class="field"><label>Hedef Cari (alacağı artar)</label><select id="chVHedef">${chCariSecenekleri('')}</select></div>
+    <div class="hint" style="margin-top:0;">Bir carideki bakiyeyi başka cariye taşır — iki karşılıklı kayıt oluşturur, tek işlem olarak izlenir.</div>
+    <div class="field"><label>Kaynak Cari <span style="color:var(--ink-3);font-weight:400;">— bakiyesi azalır</span></label>
+      <select id="chVKaynak" onchange="chVirmanOnizle()">${chCariSecenekleri(onCid)}</select></div>
+    <div class="field"><label>Hedef Cari <span style="color:var(--ink-3);font-weight:400;">— bakiyesi artar</span></label>
+      <select id="chVHedef" onchange="chVirmanOnizle()">${chCariSecenekleri('')}</select></div>
+    <div id="chVOnizle" class="ch-virman-onizle"></div>
     <div class="field-row">
-      <div class="field" style="flex:2;"><label>Tutar</label><input id="chVTutar" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field" style="flex:2;"><label>Tutar</label><input id="chVTutar" inputmode="decimal" placeholder="0,00" oninput="chVirmanOnizle()"></div>
       <div class="field"><label>Tarih</label><input id="chVTarih" value="${bugunTR()}"></div>
     </div>
     <div class="field"><label>Açıklama</label><input id="chVAciklama" placeholder="ör. Yanlış cariye işlenen tahsilat transferi"></div>
     <button class="modal-submit" onclick="chVirmanKaydet()">Aktar</button>`;
   showModal();
+  chVirmanOnizle();
+}
+// Virman öncesi/sonrası bakiye önizlemesi — yanlış yön seçimini baştan engeller
+function chVirmanOnizle(){
+  const kutu = document.getElementById('chVOnizle'); if(!kutu) return;
+  const k = (document.getElementById('chVKaynak') || {}).value;
+  const hd = (document.getElementById('chVHedef') || {}).value;
+  const tutarK = chKurus(virgulSayi((document.getElementById('chVTutar') || {}).value || ''));
+  if(!k || !hd || k === hd){ kutu.innerHTML = ''; return; }
+  const ad = id => { const c = CUSTOMERS.find(x => x.id === id); return c ? c.name : '—'; };
+  const bak = id => cariDefter(id).bakiyeK;
+  const kb = bak(k), hb = bak(hd);
+  const satir = (etiket, once, sonra) => `
+    <div class="ch-vo-satir"><span>${notEsc(etiket)}</span>
+      <span>${chTL(once)} <span style="color:var(--ink-3);">→</span> <b>${chTL(sonra)}</b></span></div>`;
+  kutu.innerHTML = satir(ad(k), kb, kb - tutarK) + satir(ad(hd), hb, hb + tutarK);
 }
 function chVirmanKaydet(){
   const k = document.getElementById('chVKaynak').value, hd = document.getElementById('chVHedef').value;
