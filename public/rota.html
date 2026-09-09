@@ -1367,7 +1367,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09b';
+window.ROTA_SURUM = 'v2026-09-09c';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4579,14 +4579,32 @@ function aktNorm(s){
 }
 function aktSayi(v){
   if(typeof v === 'number') return v;
-  let t = String(v || '').replace(/[₺$€\s]/g, '').replace(/ /g, '').trim();
-  if(!t || t === '-') return 0;
+  let t = String(v || '').replace(/[₺$€\s ]/g, '').trim();
+  if(!t || t === '-' || t === '—') return 0;
   let eksi = false;
   if(/^\(.*\)$/.test(t)){ eksi = true; t = t.slice(1, -1); }
   if(t.startsWith('-')){ eksi = true; t = t.slice(1); }
-  const sayi = virgulSayi(t);
+  if(t.endsWith('-')){ eksi = true; t = t.slice(0, -1); }
+  t = t.replace(/[^\d.,]/g, '');
+  if(!t) return 0;
+  // Hem Turkce (1.141.100,62) hem Ingilizce (1,141,100.62) bicimi okunur:
+  // iki ayirici da varsa SONUNCUSU ondaliktir; tek tur varsa adet/hane sayisina bakilir
+  const sonV = t.lastIndexOf(','), sonN = t.lastIndexOf('.');
+  let sayi;
+  if(sonV >= 0 && sonN >= 0){
+    sayi = sonV > sonN ? Number(t.replace(/\./g, '').replace(',', '.'))
+                       : Number(t.replace(/,/g, ''));
+  } else if(sonV >= 0){
+    const adet = (t.match(/,/g) || []).length, sonra = t.length - sonV - 1;
+    sayi = (adet > 1 || sonra === 3) ? Number(t.replace(/,/g, '')) : Number(t.replace(',', '.'));
+  } else if(sonN >= 0){
+    const adet = (t.match(/\./g) || []).length, sonra = t.length - sonN - 1;
+    sayi = (adet > 1 || sonra === 3) ? Number(t.replace(/\./g, '')) : Number(t);
+  } else sayi = Number(t);
+  if(!isFinite(sayi)) sayi = 0;
   return eksi ? -sayi : sayi;
 }
+
 // Ayırıcıyı otomatik bul (sekme > noktalı virgül > virgül), tırnaklı hücreleri koru
 function aktSatirlaraBol(metin){
   const ilk = metin.split(/\r?\n/).find(x => x.trim());
