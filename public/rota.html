@@ -306,6 +306,10 @@ tr:last-child td{border-bottom:none;}
   justify-content:space-between;align-items:center;border-top:1px solid var(--line);}
 .empty-state{padding:22px 16px;font-size:12px;color:var(--ink-3);text-align:center;}
 /* Cari Hareketleri */
+.ch-liste-arac{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.ch-sira-sec{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;}
+.ch-sadece{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap;}
+.ch-liste-toplam{display:flex;gap:18px;flex-wrap:wrap;padding:8px 12px;margin-bottom:8px;background:var(--surface-2,#f6f7f9);border:1px solid var(--line);border-radius:8px;font-size:12.5px;color:var(--ink-2);}
 .cari-ara-kutu{display:flex;align-items:center;gap:8px;margin:10px;padding:0 11px;height:32px;
   background:var(--surface);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-3);}
 .cari-ara-kutu input{border:none;outline:none;flex:1;font-size:12.5px;background:transparent;color:var(--ink);font-family:inherit;}
@@ -1372,7 +1376,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09i';
+window.ROTA_SURUM = 'v2026-09-09j';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4975,6 +4979,8 @@ function aktUygula(){
 // GELIRLER'deki tahsilatlar (otomatik düşer) ve CARI_HAREKETLER'deki manuel kayıtlar
 // (ödeme, borç/alacak dekontu, virman, açılış). Manuel kayıtlar silinmez — iptal edilir (audit).
 let cariSecili = null;                 // seçili cari anahtarı (customerId ya da 'ad:...')
+let chListeSira = 'tahsil';        // Cari listesi siralamasi: tahsil | odeme | buyuk | ad
+let chListeSadeceBakiyeli = false; // Bakiyesi sifir olanlari gizle
 let chFiltre = { ara: '', tur: '', yon: '', bas: '', bit: '' };
 let chYeniUstte = false;
 let chIptalGoster = false;
@@ -5142,16 +5148,40 @@ function chIslemMenuHtml(menuId, cid){
 }
 
 function cariListesiView(){
-  const liste = cariOzetListesi(true);
+  let liste = cariOzetListesi(true);
+  if(chListeSadeceBakiyeli) liste = liste.filter(c => c.bakiyeK);
+  const sira = {
+    tahsil: (a, b) => b.bakiyeK - a.bakiyeK,
+    odeme:  (a, b) => a.bakiyeK - b.bakiyeK,
+    buyuk:  (a, b) => Math.abs(b.bakiyeK) - Math.abs(a.bakiyeK),
+    ad:     (a, b) => a.ad.localeCompare(b.ad, 'tr'),
+  }[chListeSira] || ((a, b) => a.ad.localeCompare(b.ad, 'tr'));
+  liste = [...liste].sort(sira);
   const iptalSayi = (CARI_HAREKETLER || []).filter(h => h.iptal).length;
+  const tahsilK = liste.reduce((t, c) => t + (c.bakiyeK > 0 ? c.bakiyeK : 0), 0);
+  const odemeK  = liste.reduce((t, c) => t + (c.bakiyeK < 0 ? -c.bakiyeK : 0), 0);
   return `
     <div class="list-page-head"><div><div class="page-title">Cari Hareketleri</div>
       <div class="page-sub">Kabul edilen teklifler satış faturası olarak, girilen tahsilatlar otomatik düşer. Cariye tıklayın.</div></div>
       ${chIslemMenuHtml('chListeMenu', '')}</div>
     <div class="ledger-main">
-      <div class="cari-ara-kutu">🔍 <input id="chListeAra" placeholder="Cari ara" oninput="chListeAra(this.value)"></div>
+      <div class="ch-liste-arac">
+        <div class="cari-ara-kutu" style="margin:0;flex:1;">🔍 <input id="chListeAra" placeholder="Cari ara" oninput="chListeAra(this.value)"></div>
+        <select class="ch-sira-sec" onchange="chSiraSec(this.value)">
+          <option value="tahsil" ${chListeSira === 'tahsil' ? 'selected' : ''}>Tahsil edilecek en üstte</option>
+          <option value="odeme" ${chListeSira === 'odeme' ? 'selected' : ''}>Ödenecek en üstte</option>
+          <option value="buyuk" ${chListeSira === 'buyuk' ? 'selected' : ''}>Bakiyesi büyükten küçüğe</option>
+          <option value="ad" ${chListeSira === 'ad' ? 'selected' : ''}>İsme göre (A–Z)</option>
+        </select>
+        <label class="ch-sadece"><input type="checkbox" ${chListeSadeceBakiyeli ? 'checked' : ''} onchange="chSadeceBakiyeli(this.checked)"> Sadece bakiyeli</label>
+      </div>
+      <div class="ch-liste-toplam">
+        <span>Tahsil edilecek: <b style="color:var(--ok);">${chTL(tahsilK)}</b></span>
+        <span>Ödenecek: <b style="color:var(--risk);">${chTL(odemeK)}</b></span>
+        <span>Net: <b>${chTL(tahsilK - odemeK)}</b></span>
+      </div>
       <div class="ledger-row" style="font-weight:700;"><span>Cari</span><span>Bakiye</span></div>
-      ${liste.length ? '' : '<div class="empty-state">Henüz cari yok — müşteri kartı açtığınızda ya da Excel aktarımı yaptığınızda burada görünür.</div>'}
+      ${liste.length ? '' : '<div class="empty-state">Bu görünümde cari yok. “Sadece bakiyeli” seçiliyse kaldırıp tekrar deneyin.</div>'}
       ${liste.map(c => `
         <div class="ledger-row ch-cari-satir" data-ad="${notEsc(c.ad).toLowerCase()}" style="cursor:pointer;align-items:center;" onclick="cariAc('${c.key.replace(/'/g, "\\'")}')">
           <div class="ledger-title" style="margin:0;">${notEsc(c.ad)}</div>
@@ -5160,6 +5190,8 @@ function cariListesiView(){
       <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} cari${iptalSayi ? ' · ' + iptalSayi + ' iptal kayıt saklı' : ''}</span></div>
     </div>`;
 }
+function chSiraSec(v){ chListeSira = v; renderContent(); }
+function chSadeceBakiyeli(v){ chListeSadeceBakiyeli = v; renderContent(); }
 function chListeAra(v){
   const q = v.trim().toLowerCase();
   document.querySelectorAll('.ch-cari-satir').forEach(r => {
