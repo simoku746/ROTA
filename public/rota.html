@@ -360,6 +360,9 @@ tr:last-child td{border-bottom:none;}
   font-family:var(--font-mono);font-size:11px;background:var(--surface);color:var(--ink);resize:vertical;margin-bottom:7px;}
 .akt-durum{margin-top:4px;}
 .akt-hata{background:var(--risk-soft);color:var(--risk);border-radius:7px;padding:9px 12px;font-size:12px;line-height:1.5;margin:8px 0;}
+.akt-uyari{background:var(--signal-soft);color:var(--ink-2);border-left:3px solid var(--signal);border-radius:7px;
+  padding:9px 12px;font-size:12px;line-height:1.5;margin:8px 0;}
+.akt-uyari-liste{margin-top:6px;font-size:11.5px;line-height:1.6;max-height:120px;overflow:auto;}
 .akt-bilgi{background:var(--surface-sunk);color:var(--ink-2);border-radius:7px;padding:9px 12px;font-size:12px;}
 .akt-ozet{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;}
 .akt-ozet div{background:var(--surface-sunk);border-radius:8px;padding:9px 11px;text-align:center;}
@@ -1367,7 +1370,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-09c';
+window.ROTA_SURUM = 'v2026-09-09d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4670,7 +4673,9 @@ function aktMetniIsle(metin){
       vkn: al('vkn').replace(/\s/g, ''), vergiDairesi: al('vergiDairesi'),
       semt: al('semt'), sehir: al('sehir'), address: al('address'),
       phone: al('phone'), phone2: al('phone2'), email: al('email'),
-      uyum: eslesme.bakiye === undefined || Math.abs((borc - alacak) - bakiye) < 0.02,
+      uyum: eslesme.bakiye === undefined || Math.abs((borc - alacak) - bakiye) < 0.02
+            || Math.abs((borc - alacak) + bakiye) < 0.02,   // işaret farkı = alacak bakiyesi, sorun değil
+      fark: eslesme.bakiye === undefined ? 0 : Math.round(((borc - alacak) - bakiye) * 100) / 100,
     });
   });
   if(!kayitlar.length){ AKT.hata = 'Başlık bulundu ama veri satırı yok.'; return false; }
@@ -4795,7 +4800,15 @@ function aktOnizleGoster(){
     </div>
     ${AKT.eslesme.tip !== undefined ? `<div class="hint" style="margin:6px 0;">Cari tipi: <b>${k.filter(x => aktDurum(x.tip) === 'Müşteri').length}</b> müşteri (alıcı) · <b>${k.filter(x => aktDurum(x.tip) === 'Tedarikçi').length}</b> tedarikçi (satıcı) — kartlara bu şekilde işlenecek.</div>` : ''}
     <div class="hint" style="margin:8px 0;">Eşleşen sütunlar: ${bulunan.map(a => `<b>${a}</b>`).join(', ')}${eksik.length ? ` · bulunamayan: ${eksik.join(', ')}` : ''}</div>
-    ${uyumsuz ? `<div class="akt-hata">⚠ ${uyumsuz} satırda Borç − Alacak, Bakiye sütunuyla uyuşmuyor. Aktarımda <b>Borç ve Alacak</b> sütunları esas alınır.</div>` : ''}
+    ${uyumsuz ? `<div class="akt-uyari">ℹ ${uyumsuz} satırda Excel'deki <b>Bakiye</b> sütunu, Borç − Alacak farkına eşit değil.
+      Bu satırlar da aktarılır; ROTA bakiyeyi her zaman <b>Borç ve Alacak</b> toplamlarından hesaplar
+      (Zirve'de ara işlem/yuvarlama olan carilerde görülebilir).
+      <div class="akt-uyari-liste">${k.filter(x => !x.uyum).slice(0, 6).map(x =>
+        `<div>• <b>${notEsc(x.name)}</b>${x.kod ? ` <span style="opacity:.6;">${notEsc(x.kod)}</span>` : ''} —
+         Borç ${chTL(Math.round(x.borc * 100))} − Alacak ${chTL(Math.round(x.alacak * 100))} =
+         <b>${chTL(Math.round((x.borc - x.alacak) * 100))}</b>, Excel'de yazan: ${chTL(Math.round(x.bakiye * 100))}
+         <span style="color:var(--risk);">(fark ${chTL(Math.round(Math.abs(x.fark) * 100))})</span></div>`).join('')}
+        ${uyumsuz > 6 ? `<div style="opacity:.7;">… ve ${uyumsuz - 6} satır daha</div>` : ''}</div></div>` : ''}
     <div class="akt-tablo-kap">
       <table class="akt-tablo">
         <thead><tr><th>Cari</th><th>VKN</th><th class="sag">Borç</th><th class="sag">Alacak</th><th class="sag">Bakiye</th><th>Durum</th></tr></thead>
