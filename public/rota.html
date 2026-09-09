@@ -351,6 +351,34 @@ tr:last-child td{border-bottom:none;}
   border:none;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink);cursor:pointer;font-family:inherit;}
 .ch-satir-menu button:hover{background:var(--surface-sunk);}
 .ch-menu-not{padding:8px 13px;font-size:11px;color:var(--ink-3);background:var(--surface-sunk);line-height:1.45;}
+/* Cari aktarımı */
+.akt-yol{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:11px;background:var(--surface-sunk);}
+.akt-yol-bas{font-family:var(--font-display);font-weight:700;font-size:12.5px;margin-bottom:3px;}
+.akt-yol-bas span{font-weight:400;color:var(--ok);font-size:11.5px;}
+.akt-yol-ic{font-size:11.5px;color:var(--ink-2);line-height:1.5;margin-bottom:8px;}
+.akt-alan{width:100%;height:90px;border:1px solid var(--line-strong);border-radius:7px;padding:8px 10px;
+  font-family:var(--font-mono);font-size:11px;background:var(--surface);color:var(--ink);resize:vertical;margin-bottom:7px;}
+.akt-durum{margin-top:4px;}
+.akt-hata{background:var(--risk-soft);color:var(--risk);border-radius:7px;padding:9px 12px;font-size:12px;line-height:1.5;margin:8px 0;}
+.akt-bilgi{background:var(--surface-sunk);color:var(--ink-2);border-radius:7px;padding:9px 12px;font-size:12px;}
+.akt-ozet{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;}
+.akt-ozet div{background:var(--surface-sunk);border-radius:8px;padding:9px 11px;text-align:center;}
+.akt-ozet b{display:block;font-family:var(--font-mono);font-size:17px;font-weight:700;}
+.akt-ozet span{font-size:10.5px;color:var(--ink-3);}
+.akt-tutar{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;font-family:var(--font-mono);
+  background:var(--surface-sunk);border-radius:8px;padding:9px 12px;}
+.akt-tablo-kap{border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:260px;margin:6px 0 10px;}
+.akt-tablo{width:100%;border-collapse:collapse;font-size:11.5px;}
+.akt-tablo th{position:sticky;top:0;background:var(--surface-sunk);padding:7px 9px;text-align:left;
+  font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-2);border-bottom:1px solid var(--line);}
+.akt-tablo td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+.akt-tablo td:first-child{max-width:280px;line-height:1.35;}
+.akt-tablo th:last-child,.akt-tablo td:last-child{white-space:nowrap;}
+.akt-tablo .sag{text-align:right;font-family:var(--font-mono);white-space:nowrap;}
+.akt-kod{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);}
+.akt-devam{padding:7px 10px;font-size:11px;color:var(--ink-3);text-align:center;background:var(--surface-sunk);}
+.akt-secim{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);margin:6px 0;cursor:pointer;}
+.akt-secim input{width:15px;height:15px;}
 .cari-tablo-kaydir{overflow-x:auto;}
 @media (max-width:880px){ .ch-kpi{grid-template-columns:1fr 1fr;} }
 .group-header{display:flex;justify-content:space-between;padding:6px 13px;background:var(--surface-sunk);
@@ -1339,7 +1367,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-08v';
+window.ROTA_SURUM = 'v2026-09-09b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4522,6 +4550,347 @@ function mesaiSil(id){
   showToast(`${p ? p.name : 'Personel'} mesai kaydı silindi.`);
 }
 
+// ============ CARİ AKTARIMI (Zirve / Excel → ROTA) ============
+// Üç giriş yolu: Excel'den kopyala-yapıştır (TSV), CSV dosyası, XLSX dosyası (SheetJS varsa).
+// Sütunlar başlık adlarından otomatik eşleşir; müşteri kartı + açılış bakiyesi oluşturur.
+let AKT = { satirlar: [], eslesme: {}, basliklar: [], hata: '' };
+
+const AKT_ALANLAR = {
+  kod:          ['cari kodu','cari kod','kod','hesap kodu','cari hesap kodu'],
+  name:         ['cari adi','cari ünvan','cari unvani','unvan','ünvan','müşteri','musteri','cari','firma adi','ad soyad','hesap adi'],
+  tip:          ['cari tipi','tip','tür','tur'],
+  borc:         ['borc toplami','borç toplamı','borc','borç','toplam borc','toplam borç'],
+  alacak:       ['alacak toplami','alacak toplamı','alacak','toplam alacak'],
+  bakiye:       ['bakiye','kalan','bakiye (tl)','net bakiye'],
+  vkn:          ['vkn/tckn','vkn','tckn','vergi no','vergi kimlik no','tc kimlik no','vkn tckn'],
+  vergiDairesi: ['vergi dairesi','vergi d.','vd'],
+  semt:         ['semt','ilce','ilçe'],
+  sehir:        ['sehir','şehir','il'],
+  address:      ['adres','adres(1)','adres 1','adres1','adres (1)'],
+  phone:        ['telefon','tel','tel.','gsm','cep'],
+  phone2:       ['tel. (2)','tel (2)','telefon 2','tel2','telefon2','diger telefon'],
+  email:        ['e-posta','eposta','email','e mail','mail'],
+};
+function aktNorm(s){
+  return String(s || '').toLowerCase()
+    .replace(/i̇/g,'i').replace(/ı/g,'i').replace(/ş/g,'s').replace(/ğ/g,'g')
+    .replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c')
+    .replace(/\s+/g,' ').trim();
+}
+function aktSayi(v){
+  if(typeof v === 'number') return v;
+  let t = String(v || '').replace(/[₺$€\s]/g, '').replace(/ /g, '').trim();
+  if(!t || t === '-') return 0;
+  let eksi = false;
+  if(/^\(.*\)$/.test(t)){ eksi = true; t = t.slice(1, -1); }
+  if(t.startsWith('-')){ eksi = true; t = t.slice(1); }
+  const sayi = virgulSayi(t);
+  return eksi ? -sayi : sayi;
+}
+// Ayırıcıyı otomatik bul (sekme > noktalı virgül > virgül), tırnaklı hücreleri koru
+function aktSatirlaraBol(metin){
+  const ilk = metin.split(/\r?\n/).find(x => x.trim());
+  if(!ilk) return { ayirici: '\t', satirlar: [] };
+  const sayim = { '\t': (ilk.match(/\t/g) || []).length, ';': (ilk.match(/;/g) || []).length, ',': (ilk.match(/,/g) || []).length };
+  const ayirici = sayim['\t'] >= sayim[';'] && sayim['\t'] >= sayim[','] ? '\t' : (sayim[';'] >= sayim[','] ? ';' : ',');
+  const satirlar = [];
+  let hucre = '', satir = [], tirnak = false;
+  for(let i = 0; i < metin.length; i++){
+    const k = metin[i];
+    if(tirnak){
+      if(k === '"'){ if(metin[i+1] === '"'){ hucre += '"'; i++; } else tirnak = false; }
+      else hucre += k;
+      continue;
+    }
+    if(k === '"'){ tirnak = true; continue; }
+    if(k === ayirici){ satir.push(hucre); hucre = ''; continue; }
+    if(k === '\n'){ satir.push(hucre); satirlar.push(satir); satir = []; hucre = ''; continue; }
+    if(k === '\r') continue;
+    hucre += k;
+  }
+  if(hucre || satir.length){ satir.push(hucre); satirlar.push(satir); }
+  return { ayirici, satirlar };
+}
+function aktMetniIsle(metin){
+  const { satirlar } = aktSatirlaraBol(metin);
+  if(!satirlar.length){ AKT.hata = 'Veri okunamadı.'; return false; }
+  // Başlık satırı: "cari" ya da "ad/ünvan" geçen ilk satır
+  let bi = satirlar.findIndex(s => s.some(h => {
+    const n = aktNorm(h);
+    return AKT_ALANLAR.name.includes(n) || AKT_ALANLAR.kod.includes(n);
+  }));
+  if(bi < 0) bi = 0;
+  const basliklar = satirlar[bi].map(x => String(x).trim());
+  const eslesme = {};
+  basliklar.forEach((b, i) => {
+    const n = aktNorm(b);
+    for(const alan in AKT_ALANLAR){
+      if(eslesme[alan] !== undefined) continue;
+      if(AKT_ALANLAR[alan].some(x => aktNorm(x) === n)){ eslesme[alan] = i; break; }
+    }
+  });
+  // Ad sütunu bulunamadıysa: ilk metin ağırlıklı sütunu ad kabul et
+  if(eslesme.name === undefined){
+    const veri = satirlar.slice(bi + 1, bi + 12);
+    let enIyi = -1, enCok = 0;
+    basliklar.forEach((_, i) => {
+      const harfli = veri.filter(s => /[a-zçğıöşüA-ZÇĞİÖŞÜ]{3,}/.test(String(s[i] || ''))).length;
+      if(harfli > enCok){ enCok = harfli; enIyi = i; }
+    });
+    if(enIyi >= 0) eslesme.name = enIyi;
+  }
+  if(eslesme.name === undefined){ AKT.hata = 'Cari adı sütunu bulunamadı. Başlık satırının dosyada olduğundan emin olun.'; return false; }
+  const kayitlar = [];
+  satirlar.slice(bi + 1).forEach(s => {
+    const al = a => (eslesme[a] !== undefined ? String(s[eslesme[a]] ?? '').trim() : '');
+    const ad = al('name');
+    if(!ad || aktNorm(ad) === 'toplam' || aktNorm(ad) === 'genel toplam') return;
+    const borc = aktSayi(al('borc')), alacak = aktSayi(al('alacak'));
+    let bakiye = eslesme.bakiye !== undefined ? aktSayi(al('bakiye')) : (borc - alacak);
+    kayitlar.push({
+      kod: al('kod'), name: ad, tip: al('tip'), borc, alacak, bakiye,
+      vkn: al('vkn').replace(/\s/g, ''), vergiDairesi: al('vergiDairesi'),
+      semt: al('semt'), sehir: al('sehir'), address: al('address'),
+      phone: al('phone'), phone2: al('phone2'), email: al('email'),
+      uyum: eslesme.bakiye === undefined || Math.abs((borc - alacak) - bakiye) < 0.02,
+    });
+  });
+  if(!kayitlar.length){ AKT.hata = 'Başlık bulundu ama veri satırı yok.'; return false; }
+  AKT = { satirlar: kayitlar, eslesme, basliklar, hata: '' };
+  return true;
+}
+function aktDurum(tip){
+  const t = aktNorm(tip);
+  if(t.includes('satici') || t.includes('tedarik')) return 'Tedarikçi';
+  return 'Müşteri';
+}
+function aktMevcutBul(k){
+  if(k.vkn){
+    const v = CUSTOMERS.find(c => (c.vkn || '').replace(/\s/g, '') === k.vkn);
+    if(v) return v;
+  }
+  const ad = aktNorm(k.name);
+  return CUSTOMERS.find(c => aktNorm(c.name) === ad) || null;
+}
+function openCariAktarim(){
+  AKT = { satirlar: [], eslesme: {}, basliklar: [], hata: '' };
+  document.getElementById('modalBox').innerHTML = aktAdim1Html();
+  showModal();
+  document.getElementById('modalBox').style.maxWidth = '900px';
+}
+function aktAdim1Html(){
+  return `
+    <div class="modal-head"><h2>Excel'den Cari Aktar</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="hint" style="margin-top:0;">Zirve (ya da başka bir muhasebe programı) çıktısındaki cari listesini ROTA'ya aktarır:
+      müşteri kartlarını oluşturur ve <b>açılış bakiyelerini</b> cari hareketlerine işler.</div>
+    <div class="akt-yol">
+      <div class="akt-yol-bas">1. yol — Kopyala &amp; yapıştır <span>(en kolay)</span></div>
+      <div class="akt-yol-ic">Excel'de başlık satırı dahil tüm tabloyu seçin (Ctrl+A), kopyalayın (Ctrl+C),
+        aşağıdaki kutuya yapıştırın (Ctrl+V).</div>
+      <textarea id="aktYapistir" class="akt-alan" placeholder="Buraya yapıştırın…"></textarea>
+      <button class="btn" style="width:100%;" onclick="aktMetindenOku()">Yapıştırılanı Oku</button>
+    </div>
+    <div class="akt-yol">
+      <div class="akt-yol-bas">2. yol — Dosya seç</div>
+      <div class="akt-yol-ic">Excel dosyasını (.xlsx) ya da CSV olarak kaydedilmiş halini seçin.</div>
+      <input type="file" id="aktDosya" accept=".csv,.txt,.xlsx,.xls" onchange="aktDosyaOku(this)"
+        style="font-size:12.5px;width:100%;padding:8px;border:1px dashed var(--line-strong);border-radius:8px;background:var(--surface);">
+    </div>
+    <div id="aktDurum" class="akt-durum"></div>`;
+}
+function aktMetindenOku(){
+  const t = document.getElementById('aktYapistir').value;
+  if(!t.trim()){ showToast('Önce tabloyu yapıştırın.'); return; }
+  if(aktMetniIsle(t)) aktOnizleGoster(); else aktHataGoster();
+}
+function aktHataGoster(){
+  const d = document.getElementById('aktDurum');
+  if(d) d.innerHTML = `<div class="akt-hata">⚠ ${notEsc(AKT.hata || 'Veri okunamadı.')}</div>`;
+}
+function aktDosyaOku(inp){
+  const f = inp.files && inp.files[0]; if(!f) return;
+  const d = document.getElementById('aktDurum');
+  if(d) d.innerHTML = '<div class="akt-bilgi">Dosya okunuyor…</div>';
+  const ad = f.name.toLowerCase();
+  if(ad.endsWith('.xlsx') || ad.endsWith('.xls')){
+    aktXlsxOku(f);
+    return;
+  }
+  const oku = new FileReader();
+  oku.onload = () => { if(aktMetniIsle(oku.result)) aktOnizleGoster(); else aktHataGoster(); };
+  oku.onerror = () => { AKT.hata = 'Dosya okunamadı.'; aktHataGoster(); };
+  // Türkçe Excel CSV'si çoğunlukla Windows-1254 olur; UTF-8 bozuk çıkarsa yeniden dener
+  oku.readAsText(f, 'UTF-8');
+  oku.onloadend = () => {
+    if(typeof oku.result === 'string' && oku.result.includes('�')){
+      const o2 = new FileReader();
+      o2.onload = () => { if(aktMetniIsle(o2.result)) aktOnizleGoster(); else aktHataGoster(); };
+      o2.readAsText(f, 'windows-1254');
+    }
+  };
+}
+function aktXlsxOku(f){
+  const calistir = () => {
+    const r = new FileReader();
+    r.onload = () => {
+      try{
+        const wb = XLSX.read(new Uint8Array(r.result), { type: 'array' });
+        const sh = wb.Sheets[wb.SheetNames[0]];
+        const csv = XLSX.utils.sheet_to_csv(sh, { FS: '\t' });
+        if(aktMetniIsle(csv)) aktOnizleGoster(); else aktHataGoster();
+      }catch(e){ AKT.hata = 'Excel dosyası okunamadı: ' + e.message; aktHataGoster(); }
+    };
+    r.readAsArrayBuffer(f);
+  };
+  if(typeof XLSX !== 'undefined'){ calistir(); return; }
+  const sc = document.createElement('script');
+  sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  sc.onload = calistir;
+  sc.onerror = () => {
+    AKT.hata = 'Excel okuyucu yüklenemedi (internet erişimi kısıtlı olabilir). Lütfen 1. yolu kullanın: Excel\'de tabloyu kopyalayıp kutuya yapıştırın.';
+    aktHataGoster();
+  };
+  document.head.appendChild(sc);
+}
+function aktOnizleGoster(){
+  const k = AKT.satirlar;
+  const yeni = k.filter(x => !aktMevcutBul(x)).length;
+  const mevcut = k.length - yeni;
+  const tb = k.reduce((s,x) => s + x.borc, 0), ta = k.reduce((s,x) => s + x.alacak, 0);
+  const bakiyeli = k.filter(x => Math.abs(x.bakiye) >= 0.01).length;
+  const uyumsuz = k.filter(x => !x.uyum).length;
+  const bulunan = Object.keys(AKT.eslesme).filter(a => AKT.eslesme[a] !== undefined);
+  const eksik = ['borc','alacak','vkn','address','phone'].filter(a => AKT.eslesme[a] === undefined);
+  document.getElementById('modalBox').style.maxWidth = '900px';
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Aktarım Önizleme</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="akt-ozet">
+      <div><b>${k.length}</b><span>satır okundu</span></div>
+      <div><b style="color:var(--ok);">${yeni}</b><span>yeni cari</span></div>
+      <div><b>${mevcut}</b><span>mevcut (güncellenecek)</span></div>
+      <div><b>${bakiyeli}</b><span>bakiyeli cari</span></div>
+    </div>
+    <div class="akt-tutar">
+      <span>Toplam Borç: <b style="color:var(--risk);">${chTL(Math.round(tb * 100))}</b></span>
+      <span>Toplam Alacak: <b style="color:var(--ok);">${chTL(Math.round(ta * 100))}</b></span>
+      <span>Net: <b>${chTL(Math.round((tb - ta) * 100))}</b></span>
+    </div>
+    ${AKT.eslesme.tip !== undefined ? `<div class="hint" style="margin:6px 0;">Cari tipi: <b>${k.filter(x => aktDurum(x.tip) === 'Müşteri').length}</b> müşteri (alıcı) · <b>${k.filter(x => aktDurum(x.tip) === 'Tedarikçi').length}</b> tedarikçi (satıcı) — kartlara bu şekilde işlenecek.</div>` : ''}
+    <div class="hint" style="margin:8px 0;">Eşleşen sütunlar: ${bulunan.map(a => `<b>${a}</b>`).join(', ')}${eksik.length ? ` · bulunamayan: ${eksik.join(', ')}` : ''}</div>
+    ${uyumsuz ? `<div class="akt-hata">⚠ ${uyumsuz} satırda Borç − Alacak, Bakiye sütunuyla uyuşmuyor. Aktarımda <b>Borç ve Alacak</b> sütunları esas alınır.</div>` : ''}
+    <div class="akt-tablo-kap">
+      <table class="akt-tablo">
+        <thead><tr><th>Cari</th><th>VKN</th><th class="sag">Borç</th><th class="sag">Alacak</th><th class="sag">Bakiye</th><th>Durum</th></tr></thead>
+        <tbody>${k.slice(0, 12).map(x => {
+          const m = aktMevcutBul(x);
+          return `<tr>
+            <td>${notEsc(x.name)}${x.kod ? `<div class="akt-kod">${notEsc(x.kod)}</div>` : ''}</td>
+            <td style="font-family:var(--font-mono);font-size:11px;">${notEsc(x.vkn) || '—'}</td>
+            <td class="sag">${x.borc ? chTL(Math.round(x.borc * 100)) : '—'}</td>
+            <td class="sag">${x.alacak ? chTL(Math.round(x.alacak * 100)) : '—'}</td>
+            <td class="sag" style="font-weight:700;">${x.bakiye ? chTL(Math.round(x.bakiye * 100)) : '—'}</td>
+            <td>${m ? '<span class="ch-durum gri">Mevcut</span>' : '<span class="ch-durum yesil">Yeni</span>'}</td>
+          </tr>`; }).join('')}</tbody>
+      </table>
+      ${k.length > 12 ? `<div class="akt-devam">… ve ${k.length - 12} satır daha</div>` : ''}
+    </div>
+    <label class="akt-secim"><input type="checkbox" id="aktKart" checked> Müşteri kartlarını oluştur / bilgilerini güncelle</label>
+    <label class="akt-secim"><input type="checkbox" id="aktBakiye" checked> Açılış bakiyelerini cari hareketlerine işle</label>
+    <label class="akt-secim"><input type="checkbox" id="aktSifir"> Bakiyesi sıfır olan carileri de aktar</label>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn" style="flex:0 0 auto;" onclick="openCariAktarim()">← Geri</button>
+      <button class="modal-submit" style="margin:0;flex:1;" onclick="aktUygula()">${k.length} Satırı Aktar</button>
+    </div>`;
+}
+function aktUygula(){
+  const kartYap = document.getElementById('aktKart').checked;
+  const bakiyeYap = document.getElementById('aktBakiye').checked;
+  const sifirDahil = document.getElementById('aktSifir').checked;
+  const bugun = bugunTR();
+  const damga = 'zirve-aktarim';
+  let yeniKart = 0, guncelKart = 0, acilisYeni = 0, acilisGuncel = 0, atlanan = 0;
+
+  AKT.satirlar.forEach(k => {
+    const bakiyeVar = Math.abs(k.borc) >= 0.01 || Math.abs(k.alacak) >= 0.01;
+    if(!sifirDahil && !bakiyeVar && !k.kod){ atlanan++; return; }
+    let c = aktMevcutBul(k);
+    if(!c && kartYap){
+      c = {
+        id: benzersizId('c'),
+        type: /(a\.ş|ltd|şti|san|tic|a\.s|limited|anonim)/i.test(k.name) ? 'firma' : (k.vkn && k.vkn.length === 11 ? 'sahis' : 'firma'),
+        name: k.name, contact: '', phone: k.phone || '', email: k.email || '',
+        address: [k.address, k.semt, k.sehir].filter(Boolean).join(', '),
+        durum: aktDurum(k.tip), unvan: '', dateAdded: bugun,
+      };
+      CUSTOMERS.push(c);
+      yeniKart++;
+    } else if(c && kartYap){
+      let d = false;
+      if(!c.phone && k.phone){ c.phone = k.phone; d = true; }
+      if(!c.email && k.email){ c.email = k.email; d = true; }
+      if(!c.address && (k.address || k.sehir)){ c.address = [k.address, k.semt, k.sehir].filter(Boolean).join(', '); d = true; }
+      if(d) guncelKart++;
+    }
+    if(c){
+      // Muhasebe bilgileri her hâlükârda tazelenir
+      if(k.kod) c.cariKodu = k.kod;
+      if(k.vkn) c.vkn = k.vkn;
+      if(k.vergiDairesi) c.vergiDairesi = k.vergiDairesi;
+      if(k.semt) c.semt = k.semt;
+      if(k.sehir) c.sehir = k.sehir;
+      if(k.phone2) c.phone2 = k.phone2;
+      if(k.tip && aktDurum(k.tip) === 'Tedarikçi' && c.durum !== 'Tedarikçi') c.durum = 'Tedarikçi';
+      c.aktarimKaynak = damga;
+    }
+    if(!bakiyeYap || !c) return;
+
+    // Açılış kayıtları: aynı kaynaktan gelen önceki açılış varsa güncellenir (çift kayıt olmaz)
+    const yaz = (tip, tutar) => {
+      const tutarK = Math.round(tutar * 100);
+      const eski = CARI_HAREKETLER.find(h => h.customerId === c.id && h.tip === tip && h.aktarim === damga && !h.iptal);
+      if(tutarK <= 0){
+        if(eski){ eski.iptal = { zaman: new Date().toLocaleString('tr-TR'), kim: chKullanici() }; acilisGuncel++; }
+        return;
+      }
+      if(eski){
+        if(eski.tutarK !== tutarK){ eski.tutarK = tutarK; eski.tarih = bugun; acilisGuncel++; }
+        return;
+      }
+      CARI_HAREKETLER.unshift({
+        id: benzersizId('ch'), customerId: c.id, musteriAdi: c.name,
+        tip, tutarK, para: 'TL', kur: 1, tarih: bugun, vade: '',
+        belgeNo: (tip === 'acilis-borc' ? 'ACL-B-' : 'ACL-A-') + (k.kod || c.id).replace(/[^\w.]/g, ''),
+        aciklama: 'Zirve devir bakiyesi' + (k.kod ? ' · ' + k.kod : ''),
+        notu: 'Excel aktarımı ile geldi (' + bugun + ')',
+        aktarim: damga, olusturan: chKullanici(), olusturmaZamani: new Date().toLocaleString('tr-TR'),
+      });
+      acilisYeni++;
+    };
+    yaz('acilis-borc', k.borc);
+    yaz('acilis-alacak', k.alacak);
+  });
+
+  closeModal();
+  cariSecili = null;
+  currentPage = 'on-muhasebe'; onMuhasebeSub = 'cari-hareketleri'; openSubmenu = 'on-muhasebe';
+  renderNav(); renderContent();
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Aktarım Tamamlandı</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="akt-ozet">
+      <div><b style="color:var(--ok);">${yeniKart}</b><span>yeni müşteri kartı</span></div>
+      <div><b>${guncelKart}</b><span>kart güncellendi</span></div>
+      <div><b style="color:var(--ok);">${acilisYeni}</b><span>açılış kaydı</span></div>
+      <div><b>${acilisGuncel}</b><span>açılış güncellendi</span></div>
+    </div>
+    ${atlanan ? `<div class="hint">${atlanan} satır bakiyesiz olduğu için atlandı.</div>` : ''}
+    <div class="hint">Açılış kayıtları <b>Zirve devir bakiyesi</b> açıklamasıyla işlendi. Aynı dosyayı tekrar
+      aktarırsanız çift kayıt oluşmaz — mevcut açılış tutarları güncellenir.</div>
+    <button class="modal-submit" onclick="closeModal()">Tamam</button>`;
+  showModal();
+  showToast(`Aktarım tamam — ${yeniKart} yeni cari, ${acilisYeni} açılış kaydı.`);
+}
+// ============ /CARİ AKTARIMI ============
+
 // ================= CARİ HAREKETLERİ — merkezi defter =================
 // Tüm tutarlar KURUŞ cinsinden tam sayı tutulur (kayan nokta hatası olmaz).
 // Kaynaklar: kabul edilmiş teklifler (satış faturası olarak düşer, çift kayıt yok),
@@ -4679,6 +5048,7 @@ function chIslemMenuHtml(menuId, cid){
         <button onclick="chModalAc('alacak-dekontu','${cid || ''}')">📄 Alacak Dekontu Ekle</button>
         <button onclick="chVirmanModal('${cid || ''}')">↔ Virman / Cari Transfer</button>
         <button onclick="chModalAc('acilis','${cid || ''}')">⚖ Açılış Bakiyesi</button>
+        <button onclick="openCariAktarim()">📥 Excel'den Cari Aktar</button>
       </div>
     </div>`;
 }
@@ -6890,7 +7260,10 @@ function kisilerView(){
   return `
     <div class="list-page-head">
       <div><div class="page-title">Kişiler</div><div class="page-sub">Bir satıra tıklayarak detayını görün.</div></div>
-      <button class="primary-btn" onclick="editingCustomerId=null; kisilerStep='type'; renderContent();">+ Yeni</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" style="flex:0 0 auto;" onclick="openCariAktarim()">📥 Excel'den Aktar</button>
+        <button class="primary-btn" onclick="editingCustomerId=null; kisilerStep='type'; renderContent();">+ Yeni</button>
+      </div>
     </div>
     <div class="ledger-wrap">
       <div class="ledger-main">
