@@ -919,6 +919,12 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 
 .rap-yazdir-btn{height:34px;flex:0 0 auto;white-space:nowrap;}
 .rap-7,.rap-baslik.rap-7,.rap-cari.rap-duz.rap-7{grid-template-columns:96px minmax(160px,2fr) 1fr 1fr 1fr 1fr 108px;}
+.rap-4,.rap-baslik.rap-4,.rap-cari.rap-duz.rap-4{grid-template-columns:48px minmax(160px,2fr) 100px 150px;}
+.tkr-bar-grafik{display:flex;align-items:flex-end;gap:10px;height:210px;padding:18px 14px 4px;overflow-x:auto;}
+.tkr-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:44px;flex:1;height:100%;}
+.tkr-bar{width:100%;max-width:36px;background:var(--ink);border-radius:4px 4px 0 0;min-height:0;}
+.tkr-bar-deger{font-size:10.5px;font-weight:600;margin-bottom:4px;white-space:nowrap;font-family:var(--font-mono);}
+.tkr-bar-etiket{font-size:10.5px;color:var(--ink-3);margin-top:6px;text-align:center;white-space:nowrap;}
 .rap-kod{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);}
 .rap-tel{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rap-genis{overflow-x:auto;}
@@ -1567,7 +1573,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-10e';
+window.ROTA_SURUM = 'v2026-09-10f';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1688,7 +1694,7 @@ const PAGES = [
   { key:'on-muhasebe', label:'Ön Muhasebe', icon:'💳', hasSub:true },
   { key:'stok', label:'Stok', icon:'📦', hasSub:true },
   { key:'gorev-yonetimi', label:'Görev Yönetimi', icon:'📋', hasSub:true },
-  { key:'teklifler', label:'Teklifler', icon:'🧾', hasSub:false },
+  { key:'teklifler', label:'Teklifler', icon:'🧾', hasSub:true },
   { key:'raporlar', label:'Raporlar', icon:'📈', hasSub:true },
   { key:'yonetim', label:'Yönetim', icon:'🏛️', hasSub:true },
   { key:'destek', label:'Destek', icon:'❓', hasSub:false },
@@ -1715,6 +1721,10 @@ const RAPORLAR_SUBS = [
   { key:'kdv-raporu', label:'KDV Raporu' },
   { key:'kasa-banka-raporu', label:'Kasa\\Banka Raporu' },
 ];
+const TEKLIF_SUBS = [
+  { key:'liste', label:'Teklif Listesi' },
+  { key:'rapor', label:'Satış Teklifleri Raporu' },
+];
 const STOK_SUBS = [
   { key:'urunler-hizmetler', label:'Ürünler ve Hizmetler' },
   { key:'stok-hareketleri', label:'Stok Hareketleri' },
@@ -1734,19 +1744,21 @@ const YONETIM_SUBS = [
   { key:'araclarim', label:'Araçlarım' },
   { key:'kategoriler', label:'Kategoriler' },
 ];
-const SUBMENUS = { 'on-muhasebe': ON_MUHASEBE_SUBS, 'raporlar': RAPORLAR_SUBS, 'stok': STOK_SUBS, 'gorev-yonetimi': GOREV_SUBS, 'yonetim': YONETIM_SUBS };
+const SUBMENUS = { 'on-muhasebe': ON_MUHASEBE_SUBS, 'raporlar': RAPORLAR_SUBS, 'stok': STOK_SUBS, 'gorev-yonetimi': GOREV_SUBS, 'yonetim': YONETIM_SUBS, 'teklifler': TEKLIF_SUBS };
 let openSubmenu = null;
 let onMuhasebeSub = 'kasa-banka';
 let raporlarSub = 'satis-raporu';
 let stokSub = 'urunler-hizmetler';
 let gorevSub = 'gorevlerim';
 let yonetimSub = 'kullanicilar';
+let teklifSub = 'liste';
 const SUB_STATE = {
   'on-muhasebe': { get: () => onMuhasebeSub, set: (v) => onMuhasebeSub = v },
   'raporlar': { get: () => raporlarSub, set: (v) => raporlarSub = v },
   'stok': { get: () => stokSub, set: (v) => stokSub = v },
   'gorev-yonetimi': { get: () => gorevSub, set: (v) => gorevSub = v },
   'yonetim': { get: () => yonetimSub, set: (v) => yonetimSub = v },
+  'teklifler': { get: () => teklifSub, set: (v) => teklifSub = v },
 };
 
 // ---------------- ROL BAZLI ERİŞİM ----------------
@@ -1911,6 +1923,7 @@ function selectSub(parentKey, subKey){
   openSubmenu = parentKey;
   if(parentKey==='on-muhasebe'){ cekSenetStep = 'list'; giderStep = 'list'; gelirStep = 'list'; personelStep = 'list'; personelSecili = null; mesaiPersonelId = null; mesaiRatesEdit = false; }
   if(parentKey==='yonetim'){ aracStep = 'list'; editingVehicleId = null; }
+  if(parentKey==='teklifler'){ teklifStep = 'list'; }
   if(!(parentKey==='gorev-yonetimi' && subKey==='genel-board')) boardFilterStage = null;
   if(parentKey==='gorev-yonetimi'){ gtAssigneeFilter = ''; gtSearchQuery = ''; }
   renderNav(); renderContent();
@@ -1921,7 +1934,7 @@ function selectSub(parentKey, subKey){
 function goTo(key){
   if(key !== currentPage) pushHistory();
   if(key === 'ana-sayfa' && currentPage !== 'ana-sayfa' && sozSirasi !== null) sozSirasi++;
-  currentPage = key; kisilerStep = 'list'; editingCustomerId = null; teklifStep = 'list'; boardFilterStage = null; gtAssigneeFilter = ''; gtSearchQuery = ''; if(!SUBMENUS[key]) openSubmenu = null; renderNav(); renderContent(); closeMobileSidebar();
+  currentPage = key; kisilerStep = 'list'; editingCustomerId = null; teklifStep = 'list'; boardFilterStage = null; gtAssigneeFilter = ''; gtSearchQuery = ''; if(key==='teklifler') teklifSub = 'liste'; if(!SUBMENUS[key]) openSubmenu = null; renderNav(); renderContent(); closeMobileSidebar();
   menuDaralt(true);
   tarayiciGecmisYaz();
 }
@@ -1934,8 +1947,11 @@ function renderContent(){
     if(kisilerStep==='form' && openAccordions.has('acc2')){ renderContactRows(); renderAddressRows(); }
   }
   else if(currentPage==='teklifler'){
-    el.innerHTML = teklifView();
-    if(teklifStep==='form'){ fillCustomerInfo(); renderLineItems(); }
+    if(teklifSub==='rapor' && teklifStep==='list'){ el.innerHTML = teklifRaporuView(); }
+    else {
+      el.innerHTML = teklifView();
+      if(teklifStep==='form'){ fillCustomerInfo(); renderLineItems(); }
+    }
   }
   else if(currentPage==='on-muhasebe') el.innerHTML = onMuhasebeView();
   else if(currentPage==='raporlar') el.innerHTML = raporlarView();
@@ -3911,6 +3927,154 @@ function rapCariAc(key){
   renderNav(); renderContent(); tarayiciGecmisYaz();
 }
 
+// ================= SATIŞ TEKLİFLERİ RAPORU (Teklifler > Rapor) =================
+let teklifRaporSekme = 'temsilci';   // 'temsilci' | 'musteri'
+let teklifSeciliTemsilci = '';       // '' = tüm temsilciler özeti
+let teklifKirilim = 'aylik';         // 'aylik' | 'ceyrek' | 'yillik'
+
+// Teklif temsilcisi olarak seçilebilecek personel — üretim personeli hariç
+function teklifTemsilciSecenekleri(){
+  return PERSONELLER.filter(p => !p.arsiv && p.departman !== 'Üretim').map(p => p.name);
+}
+function teklifRaporuSekmeSec(s){ teklifRaporSekme = s; renderContent(); }
+function teklifTemsilciSec(ad){ teklifSeciliTemsilci = ad; renderContent(); }
+function teklifKirilimSec(k){ teklifKirilim = k; renderContent(); }
+
+// Temsilci bazlı özet: seçili tarih aralığındaki tüm teklifler üzerinden
+function teklifRaporuVerisi(){
+  const map = new Map();
+  QUOTES.filter(q => rapTarihAralikta(q.date)).forEach(q => {
+    const ad = q.repName || 'Belirtilmemiş';
+    if(!map.has(ad)) map.set(ad, { ad, adet:0, tutar:0, iseDonusen:0, faturalandi:0, reddedildi:0 });
+    const r = map.get(ad);
+    r.adet++; r.tutar += quoteTotal(q);
+    if(q.jobId) r.iseDonusen++;
+    if(q.status === 'Faturalandı') r.faturalandi++;
+    if(q.status === 'Reddedildi') r.reddedildi++;
+  });
+  return [...map.values()].sort((a, b) => b.tutar - a.tutar);
+}
+// Seçili bir temsilcinin dönem kırılımlı (aylık/üç aylık/yıllık) teklif tutarı grafiği + özeti
+function teklifTemsilciDonemVerisi(ad){
+  const liste = QUOTES.filter(q => (q.repName || 'Belirtilmemiş') === ad && rapTarihAralikta(q.date));
+  const yillar = [...new Set(liste.map(q => chTarihSira(q.date).slice(0, 4)).filter(Boolean))].sort();
+  const sutunlar = teklifKirilim === 'aylik' ? RAP_AYLAR
+    : teklifKirilim === 'ceyrek' ? ['1. Çeyrek', '2. Çeyrek', '3. Çeyrek', '4. Çeyrek']
+    : (yillar.length ? yillar : [String(new Date().getFullYear())]);
+  const dizin = q => {
+    const t = chTarihSira(q.date); if(!t) return -1;
+    if(teklifKirilim === 'yillik') return yillar.indexOf(t.slice(0, 4));
+    const ay = parseInt(t.slice(5, 7), 10) - 1;
+    return teklifKirilim === 'aylik' ? ay : Math.floor(ay / 3);
+  };
+  const kutu = new Array(sutunlar.length).fill(0);
+  liste.forEach(q => { const d = dizin(q); if(d >= 0) kutu[d] += quoteTotal(q); });
+  return {
+    sutunlar, kutu, adet: liste.length, toplam: liste.reduce((s, q) => s + quoteTotal(q), 0),
+    iseDonusen: liste.filter(q => q.jobId).length,
+    faturalandi: liste.filter(q => q.status === 'Faturalandı').length,
+    reddedildi: liste.filter(q => q.status === 'Reddedildi').length,
+  };
+}
+// Müşteri sıralaması: gerçek cari defterindeki satış faturası (Kabul Edildi + Faturalandı) toplamına göre, azalan
+function teklifMusteriSiralamasi(){
+  const map = new Map();
+  cariTumSatirlar().forEach(r => {
+    if(r.iptal || r.tip !== 'satis-faturasi' || !rapTarihAralikta(r.tarih)) return;
+    if(!map.has(r.key)) map.set(r.key, { key: r.key, ad: r.ad, tutarK: 0, adet: 0 });
+    const c = map.get(r.key);
+    if(r.ad && (!c.ad || c.ad === 'Müşteri seçilmedi')) c.ad = r.ad;
+    c.tutarK += r.borcK; c.adet++;
+  });
+  return [...map.values()].sort((a, b) => b.tutarK - a.tutarK);
+}
+function teklifRaporuBarGrafik(sutunlar, kutu){
+  const maks = Math.max(1, ...kutu);
+  return `<div class="tkr-bar-grafik">
+    ${sutunlar.map((s, i) => `
+      <div class="tkr-bar-col">
+        <div class="tkr-bar-deger">${kutu[i] ? tl0(kutu[i]) : ''}</div>
+        <div class="tkr-bar" style="height:${kutu[i] ? Math.max(4, Math.round(kutu[i] / maks * 150)) : 0}px;"></div>
+        <div class="tkr-bar-etiket">${notEsc(s)}</div>
+      </div>`).join('')}
+  </div>`;
+}
+function teklifRaporuTemsilciView(){
+  if(teklifSeciliTemsilci){
+    const secenekler = teklifTemsilciSecenekleri();
+    const d = teklifTemsilciDonemVerisi(teklifSeciliTemsilci);
+    return `
+      <div class="rap-arac" style="margin-top:12px;">
+        <button class="btn" style="flex:0 0 auto;white-space:nowrap;" onclick="teklifTemsilciSec('')">← Tüm Temsilciler</button>
+        <select onchange="teklifTemsilciSec(this.value)" style="height:36px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);padding:0 10px;font-size:12.5px;">
+          ${secenekler.includes(teklifSeciliTemsilci) ? '' : `<option selected>${notEsc(teklifSeciliTemsilci)}</option>`}
+          ${secenekler.map(s => `<option ${s === teklifSeciliTemsilci ? 'selected' : ''}>${notEsc(s)}</option>`).join('')}
+        </select>
+        <div class="toggle-row" style="margin:0 0 0 auto;">
+          <button class="${teklifKirilim === 'aylik' ? 'active' : ''}" onclick="teklifKirilimSec('aylik')">Aylık</button>
+          <button class="${teklifKirilim === 'ceyrek' ? 'active' : ''}" onclick="teklifKirilimSec('ceyrek')">Üç Aylık</button>
+          <button class="${teklifKirilim === 'yillik' ? 'active' : ''}" onclick="teklifKirilimSec('yillik')">Yıllık</button>
+        </div>
+      </div>
+      ${rapKpi([
+        ['Toplam Teklif Tutarı', tl(d.toplam)],
+        ['İşe Dönüşen', d.iseDonusen + ' / ' + d.adet],
+        ['Faturalandı', String(d.faturalandi), 'var(--ok)'],
+        ['Reddedilen', String(d.reddedildi), d.reddedildi ? 'var(--risk)' : 'var(--ink-3)'],
+      ])}
+      <div class="ledger-main">${d.adet ? teklifRaporuBarGrafik(d.sutunlar, d.kutu) : '<div class="empty-state">Bu aralıkta teklif kaydı yok.</div>'}</div>
+    `;
+  }
+  const veri = teklifRaporuVerisi();
+  if(!veri.length) return `<div class="empty-state" style="margin-top:12px;">Bu aralıkta teklif kaydı yok.</div>`;
+  const maks = Math.max(1, ...veri.map(v => v.tutar));
+  return `
+    <div class="ledger-main" style="margin-top:12px;">
+      ${veri.map(r => `
+        <div class="ledger-row rap-cari" data-ad="${notEsc(r.ad).toLowerCase()}" style="cursor:pointer;flex-direction:column;align-items:stretch;gap:7px;" onclick="teklifTemsilciSec('${r.ad.replace(/'/g, "\\'")}')">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div class="ledger-title">${notEsc(r.ad)}</div>
+            <div class="ledger-amount">${tl(r.tutar)}<span class="kalan" style="color:var(--ink-3);">${r.adet} teklif</span></div>
+          </div>
+          <div style="height:7px;border-radius:4px;background:var(--surface-sunk,#eef1f4);overflow:hidden;">
+            <div style="height:100%;width:${Math.round(r.tutar / maks * 100)}%;background:var(--ink);border-radius:4px;"></div>
+          </div>
+          <div style="display:flex;gap:16px;font-size:11.5px;color:var(--ink-2);flex-wrap:wrap;">
+            <span>🏗️ İşe dönüşen: <b>${r.iseDonusen}</b></span>
+            <span style="color:var(--ok);">🧾 Faturalandı: <b>${r.faturalandi}</b></span>
+            <span style="color:${r.reddedildi ? 'var(--risk)' : 'var(--ink-3)'};">✕ Reddedilen: <b>${r.reddedildi}</b></span>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+function teklifRaporuMusteriView(){
+  const veri = teklifMusteriSiralamasi();
+  if(!veri.length) return `<div class="empty-state" style="margin-top:12px;">Bu aralıkta satış kaydı yok.</div>`;
+  return `
+    <div class="rap-tablo" style="margin-top:12px;">
+      <div class="rap-baslik rap-4"><span>#</span><span>Müşteri</span><span class="sag">Teklif</span><span class="sag">Toplam Satış</span></div>
+      ${veri.map((c, i) => `
+        <div class="rap-cari rap-duz rap-4" data-ad="${notEsc(c.ad).toLowerCase()}" onclick="rapCariAc('${String(c.key).replace(/'/g, "\\'")}')">
+          <span class="rap-kod">#${i + 1}</span>
+          <span class="rap-ad">${notEsc(c.ad)}</span>
+          <span class="sag">${c.adet}</span>
+          <span class="sag"><b>${chTL(c.tutarK)}</b></span>
+        </div>`).join('')}
+    </div>`;
+}
+function teklifRaporuView(){
+  return `
+    <div class="list-page-head"><div><div class="page-title">Satış Teklifleri Raporu</div>
+      <div class="page-sub">Temsilci bazlı teklif performansı ve müşteri satış sıralaması.</div></div></div>
+    <div class="toggle-row" style="justify-content:flex-start;">
+      <button class="${teklifRaporSekme === 'temsilci' ? 'active' : ''}" onclick="teklifRaporuSekmeSec('temsilci')">Temsilciler</button>
+      <button class="${teklifRaporSekme === 'musteri' ? 'active' : ''}" onclick="teklifRaporuSekmeSec('musteri')">Müşteriler</button>
+    </div>
+    ${rapFiltreBar(false)}
+    ${teklifRaporSekme === 'temsilci' ? teklifRaporuTemsilciView() : teklifRaporuMusteriView()}
+  `;
+}
+
 // Tüm cariler için defterleri tek seferde çıkarır (tek tek cariDefter çağırmak yavaş kalır)
 function rapDefterler(){
   return cariOzetListesi(true).map(c => ({ key: c.key, ad: c.ad,
@@ -4394,7 +4558,7 @@ function faturaVadeMetni(vade){
 }
 function faturaSatisAc(qid){
   pushHistory();
-  currentPage = 'teklifler'; openSubmenu = null;
+  currentPage = 'teklifler'; openSubmenu = null; teklifSub = 'liste';
   teklifViewId = qid; teklifStep = 'view';
   renderNav(); renderContent();
 }
