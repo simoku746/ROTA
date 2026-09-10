@@ -1466,50 +1466,80 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 }
 
 /* ============================================================
-   TASARIM KATMANI — AŞAMA 1 (Kurumsal lacivert tema)
-   Yalnız görsel kurallar. Sınıf/id adları, HTML yapısı ve JS değişmedi.
-   Aynı sınıflar yukarıda da tanımlı; buradaki kurallar kaynak sırası
-   gereği baskın gelir. Geri almak için bu bloğu kaldırmak yeterlidir.
+   TASARIM KATMANI — Aşama 1: ORTAK UYGULAMA KABUĞU
+   (Referans: ROTA-TASARIM-CALISAN-REFERANS.html / gorsel-referanslar)
+   Sınıf/id adları ve olaylar korunur; buradaki kurallar kaynak sırası
+   gereği yukarıdaki eski kuralları ezer.
    ============================================================ */
 
-/* --- Gövde tipografisi --- */
+/* --- Gövde tipografisi ve sayfa başlığı --- */
 html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);line-height:1.45;}
 .page-title{font-family:var(--font-display);font-size:27px;line-height:34px;font-weight:800;
   letter-spacing:-.7px;color:var(--ink);}
 .page-sub{font-size:13.5px;line-height:20px;color:var(--ink-2);margin-top:6px;}
 .page-head,.list-page-head{margin-bottom:22px;}
-.content{padding:26px 30px 60px;max-width:1600px;}
 .gunun-sozu{font-family:var(--font-family-base);color:var(--ink);}
-/* Teklif belgesi önizlemesi (PDF ile aynı görünüm) ekran temasından etkilenmesin: eski font sabit */
+/* Teklif belgesi önizlemesi (PDF ile aynı görünüm) ekran temasından etkilenmesin */
 .quote-doc{font-family:'Inter','Segoe UI',Arial,sans-serif;}
+
+/* --- Kabuk: sidebar + ana sütun (üst çubuk + içerik) --- */
+.shell{display:flex;min-height:100vh;}
+.main-col{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{height:64px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;
+  align-items:center;padding:0 30px;position:sticky;top:0;z-index:60;gap:12px;}
+.crumb{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px;min-width:0;}
+.crumb i{color:#BEC5CF;font-style:normal;}
+.crumb strong{color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.crumb strong i{color:#BEC5CF;font-style:normal;margin:0 6px;font-weight:400;}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:9px;}
+.icon-btn{position:relative;width:38px;height:38px;border:1px solid var(--line);background:var(--surface);
+  border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:var(--ink-2);}
+.icon-btn:hover{border-color:var(--line-strong);background:var(--surface-muted);color:var(--ink);}
+.icon-btn svg{width:16px;height:16px;fill:var(--ink-2);}
+.icon-btn svg.ico-stroke{fill:none;stroke:var(--ink-2);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px;}
+.icon-btn:hover svg{fill:var(--ink);} .icon-btn:hover svg.ico-stroke{fill:none;stroke:var(--ink);}
+.icon-btn .bildirim-rozet{top:-5px;right:-5px;border:2px solid var(--surface);}
+.content{flex:1;padding:26px 30px 60px;max-width:1600px;width:100%;}
+/* Prototipte önizleme rozeti üst çubukla çakışmasın (canlıda zaten sol alttadır) */
+.top-right-bar{top:auto;bottom:24px;left:20px;right:auto;}
+/* Bildirim paneli çanın (üst sağ) altında açılır */
+#bildirimWrap{top:62px;left:auto;right:24px;}
 
 /* --- Sol menü: koyu lacivert --- */
 .sidebar{width:var(--sidebar-w);background:var(--navy-950);border-right:1px solid var(--navy-line);
-  padding:22px 16px 16px;color:#D8DFEB;}
-.brand{padding:0 8px 8px;}
+  padding:22px 16px 16px;color:#D8DFEB;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;}
+.brand{padding:0 8px 4px;min-height:45px;}
 .brand-left{color:#FFFFFF;font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:.5px;}
 .brand-logo{width:33px;height:33px;border-radius:9px;background:var(--signal);color:#FFFFFF;
   font-family:var(--font-display);font-weight:800;font-size:18px;}
 .brand-tools{gap:4px;}
 .brand-btn{width:28px;height:28px;border-radius:7px;color:var(--navy-muted);}
 .brand-btn:hover{background:var(--navy-hover);color:#FFFFFF;}
-.brand-btn svg{fill:var(--navy-muted);}
-.brand-btn:hover svg{fill:#FFFFFF;}
 
-.nav{gap:2px;margin-top:14px;}
-.nav button{height:40px;padding:0 10px;gap:11px;border-radius:9px;font-family:var(--font-family-base);
+.firma-karti{margin:14px 0 6px;padding:11px;background:#152642;border:1px solid #263955;border-radius:12px;
+  display:flex;align-items:center;gap:9px;min-width:0;}
+.firma-avatar{width:32px;height:32px;border-radius:8px;background:#314565;color:#FFFFFF;display:flex;align-items:center;
+  justify-content:center;font-family:var(--font-display);font-weight:700;font-size:11px;flex-shrink:0;}
+.firma-metin{min-width:0;display:flex;flex-direction:column;}
+.firma-metin strong{font-size:12px;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.firma-metin small{font-size:10px;color:var(--navy-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.nav{gap:2px;margin-top:4px;}
+.nav-label{margin:14px 10px 5px;font-size:10px;letter-spacing:1.3px;color:#71809A;font-weight:700;font-family:var(--font-display);}
+.nav-label:first-child{margin-top:10px;}
+.nav button{height:38px;padding:0 10px;gap:11px;border-radius:9px;font-family:var(--font-family-base);
   font-size:13px;font-weight:500;color:var(--navy-text);}
 .nav button:hover{background:var(--navy-hover);color:#FFFFFF;}
 .nav button.active{background:var(--navy-800);color:#FFFFFF;font-weight:600;}
 .nav button.active::before{left:-16px;top:50%;bottom:auto;height:21px;width:3px;
   transform:translateY(-50%);background:var(--signal);border-radius:0 3px 3px 0;}
-.nav-item-icon{width:20px;font-size:15px;opacity:.85;filter:grayscale(1) brightness(1.6);}
-.nav button.active .nav-item-icon,.nav button:hover .nav-item-icon{filter:grayscale(1) brightness(2.2);opacity:1;}
+.nav-item-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;opacity:1;filter:none;font-size:15px;}
+.nav-item-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .nav-chevron{color:#667792;font-size:11px;}
 .badge-new{background:#2C405F;color:#FFFFFF;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;}
 
 .subnav{padding-left:31px;margin:2px 0 4px;gap:1px;}
-.subnav button{height:32px;padding:0 10px;border-radius:8px;font-size:12.5px;color:var(--navy-muted);}
+.subnav button{height:30px;padding:0 10px;border-radius:8px;font-size:12.5px;color:var(--navy-muted);}
 .subnav button:hover{background:var(--navy-hover);color:#FFFFFF;}
 .subnav button.active{background:var(--navy-hover);color:#FFFFFF;font-weight:600;}
 
@@ -1520,24 +1550,34 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
 .sidebar-user-role{color:#8292AA;font-size:10.5px;margin-top:2px;}
 .logout-link{color:#8897AD;font-size:12px;border-radius:8px;height:34px;}
 .logout-link:hover{background:var(--navy-hover);color:#FFFFFF;}
-.bildirim-rozet{border:2px solid var(--navy-950);}
 
-/* Daraltılmış menü (masaüstü) — lacivert şerit */
+/* Daraltılmış menü (masaüstü) — lacivert ikon şeridi, fareyle açılır */
 @media (min-width:881px){
   .shell.menu-dar .sidebar:not(:hover){width:64px;padding:18px 10px 14px;}
+  .shell.menu-dar .sidebar:not(:hover) .firma-karti{padding:8px 0;justify-content:center;border-color:transparent;background:transparent;}
+  .shell.menu-dar .sidebar:not(:hover) .firma-metin{display:none;}
+  .shell.menu-dar .sidebar:not(:hover) .nav-label{display:none;}
   .shell.menu-dar .sidebar:not(:hover) .nav button{height:40px;border-radius:9px;}
   .shell.menu-dar .sidebar:not(:hover) .nav button.active::before{left:-10px;}
-  .shell.menu-dar .sidebar:not(:hover) .nav-item-icon{font-size:17px;}
+  .shell.menu-dar .sidebar:not(:hover) .nav-item-icon svg{width:20px;height:20px;}
 }
 
-/* Mobil üst çubuk + açılır menü */
+/* Mobil: hamburger çubuğu + kayan lacivert menü; üst çubuk sadeleşir */
 @media (max-width:880px){
-  .sidebar{width:248px;padding:22px 16px 16px;}
+  /* Eski hata düzeltmesi: hamburger çubuğu içerikle yan yana sıkışıyordu; kabuk mobilde dikey akar */
+  .shell{flex-direction:column;}
+  .mobile-topbar{width:100%;}
+  .main-col{width:100%;}
+  .sidebar{width:248px;padding:22px 16px 16px;height:auto;position:fixed;}
   .mobile-topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;}
   .mobile-topbar .brand-left{color:var(--ink);font-family:var(--font-display);font-weight:800;font-size:18px;}
   .hamburger-btn{border:1px solid var(--line);border-radius:9px;width:38px;height:38px;}
   .sidebar-backdrop{background:rgba(8,17,31,.5);}
+  .topbar{height:48px;padding:0 16px;top:0;}
+  .content{padding:18px 16px 60px;}
+  #bildirimWrap{top:110px;right:12px;left:auto;}
 }
+@media print{ .topbar{display:none !important;} }
 </style>
 <div class="top-right-bar">
   <div class="preview-flag" id="saveStatus" title="Değişiklikler otomatik kaydedilir">●&nbsp;Yükleniyor</div>
@@ -1564,11 +1604,11 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
       <div class="brand-left" style="cursor:pointer;" onclick="goTo('ana-sayfa')" title="Ana Sayfa'ya git"><span class="brand-logo">R</span><span class="brand-ad">ROTA</span></div>
       <div class="brand-tools">
         <button class="brand-btn" id="menuDarBtn" onclick="menuDaralt(true)" title="Menüyü daralt" style="font-size:13px;">«</button>
-        <button class="brand-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Koyu / açık tema">
-          <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z"/></svg>
-        </button>
-        <button class="brand-btn" onclick="bildirimAcKapa(event)" title="Bildirimler">🔔<span class="bildirim-rozet" id="bildirimRozet"></span></button>
       </div>
+    </div>
+    <div class="firma-karti" title="Firma">
+      <span class="firma-avatar" id="firmaKisa">R</span>
+      <span class="firma-metin"><strong id="firmaAd">ROTA</strong><small id="firmaSlogan"></small></span>
     </div>
     <div class="nav" id="navList"></div>
     <div class="sidebar-foot">
@@ -1582,7 +1622,21 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
       <button class="logout-link" onclick="doLogout()">Çıkış Yap</button>
     </div>
   </div>
-  <div class="content" id="content"></div>
+  <div class="main-col">
+    <div class="topbar">
+      <div class="crumb"><span>ROTA</span><i>/</i><strong id="crumbTitle"></strong></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Koyu / açık tema">
+          <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z"/></svg>
+        </button>
+        <button class="icon-btn" onclick="bildirimAcKapa(event)" title="Bildirimler">
+          <svg viewBox="0 0 24 24" class="ico-stroke"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+          <span class="bildirim-rozet" id="bildirimRozet"></span>
+        </button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
 </div>
 
 <div class="overlay" id="overlay"><div class="modal" id="modalBox"></div></div>
@@ -1661,7 +1715,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-10g';
+window.ROTA_SURUM = 'v2026-09-10h';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -1776,16 +1830,28 @@ let PRODUCT_CATALOG = [
 ];
 
 // ---------------- NAV ----------------
+// Menü ikonları: çizgi SVG (tasarım sistemi). `icon` (emoji) eski uyumluluk için duruyor, menüde `svg` kullanılır.
+const NAV_SVG = {
+  home:    '<svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>',
+  users:   '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2a5 5 0 0 1 6 4.8"/></svg>',
+  wallet:  '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M16 14.5h2"/></svg>',
+  box:     '<svg viewBox="0 0 24 24"><path d="M12 3 21 7.5v9L12 21 3 16.5v-9L12 3z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/></svg>',
+  tasks:   '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  file:    '<svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg>',
+  chart:   '<svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/></svg>',
+  gear:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  help:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7"/><path d="M12 17h.01"/></svg>',
+};
 const PAGES = [
-  { key:'ana-sayfa', label:'Ana Sayfa', icon:'🏠', hasSub:false },
-  { key:'kisiler', label:'Kişiler', icon:'👥', hasSub:false },
-  { key:'on-muhasebe', label:'Ön Muhasebe', icon:'💳', hasSub:true },
-  { key:'stok', label:'Stok', icon:'📦', hasSub:true },
-  { key:'gorev-yonetimi', label:'Görev Yönetimi', icon:'📋', hasSub:true },
-  { key:'teklifler', label:'Teklifler', icon:'🧾', hasSub:true },
-  { key:'raporlar', label:'Raporlar', icon:'📈', hasSub:true },
-  { key:'yonetim', label:'Yönetim', icon:'🏛️', hasSub:true },
-  { key:'destek', label:'Destek', icon:'❓', hasSub:false },
+  { key:'ana-sayfa', label:'Ana Sayfa', icon:'🏠', svg:NAV_SVG.home, grup:'ÇALIŞMA ALANI', hasSub:false },
+  { key:'kisiler', label:'Kişiler', icon:'👥', svg:NAV_SVG.users, grup:'ÇALIŞMA ALANI', hasSub:false },
+  { key:'on-muhasebe', label:'Ön Muhasebe', icon:'💳', svg:NAV_SVG.wallet, grup:'TİCARİ', hasSub:true },
+  { key:'stok', label:'Stok', icon:'📦', svg:NAV_SVG.box, grup:'TİCARİ', hasSub:true },
+  { key:'gorev-yonetimi', label:'Görev Yönetimi', icon:'📋', svg:NAV_SVG.tasks, grup:'TİCARİ', hasSub:true },
+  { key:'teklifler', label:'Teklifler', icon:'🧾', svg:NAV_SVG.file, grup:'TİCARİ', hasSub:true },
+  { key:'raporlar', label:'Raporlar', icon:'📈', svg:NAV_SVG.chart, grup:'TİCARİ', hasSub:true },
+  { key:'yonetim', label:'Yönetim', icon:'🏛️', svg:NAV_SVG.gear, grup:'SİSTEM', hasSub:true },
+  { key:'destek', label:'Destek', icon:'❓', svg:NAV_SVG.help, grup:'SİSTEM', hasSub:false },
 ];
 let currentPage = 'ana-sayfa';
 
@@ -1897,12 +1963,16 @@ async function doLogout(){
 
 function renderNav(){
   const allowedTabs = roleCfg().tabs;
+  let sonGrup = null;
   document.getElementById('navList').innerHTML = PAGES.filter(p => allowedTabs.includes(p.key)).map(p => {
     const clickHandler = p.hasSub ? `toggleSubmenu('${p.key}')` : `goTo('${p.key}')`;
     const isActiveParent = currentPage === p.key;
-    let html = `
+    // Grup etiketi (yalnız görsel; menü sırası ve olaylar değişmez)
+    const grupEtiketi = (p.grup && p.grup !== sonGrup) ? `<div class="nav-label">${p.grup}</div>` : '';
+    sonGrup = p.grup || sonGrup;
+    let html = grupEtiketi + `
       <button class="${isActiveParent && !p.hasSub ?'active':''}" onclick="${clickHandler}">
-        <span class="nav-item-icon">${p.icon}</span>
+        <span class="nav-item-icon">${p.svg || p.icon}</span>
         <span class="nav-item-label">${p.label}</span>
         ${p.isNew ? '<span class="badge-new">YENİ</span>' : ''}
         ${p.hasSub ? `<span class="nav-chevron ${openSubmenu===p.key?'rot':''}">›</span>` : ''}
@@ -1919,6 +1989,24 @@ function renderNav(){
     }
     return html;
   }).join('');
+  renderTopbar();
+}
+// Üst komut çubuğu: breadcrumb + firma kartı (yalnız gösterim; veri AGENCY/PAGES'ten okunur)
+function renderTopbar(){
+  const p = PAGES.find(x => x.key === currentPage);
+  let yol = p ? p.label : '';
+  if(p && p.hasSub && SUBMENUS[p.key] && SUB_STATE[p.key]){
+    const sub = SUBMENUS[p.key].find(s => s.key === SUB_STATE[p.key].get());
+    if(sub) yol = `${p.label} <i>›</i> ${sub.label}`;
+  }
+  const crumb = document.getElementById('crumbTitle');
+  if(crumb) crumb.innerHTML = yol;
+  const fa = document.getElementById('firmaAd');
+  if(fa) fa.textContent = (typeof AGENCY !== 'undefined' && AGENCY.name) ? AGENCY.name : 'ROTA';
+  const fs = document.getElementById('firmaSlogan');
+  if(fs) fs.textContent = (typeof AGENCY !== 'undefined' && AGENCY.slogan) ? AGENCY.slogan : '';
+  const fk = document.getElementById('firmaKisa');
+  if(fk) fk.textContent = (typeof AGENCY !== 'undefined' && AGENCY.name) ? initialsOf(AGENCY.name) : 'R';
 }
 function menuDarMi(){ return document.getElementById('appRoot').classList.contains('menu-dar'); }
 function menuDaralt(dar){
