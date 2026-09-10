@@ -1567,7 +1567,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-10d';
+window.ROTA_SURUM = 'v2026-09-10e';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4209,9 +4209,13 @@ function kdvRaporuView(){
     </div>`
     : `<div class="empty-state">Henüz KDV doğuran kayıt yok. Hesaplanan KDV için teklif durumunu <b>Faturalandı</b> yapın; indirilecek KDV için giderleri KDV oranıyla girin.</div>`}`;
 }
+// Sadece gerçekten kasa/bankadan para giren/çıkan kayıtlar listelenir — henüz ödenmemiş
+// "alış" tipi giderler (cariye borç doğuran ama nakit hareketi olmayan kayıtlar) burada gösterilmez.
 function kasaBankaHareketleri(){
-  return [...GELIRLER.map(g => ({ ...g, gelir:true })), ...GIDERLER.map(g => ({ ...g, gelir:false }))]
-    .sort((a,b) => trTarihMs(b.tarih) - trTarihMs(a.tarih));
+  return [
+    ...GELIRLER.filter(g => gelirNakitEtkisi(g) > 0).map(g => ({ ...g, gelir:true })),
+    ...GIDERLER.filter(g => giderNakitEtkisi(g) > 0).map(g => ({ ...g, gelir:false })),
+  ].sort((a,b) => trTarihMs(b.tarih) - trTarihMs(a.tarih));
 }
 function kasaBankaRaporuView(){
   return `
@@ -4237,6 +4241,33 @@ let BANK_ACCOUNTS = [ { name:'Garanti Bankası - Ana Hesap', balance:2944, curre
 let CEK_SENET = [];
 let cekSenetStep = 'list';
 let cekSenetDuzenleId = null;
+
+// ---- Kasa/Banka bakiyesi ↔ Gelir/Gider bağlantısı ----
+// Hesap bakiyeleri elle girilir (Kasa ve Banka > Düzenle) ve bu andan itibaren
+// yeni tahsilat/ödeme kayıtları bakiyeye otomatik işlenir (var olan bakiyeyi geriye dönük değiştirmez).
+function hesapAdindanBul(ad){
+  if(!ad) return null;
+  return KASA_ACCOUNTS.find(a => a.name === ad) || BANK_ACCOUNTS.find(a => a.name === ad) || null;
+}
+function hesapBakiyeDeltaUygula(hesapAdi, tutarTL){
+  const a = hesapAdindanBul(hesapAdi);
+  if(!a || !tutarTL) return;
+  a.balance = Math.round(((Number(a.balance) || 0) + Number(tutarTL)) * 100) / 100;
+}
+// Bir gelir kaydı her zaman gerçek nakit girişidir (Gelirler = tahsilat, tahakkuk değil).
+function gelirNakitEtkisi(g){ return g ? (Number(g.tutar) || 0) : 0; }
+// Bir gider kaydının nakit çıkışı doğurup doğurmadığı: cariye bağlıysa "alış" (henüz ödenmedi)
+// hariç her durumda, cariye bağlı değilse yalnızca "odendi" işaretliyse nakit hareketi sayılır.
+function giderNakitEtkisi(g){
+  if(!g) return 0;
+  const tutar = Number(g.tutar) || 0;
+  if(!tutar) return 0;
+  if(g.customerId){
+    const etki = g.cariTip || (g.odendi ? 'alis-odeme' : 'alis');
+    return etki === 'alis' ? 0 : tutar;
+  }
+  return g.odendi ? tutar : 0;
+}
 
 function onMuhasebeView(){
   if(onMuhasebeSub==='kasa-banka') return kasaBankaView();
@@ -4523,7 +4554,7 @@ function submitTahsilat(){
   const cust = CUSTOMERS.find(c => c.id === document.getElementById('tMusteri').value);
   const tutar = Number(document.getElementById('tTutar').value) || 0;
   if(!tutar){ showToast('Tutar girin.'); return; }
-  GELIRLER.unshift({
+  const yeniGelir = {
     id: benzersizId('ge'),
     customerId: document.getElementById('tMusteri').value || null,
     client: cust ? cust.name : 'Müşteri seçilmedi',
@@ -4532,7 +4563,9 @@ function submitTahsilat(){
     tarih: document.getElementById('tTarih').value,
     tutar: tutar,
     kategoriId: document.getElementById('tKategori').value || null,
-  });
+  };
+  GELIRLER.unshift(yeniGelir);
+  hesapBakiyeDeltaUygula(yeniGelir.hesap, gelirNakitEtkisi(yeniGelir));
   gelirStep = 'list';
   renderContent();
   showToast(`₺${tutar.toLocaleString('tr-TR')} tahsilat kaydedildi.`);
@@ -4556,18 +4589,22 @@ function submitGelirDuzenle(id){
   const g = GELIRLER.find(x => x.id === id); if(!g) return;
   const tutar = Number(document.getElementById('geTutar').value) || 0;
   if(!tutar){ showToast('Tutar girin.'); return; }
+  const eskiHesap = g.hesap, eskiEtki = gelirNakitEtkisi(g);
   g.client = document.getElementById('geClient').value.trim() || g.client;
   g.tarih = document.getElementById('geTarih').value;
   g.hesap = document.getElementById('geHesap').value;
   g.tur = document.getElementById('geTur').value || 'Tahsilat';
   g.kategoriId = document.getElementById('geKategori').value || null;
   g.tutar = tutar;
+  hesapBakiyeDeltaUygula(eskiHesap, -eskiEtki);
+  hesapBakiyeDeltaUygula(g.hesap, gelirNakitEtkisi(g));
   closeModal(); renderContent();
   showToast('Gelir kaydı güncellendi.');
 }
 function deleteGelir(id){
   const g = GELIRLER.find(x => x.id === id); if(!g) return;
   if(!confirm(`"${g.client}" — ₺${(Number(g.tutar)||0).toLocaleString('tr-TR')} gelir kaydı silinsin mi?`)) return;
+  hesapBakiyeDeltaUygula(g.hesap, -gelirNakitEtkisi(g));
   GELIRLER = GELIRLER.filter(x => x.id !== id);
   renderContent();
   showToast('Gelir kaydı silindi.');
@@ -4702,7 +4739,7 @@ function submitGider(){
   else if(giderFormTur === 'banka')        tur = val('gAltTur') || f.tur;
   else if(giderFormTur === 'vergi')        tur = (val('gAltTur') || f.tur) + (val('gDonem') ? ' · ' + val('gDonem') : '');
   const aciklama = val('gAciklama');
-  GIDERLER.unshift({
+  const yeniGider = {
     id: benzersizId('gi'),
     client: baslik,
     customerId: cust ? cust.id : null,
@@ -4716,7 +4753,9 @@ function submitGider(){
     tutar: tutar,
     odendi: giderFormTur !== 'tekrarlayan',
     kategoriId: val('gKategori') || null,
-  });
+  };
+  GIDERLER.unshift(yeniGider);
+  hesapBakiyeDeltaUygula(yeniGider.hesap, -giderNakitEtkisi(yeniGider));
   giderStep = 'list';
   renderContent();
   showToast(`${f.label} kaydedildi — ₺${tutar.toLocaleString('tr-TR')}`);
@@ -4735,10 +4774,12 @@ function openGiderDuzenle(id){
       <div class="field" style="flex:2;"><label>Tutar (₺, KDV dahil)</label><input id="giTutar" type="number" value="${Number(g.tutar) || 0}"></div>
       <div class="field"><label>KDV</label><select id="giKdv">${KDV_ORANLARI.map(o => `<option value="${o}" ${Number(g.kdvOran || 0) === o ? 'selected' : ''}>%${o}</option>`).join('')}</select></div>
     </div>
-    <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
+    ${g.customerId
+      ? `<div class="hint" style="margin:0 0 12px;">Bu gider bir cariye bağlı — ödenip ödenmediği Cari Hareketleri'ndeki durumdan izlenir. Sonradan ödeme yapıldıysa Cari Hareketleri &gt; "+ Yeni" &gt; "Ödeme Ekle" ile ayrı bir ödeme kaydı girin.</div>`
+      : `<label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
       <input type="checkbox" id="giOdendi" ${g.odendi ? 'checked' : ''} style="width:16px;height:16px;">
       Ödendi olarak işaretle
-    </label>
+    </label>`}
     <button class="modal-submit" onclick="submitGiderDuzenle('${id}')">Kaydet</button>`;
   showModal();
   const hs = document.getElementById('giHesap'); if(hs && g.hesap) hs.value = g.hesap;
@@ -4747,6 +4788,7 @@ function submitGiderDuzenle(id){
   const g = GIDERLER.find(x => x.id === id); if(!g) return;
   const tutar = Number(document.getElementById('giTutar').value) || 0;
   if(!tutar){ showToast('Tutar girin.'); return; }
+  const eskiHesap = g.hesap, eskiEtki = giderNakitEtkisi(g);
   g.client = document.getElementById('giClient').value.trim() || null;
   g.tur = document.getElementById('giTur').value || g.tur;
   g.tarih = document.getElementById('giTarih').value;
@@ -4755,13 +4797,17 @@ function submitGiderDuzenle(id){
   g.tutar = tutar;
   const gi = kdvAyir(tutar, document.getElementById('giKdv').value);
   g.kdvOran = gi.oran; g.kdvK = gi.kdvK; g.matrahK = gi.matrahK;
-  g.odendi = document.getElementById('giOdendi').checked;
+  const giOdendiEl = document.getElementById('giOdendi');
+  if(giOdendiEl) g.odendi = giOdendiEl.checked;
+  hesapBakiyeDeltaUygula(eskiHesap, eskiEtki);
+  hesapBakiyeDeltaUygula(g.hesap, -giderNakitEtkisi(g));
   closeModal(); renderContent();
   showToast('Gider kaydı güncellendi.');
 }
 function deleteGider(id){
   const g = GIDERLER.find(x => x.id === id); if(!g) return;
   if(!confirm(`"${g.client || g.tur}" — ₺${(Number(g.tutar)||0).toLocaleString('tr-TR')} gider kaydı silinsin mi?`)) return;
+  hesapBakiyeDeltaUygula(g.hesap, giderNakitEtkisi(g));
   GIDERLER = GIDERLER.filter(x => x.id !== id);
   renderContent();
   showToast('Gider kaydı silindi.');
@@ -5033,7 +5079,7 @@ function submitHareket(kind){
   });
   const gidereIsle = document.getElementById('hrGider');
   if(!gidereIsle || gidereIsle.checked){
-    GIDERLER.unshift({
+    const yeniGider = {
       id: benzersizId('gi'),
       client: p.name,
       hesap: BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa',
@@ -5042,7 +5088,9 @@ function submitHareket(kind){
       tutar: tutar,
       odendi: kind === 'avans',
       kategoriId: kategoriIdByAd('Maaş','gider'),
-    });
+    };
+    GIDERLER.unshift(yeniGider);
+    hesapBakiyeDeltaUygula(yeniGider.hesap, -giderNakitEtkisi(yeniGider));
   }
   closeModal(); renderContent();
   showToast(`${k.tur} eklendi — ${tlSigned(tutar * k.isaret)}`);
@@ -5444,13 +5492,15 @@ function saveMesai(){
     const mevcut = d.giderId ? GIDERLER.find(g => g.id === d.giderId) : null;
     if(mevcut){
       // aynı personelin mesaisi yeniden kaydedildi → mükerrer satır açma, bağlı gideri güncelle
+      const eskiEtki = giderNakitEtkisi(mevcut);
       mevcut.tarih = d.kayitTarihi;
       mevcut.tutar = Math.round(toplam);
       mevcut.client = p ? p.name : mevcut.client;
       mevcut.kategoriId = mesaiGiderKategoriId();
+      hesapBakiyeDeltaUygula(mevcut.hesap, eskiEtki - giderNakitEtkisi(mevcut));
     } else {
       const gid = benzersizId('gi');
-      GIDERLER.unshift({
+      const yeniGider = {
         id: gid,
         client: p ? p.name : null,
         hesap: BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa',
@@ -5459,7 +5509,9 @@ function saveMesai(){
         tutar: Math.round(toplam),
         odendi: false,
         kategoriId: mesaiGiderKategoriId(),
-      });
+      };
+      GIDERLER.unshift(yeniGider);
+      hesapBakiyeDeltaUygula(yeniGider.hesap, -giderNakitEtkisi(yeniGider));
       d.giderId = gid;
     }
   }
@@ -5475,7 +5527,7 @@ function mesaiSil(id){
   const mesaj = `${p ? p.name : 'Personel'} mesai kaydı silinsin mi?` +
     (bagliGider ? `\n\nGiderler'deki bağlı "Mesai Ücreti" kaydı (${tl0(bagliGider.tutar)}) da silinecek.` : '');
   if(!confirm(mesaj)) return;
-  if(bagliGider) GIDERLER = GIDERLER.filter(g => g.id !== d.giderId);
+  if(bagliGider){ hesapBakiyeDeltaUygula(bagliGider.hesap, giderNakitEtkisi(bagliGider)); GIDERLER = GIDERLER.filter(g => g.id !== d.giderId); }
   delete MESAI_KAYIT[id];
   if(mesaiPersonelId === id) mesaiPersonelId = null;
   renderContent();
@@ -6327,7 +6379,7 @@ function chKaydet(tur, duzenlenenId){
     if(hes && !hes.value){ showToast('Kasa / Banka seçimi zorunlu.'); return; }
     const acik = document.getElementById('chAciklama').value.trim();
     const yontem = document.getElementById('chYontem') ? document.getElementById('chYontem').value : '';
-    GELIRLER.unshift({
+    const yeniGelir = {
       id: benzersizId('ge'),
       customerId: cid,
       client: cst ? cst.name : 'Müşteri seçilmedi',
@@ -6339,7 +6391,9 @@ function chKaydet(tur, duzenlenenId){
       belgeNo: document.getElementById('chBelge').value.trim() || chBelgeNo('THL'),
       notu: document.getElementById('chNot').value.trim(),
       olusturan: chKullanici(),
-    });
+    };
+    GELIRLER.unshift(yeniGelir);
+    hesapBakiyeDeltaUygula(yeniGelir.hesap, gelirNakitEtkisi(yeniGelir));
     closeModal(); renderContent();
     showToast(`Tahsilat kaydedildi — ${chTL(tutarK)} (Gelirler'e de işlendi).`);
     return;
@@ -6350,7 +6404,7 @@ function chKaydet(tur, duzenlenenId){
     if(hes && !hes.value){ showToast('Kasa / Banka seçimi zorunlu.'); return; }
     const acik = document.getElementById('chAciklama').value.trim();
     const yontem = document.getElementById('chYontem') ? document.getElementById('chYontem').value : '';
-    GIDERLER.unshift({
+    const yeniGider = {
       id: benzersizId('gi'),
       customerId: cid,
       cariTip: 'odeme',
@@ -6364,7 +6418,9 @@ function chKaydet(tur, duzenlenenId){
       belgeNo: document.getElementById('chBelge').value.trim() || chBelgeNo('ODM'),
       notu: document.getElementById('chNot').value.trim(),
       olusturan: chKullanici(),
-    });
+    };
+    GIDERLER.unshift(yeniGider);
+    hesapBakiyeDeltaUygula(yeniGider.hesap, -giderNakitEtkisi(yeniGider));
     closeModal(); renderContent();
     showToast(`Ödeme kaydedildi — ${chTL(tutarK)} (Giderler'e de işlendi).`);
     return;
@@ -6486,9 +6542,10 @@ function chSatirMenu(e, key, i){
     <button onclick="chMenuKapat(); chDetayModal('${key.replace(/'/g, "\\'")}',${i})">🔎 Detay Görüntüle</button>
     ${r.kaynak.tip === 'teklif' ? `<button onclick="chMenuKapat(); chKaynagaGit('teklif','${r.kaynak.id}')">📄 İlgili Teklifi Aç</button>` : ''}
     ${r.kaynak.tip === 'gelir' ? `<button onclick="chMenuKapat(); chKaynagaGit('gelir','${r.kaynak.id}')">💰 Gelirler'de Aç</button>` : ''}
+    ${r.kaynak.tip === 'gider' ? `<button onclick="chMenuKapat(); chKaynagaGit('gider','${r.kaynak.id}')">🧾 Giderler'de Aç</button>` : ''}
     ${r.kaynak.tip === 'manuel' && !r.iptal ? `<button onclick="chMenuKapat(); chDuzenleModal('${r.kaynak.id}')">✏️ Düzenle</button>
       <button style="color:var(--risk);" onclick="chMenuKapat(); chIptalEt('${r.kaynak.id}')">🚫 İptal Et</button>` : ''}
-    ${r.kaynak.tip !== 'manuel' ? `<div class="ch-menu-not">Bu satır ${r.kaynak.tip === 'teklif' ? 'teklif' : 'tahsilat'} kaydından otomatik gelir — buradan düzenlenmez.</div>` : ''}`;
+    ${r.kaynak.tip !== 'manuel' ? `<div class="ch-menu-not">Bu satır ${r.kaynak.tip === 'teklif' ? 'teklif' : r.kaynak.tip === 'gider' ? 'gider' : 'tahsilat'} kaydından otomatik gelir — buradan düzenlenmez.</div>` : ''}`;
   document.body.appendChild(kat);
   const kn = e.currentTarget.getBoundingClientRect();
   const yuk = kat.offsetHeight;
@@ -6503,6 +6560,12 @@ function chMenuKapat(){
 function chKaynagaGit(tip, id){
   pushHistory();
   if(tip === 'teklif'){ goTo('teklifler'); openQuoteView(id); return; }
+  if(tip === 'gider'){
+    currentPage = 'on-muhasebe'; onMuhasebeSub = 'giderler'; openSubmenu = 'on-muhasebe'; giderStep = 'list';
+    renderNav(); renderContent(); tarayiciGecmisYaz();
+    setTimeout(() => openGiderDuzenle(id), 50);
+    return;
+  }
   currentPage = 'on-muhasebe'; onMuhasebeSub = 'gelirler'; openSubmenu = 'on-muhasebe'; gelirStep = 'list';
   renderNav(); renderContent(); tarayiciGecmisYaz();
 }
@@ -6521,7 +6584,7 @@ function chDetayModal(key, i){
     <div class="drawer-row"><span class="k">Alacak</span><span class="v" style="color:var(--ok);">${r.alacakK ? chTL(r.alacakK) : '—'}</span></div>
     ${r.kalanK !== undefined && r.borcK ? `<div class="drawer-row"><span class="k">Kalan</span><span class="v">${chTL(r.kalanK)}</span></div>` : ''}
     <div class="drawer-row"><span class="k">Durum</span><span class="v">${chDurumRozet(r.durum)}</span></div>
-    <div class="drawer-row"><span class="k">Kaynak</span><span class="v">${r.kaynak.tip === 'teklif' ? 'Teklif modülü (otomatik)' : r.kaynak.tip === 'gelir' ? 'Gelirler / Tahsilat (otomatik)' : 'Elle girilen kayıt'}</span></div>
+    <div class="drawer-row"><span class="k">Kaynak</span><span class="v">${r.kaynak.tip === 'teklif' ? 'Teklif modülü (otomatik)' : r.kaynak.tip === 'gelir' ? 'Gelirler / Tahsilat (otomatik)' : r.kaynak.tip === 'gider' ? 'Giderler modülü (otomatik)' : 'Elle girilen kayıt'}</span></div>
     ${h && h.hesap ? `<div class="drawer-row"><span class="k">Kasa / Banka</span><span class="v">${notEsc(h.hesap)}${h.yontem ? ' · ' + notEsc(h.yontem) : ''}</span></div>` : ''}
     ${h && h.notu ? `<div class="drawer-row"><span class="k">Not</span><span class="v" style="text-align:right;max-width:250px;">${notEsc(h.notu)}</span></div>` : ''}
     ${h ? `<div class="drawer-row"><span class="k">Oluşturan</span><span class="v" style="font-size:11.5px;">${notEsc(h.olusturan || '—')} · ${notEsc(h.olusturmaZamani || '')}</span></div>` : ''}
@@ -6558,7 +6621,8 @@ function kasaBankaView(){
   const genelTl = kasaTl + bankTl;
   return `
     <div class="list-page-head">
-      <div class="page-title">Kasa ve Banka</div>
+      <div><div class="page-title">Kasa ve Banka</div>
+      <div class="page-sub">Bakiyeler, o hesaba işlenen yeni tahsilat/ödeme kayıtlarıyla otomatik güncellenir.</div></div>
       <button class="primary-btn" onclick="openAccountModal()">+ Yeni</button>
     </div>
     <div class="kb-columns">
