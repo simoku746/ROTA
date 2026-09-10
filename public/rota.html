@@ -1567,7 +1567,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-10c';
+window.ROTA_SURUM = 'v2026-09-10d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -4327,29 +4327,75 @@ let PERSONELLER = [
       hareketler:[] };
   })
 );
-// Cari bakiyeleri faturalardan türetilir: satış faturası kalanı = tahsil edilecek (−), alış faturası kalanı = ödeme yapılacak (+)
+// Faturalar ekranı: gerçek cari defterinden türetilir.
+// Satış faturası = durumu "Faturalandı" olan teklifler (KDV raporuyla tutarlı — "Kabul Edildi" henüz resmi fatura değildir).
+// Alış faturası = cariye bağlı ve fatura niteliğindeki giderler (Giderler ekranında girildiği an fatura sayılır).
+// Kalan tutarlar cariDefter() içindeki FIFO hesabından okunur, böylece yapılan tahsilat/ödemeler faturaya yansır.
+function faturaListesi(){
+  const out = [];
+  const keys = new Set(cariTumSatirlar().map(r => r.key));
+  keys.forEach(key => {
+    const def = cariDefter(key);
+    def.rows.forEach(r => {
+      if(r.iptal) return;
+      if(r.tip === 'satis-faturasi'){
+        const q = (r.kaynak && r.kaynak.tip === 'teklif') ? QUOTES.find(x => x.id === r.kaynak.id) : null;
+        if(!q || q.status !== 'Faturalandı') return; // henüz resmi fatura kesilmemiş (Kabul Edildi) teklifler burada listelenmez
+        out.push({ tur:'Satış Faturası', client:r.ad, no:r.belgeNo, tarih:r.tarih, vade:r.vade,
+          tutarK:r.borcK, kalanK:r.kalanK || 0, quoteId:q.id });
+      } else if(r.tip === 'alis-faturasi'){
+        out.push({ tur:'Alış Faturası', client:r.ad, no:r.belgeNo, tarih:r.tarih, vade:r.vade,
+          tutarK:r.alacakK, kalanK:r.alacakKalanK || 0, giderId:(r.kaynak && r.kaynak.id) });
+      }
+    });
+  });
+  out.sort((a, b) => chTarihSira(b.tarih).localeCompare(chTarihSira(a.tarih)));
+  return out;
+}
+function faturaVadeMetni(vade){
+  if(!vade) return 'Vade tarihi yok';
+  const bugunIso = chTarihSira(new Date().toLocaleDateString('tr-TR'));
+  const vadeIso = chTarihSira(vade);
+  if(!vadeIso) return 'Vade tarihi yok';
+  const gun = Math.round((new Date(vadeIso) - new Date(bugunIso)) / 86400000);
+  const etiket = gun === 0 ? 'Bugün' : gun > 0 ? `${gun} Gün Kaldı` : `${Math.abs(gun)} Gün Geçti`;
+  return `${chTarihTR(vade)} · ${etiket}`;
+}
+function faturaSatisAc(qid){
+  pushHistory();
+  currentPage = 'teklifler'; openSubmenu = null;
+  teklifViewId = qid; teklifStep = 'view';
+  renderNav(); renderContent();
+}
+function faturaAlisAc(gid){
+  if(!gid) return;
+  openGiderDuzenle(gid);
+}
 function faturalarView(){
+  const liste = faturaListesi();
+  const toplamTutarK = liste.reduce((s, f) => s + f.tutarK, 0);
+  const toplamKalanK = liste.reduce((s, f) => s + f.kalanK, 0);
   return `
-    <div class="list-page-head"><div class="page-title">Faturalar</div></div>
-    <div class="note">Faturalar burada sadece görüntülenir. Yeni fatura kesmek için muhasebe programınızı kullanın — kesilen faturalar buraya senkronize olacak.</div>
+    <div class="list-page-head"><div><div class="page-title">Faturalar</div>
+      <div class="page-sub">Teklifi "Faturalandı" durumuna aldığınızda ve cariye bağlı bir gider girdiğinizde burada otomatik listelenir.</div></div></div>
     <div class="ledger-wrap">
       <div class="ledger-main">
         <div class="ledger-search">🔍 Ara</div>
-        ${FATURALAR.length ? '' : '<div class="empty-state">Henüz fatura yok.</div>'}
-        ${FATURALAR.map(f => `
-          <div class="ledger-row ${f.highlight?'highlight':''}">
+        ${liste.length ? '' : '<div class="empty-state">Henüz fatura yok. Bir teklifi "Faturalandı" durumuna aldığınızda burada görünür.</div>'}
+        ${liste.map(f => `
+          <div class="ledger-row" style="cursor:pointer;" onclick="${f.quoteId ? `faturaSatisAc('${f.quoteId}')` : `faturaAlisAc('${f.giderId}')`}">
             <div>
-              <div class="ledger-title">${f.client}</div>
-              <div class="ledger-sub">${f.tur} No: ${f.no} Tarih: ${f.tarih}</div>
-              <div class="ledger-meta">📅 ${f.vade}</div>
+              <div class="ledger-title">${notEsc(f.client || 'Cari seçilmedi')}</div>
+              <div class="ledger-sub">${f.tur}${f.no ? ' · No: ' + notEsc(f.no) : ''} · Tarih: ${chTarihTR(f.tarih)}</div>
+              <div class="ledger-meta">📅 ${faturaVadeMetni(f.vade)}</div>
             </div>
-            <div class="ledger-amount">₺${f.tutar.toLocaleString('tr-TR',{minimumFractionDigits:2})}<span class="kalan">Kalan: ₺${f.kalan.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>
+            <div class="ledger-amount">${chTL(f.tutarK)}<span class="kalan">Kalan: ${chTL(f.kalanK)}</span></div>
           </div>
         `).join('')}
-        <div class="ledger-footer"><span>🔻 Toplam: ${FATURALAR.length} kayıt</span></div>
+        <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} kayıt · ${chTL(toplamTutarK)} · Kalan ${chTL(toplamKalanK)}</span></div>
       </div>
       <div class="ledger-side">
-        <div class="filter-group"><h5>Tür</h5><div>Alış Faturası</div><div>Satış Faturası</div><div>Alış İade Faturası</div><div>Satış İade Faturası</div></div>
+        <div class="filter-group"><h5>Tür</h5><div>Alış Faturası</div><div>Satış Faturası</div></div>
         <div class="filter-group"><h5>Ödeme Durumu</h5><div>Ödenmemiş</div><div>Ödenmiş</div></div>
         <div class="filter-group"><h5>Vade Tarihi</h5><div>Vadesi Geçmiş</div><div>Bugün</div><div>Bu Ay</div><div>Bu Yıl</div></div>
       </div>
