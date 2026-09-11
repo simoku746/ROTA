@@ -531,7 +531,17 @@ tr:last-child td{border-bottom:none;}
   padding:6px 0;border-radius:5px;touch-action:none;}
 .li-drag:hover{color:var(--ink);background:var(--surface);}
 .li-drag:active{cursor:grabbing;}
-.li-detail{margin-top:4px;height:26px !important;font-size:11.5px !important;color:var(--ink-2);}
+.li-detail-wrap{position:relative;margin-top:4px;}
+.tf-row textarea.li-detail{display:block;width:100%;height:26px;min-height:26px;padding:4px 30px 4px 8px;
+  border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink-2);
+  font-size:11.5px;line-height:16px;font-family:inherit;resize:none;overflow:hidden;white-space:pre;box-sizing:border-box;}
+.tf-row textarea.li-detail:focus{outline:none;border-color:var(--ink);}
+.li-detail-wrap.acik textarea.li-detail{height:auto;min-height:66px;white-space:pre-wrap;overflow-y:auto;resize:vertical;padding-right:34px;}
+.li-detail-tgl{position:absolute;right:3px;top:3px;height:20px;min-width:20px;padding:0 5px;border:0;border-radius:5px;
+  background:transparent;color:var(--ink-3);font-size:10.5px;line-height:20px;cursor:pointer;display:flex;align-items:center;gap:3px;}
+.li-detail-tgl:hover{background:var(--surface-sunk);color:var(--ink);}
+.li-detail-tgl .ok{font-size:11px;transition:transform .15s;}
+.li-detail-wrap.acik .li-detail-tgl .ok{transform:rotate(180deg);}
 .tf-row input,.tf-row select{height:29px;padding:0 8px;border:1px solid var(--line-strong);
   border-radius:6px;background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
 .tf-row input:focus,.tf-row select:focus{outline:none;border-color:var(--ink);}
@@ -2348,7 +2358,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-12c';
+window.ROTA_SURUM = 'v2026-09-12d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -10795,7 +10805,7 @@ function openTeklifOnizleme(id){
   const sym = CURRENCY_SYMBOLS[q.currency || 'TL'];
   const satirlar = (q.items || []).filter(it => it.title).map(it => `
     <tr>
-      <td>${notEsc(it.title)}${it.detail ? `<div style="font-size:11px;color:var(--ink-3);">${notEsc(it.detail)}</div>` : ''}</td>
+      <td>${notEsc(it.title)}${it.detail ? `<div style="font-size:11px;color:var(--ink-3);white-space:pre-wrap;">${notEsc(it.detail)}</div>` : ''}</td>
       <td style="text-align:right;">${fmt2(lineQty(it))} ${unitShort(it)}</td>
       <td style="text-align:right;font-family:var(--font-mono);">${sym}${Number(it.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
       <td style="text-align:right;font-family:var(--font-mono);">${sym}${Math.round(lineNet(it)).toLocaleString('tr-TR')}</td>
@@ -11093,7 +11103,7 @@ function renderLineItems(){
       <div class="ac-wrap">
         <input value="${it.title}" placeholder="Hizmet veya Ürün Seçin" oninput="onLineTitleInput(${idx},this.value)" onfocus="onLineTitleInput(${idx},this.value)" onblur="setTimeout(()=>hideAc(${idx}),150)">
         <div class="ac-list" id="acList${idx}"></div>
-        <input class="li-detail" value="${notEsc(it.detail || '')}" placeholder="Açıklama — müşteri belgesindeki Açıklama sütununda görünür" oninput="updateLine(${idx},'detail',this.value)">
+        ${liDetayHtml(idx)}
       </div>
       <input inputmode="decimal" value="${virgulYaz(it.qty)}" oninput="updateLine(${idx},'qty',this.value)">
       <select id="liUnit${idx}" onchange="updateLine(${idx},'unit',this.value)">
@@ -11111,6 +11121,60 @@ function renderLineItems(){
     </div>`;
   }).join('');
   updateGrandTotals();
+}
+// Açıklama alanı — tek satır (kapalı) / çok satır (açık). Açık/kapalı durumu satır nesnesine bağlı tutulur,
+// yeniden çizimlerde (ürün seçimi, sürükleme) kaybolmaz; kayda yazılmaz.
+const liDetayAcik = new WeakSet();
+function liDetayHtml(idx){
+  const it = quoteLineItems[idx];
+  const detay = it.detail || '';
+  const satir = detay ? detay.split('\n').length : 1;
+  if(satir > 1 && !liDetayAcik.has(it) && !it._detayKapatildi) liDetayAcik.add(it);
+  const acik = liDetayAcik.has(it);
+  return `<div class="li-detail-wrap${acik?' acik':''}" id="liDetayWrap${idx}">
+    <textarea class="li-detail" id="liDetay${idx}" rows="1" wrap="${acik?'soft':'off'}"
+      placeholder="Açıklama — müşteri belgesindeki Açıklama sütununda görünür"
+      oninput="updateLine(${idx},'detail',this.value); liDetayBoyutla(${idx})"
+      onkeydown="liDetayTus(event,${idx})">${notEsc(detay)}</textarea>
+    <button type="button" class="li-detail-tgl" onclick="liDetayToggle(${idx})"
+      title="${acik ? 'Açıklama alanını daralt' : 'Açıklama alanını genişlet (çok satırlı yazım)'}"
+      aria-label="${acik ? 'Açıklamayı daralt' : 'Açıklamayı genişlet'}" aria-expanded="${acik}">${!acik && satir > 1 ? `<span>${satir} satır</span>` : ''}<span class="ok">⌄</span></button>
+  </div>`;
+}
+function liDetayToggle(idx, ac){
+  const it = quoteLineItems[idx]; if(!it) return;
+  const acik = (ac === undefined) ? !liDetayAcik.has(it) : !!ac;
+  if(acik){ liDetayAcik.add(it); delete it._detayKapatildi; } else { liDetayAcik.delete(it); it._detayKapatildi = true; }
+  const wrap = document.getElementById('liDetayWrap'+idx);
+  if(!wrap) return;
+  const odakta = document.activeElement === document.getElementById('liDetay'+idx);
+  const pos = odakta ? document.activeElement.selectionStart : null;
+  wrap.outerHTML = liDetayHtml(idx);
+  const ta = document.getElementById('liDetay'+idx);
+  if(acik) liDetayBoyutla(idx);
+  if(odakta && ta){ ta.focus(); try{ ta.setSelectionRange(pos, pos); }catch(e){} }
+}
+function liDetayBoyutla(idx){
+  const ta = document.getElementById('liDetay'+idx);
+  const wrap = document.getElementById('liDetayWrap'+idx);
+  if(!ta || !wrap || !wrap.classList.contains('acik')) return;
+  ta.style.height = 'auto';
+  ta.style.height = Math.max(66, Math.min(320, ta.scrollHeight + 2)) + 'px';
+}
+function liDetayTus(e, idx){
+  // Kapalı alanda Enter → alanı aç ve yeni satıra geç (Shift+Enter de aynı)
+  if(e.key === 'Enter'){
+    const wrap = document.getElementById('liDetayWrap'+idx);
+    if(wrap && !wrap.classList.contains('acik')){
+      e.preventDefault();
+      const ta = e.target, s = ta.selectionStart, son = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + '\n' + ta.value.slice(son);
+      updateLine(idx, 'detail', ta.value);
+      liDetayToggle(idx, true);
+      const yeni = document.getElementById('liDetay'+idx);
+      if(yeni){ yeni.focus(); try{ yeni.setSelectionRange(s+1, s+1); }catch(err){} }
+    }
+  }
 }
 // Ölçü şeridi — yalnız birimi m² / mtül olan satırda görünür
 function dimLineHtml(idx){
@@ -11229,6 +11293,7 @@ function submitQuote(){
   const girisMetni = document.getElementById('qGiris').value;
   const notlar = document.getElementById('qNotlar') ? document.getElementById('qNotlar').value : DEFAULT_NOTES;
   const items = quoteLineItems.filter(i=>i.title);
+  items.forEach(it => { delete it._detayKapatildi; if(typeof it.detail === 'string') it.detail = it.detail.replace(/\s+$/,''); });
   // Teklifte yazılan yeni ürünler kataloğa eklenir — sonraki tekliflerde ilk harften otomatik tamamlanır
   items.forEach(it => {
     const ad = String(it.title).trim();
