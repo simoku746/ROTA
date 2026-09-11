@@ -600,131 +600,167 @@ tr:last-child td{border-bottom:none;}
   .shell{display:block !important;}
   body,html{background:#fff !important;}
   .quote-doc{border:none !important; box-shadow:none !important;}
-  /* Yazdırma kağıdı genişliği mobil eşiğimizin altında kaldığı için taraf ve banka
-     blokları alt alta yığılıyordu — burada zorla iki kolonda tutuyoruz. */
-  .qd-taraflar,.qd-banka{grid-template-columns:1fr 1fr !important;}
-  .qd-tepe{flex-direction:row !important; gap:24px !important;}
-  .qd-belge{text-align:right !important;}
-  .qd-belge dl{justify-content:end !important;}
-  .qd-belge dt,.qd-belge dd{text-align:right !important;}
-  .quote-doc{width:100% !important; max-width:100% !important; flex:none !important;
-    border:none !important; border-radius:0 !important; padding:11mm 15mm 9mm !important;}
   .quote-view-row{display:block !important;}
   .not-tab,.not-panel{display:none !important;}
-  .qd-ust-cizgi{margin:0 0 10mm !important;}
-  @page{size:A4 portrait; margin:0;}
+  .main-col,.content,#content{width:auto !important; margin:0 !important; overflow:visible !important;}
 }
 
-/* ---------- Teklif Belgesi (PDF çıktısı) — her zaman açık/beyaz, temadan bağımsız ---------- */
-.quote-doc{background:#fff; color:#14181D; border:1px solid #E3E7EB; border-radius:4px;
-  overflow:hidden; font-family:var(--font-family-base); font-size:11px; line-height:1.5;
-  padding:13mm 15mm 9mm;}
+/* ================= MÜŞTERİYE GİDEN TEKLİF BELGESİ (Dekant profesyonel şablon) =================
+   Referans: DEKANT-Profesyonel-Fiyat-Teklifi-P005.pdf — A4 portre, 16 mm kenar boşluğu.
+   Ölçüler pt cinsinden verildi: ekran önizlemesi ile yazdırma/PDF aynı oranlarda çıkar.
+   Sayfa iskeleti bir tablo: thead (logo + teklif kimliği) her sayfada tekrar eder, tfoot (alt bilgi)
+   her sayfanın altına sabitlenir, tbody içeriktir. Tema (gece modu) belgeyi etkilemez. */
+.quote-doc{
+  --offer-primary:#142033; --offer-secondary:#46556a; --offer-label:#4a586c; --offer-red:#c9271b;
+  --offer-orange:#f36b21; --offer-surface:#f3f5f7; --offer-border:#d1dae5; --offer-white:#ffffff;
+  --offer-legal:#5f6b7c;
+  background:var(--offer-white); color:var(--offer-primary);
+  font-family:'Inter Variable','Inter','Segoe UI',Arial,sans-serif; font-weight:500; font-size:7.5pt; line-height:1.45;
+  border:1px solid #E4E9F0; border-radius:6px; overflow:hidden; padding:0;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  -webkit-font-smoothing:antialiased;
+}
+.quote-doc *{box-sizing:border-box;}
+.quote-doc .qd-para,.quote-doc .qd-num{font-variant-numeric:tabular-nums lining-nums; font-feature-settings:"tnum" 1,"lnum" 1;}
 .quote-doc .qd-sag{text-align:right;}
-.quote-doc .qd-para{font-variant-numeric:tabular-nums; white-space:nowrap;}
+.qd-sayfa{width:100%; border-collapse:collapse; table-layout:fixed;}
+.qd-sayfa>thead{display:table-header-group;}
+.qd-sayfa>tfoot{display:table-footer-group;}
+.qd-sayfa>thead>tr>td,.qd-sayfa>tbody>tr>td,.qd-sayfa>tfoot>tr>td{padding:0; vertical-align:top;}
+.qd-govde{padding:0 16mm;}
 
-/* üst: marka solda, TEKLİF sağda */
-.qd-ust-cizgi{height:3px; background:#C8211D; margin:-13mm -15mm 11mm;}
-.qd-tepe{display:flex; justify-content:space-between; align-items:flex-start; gap:24px;}
-.qd-marka .ad{font-size:26px; font-weight:700; letter-spacing:-.045em; line-height:1; color:#14181D;}
-.qd-marka .ad em{font-style:normal; color:#C8211D;}
-.qd-marka .slogan{font-size:9.5px; font-weight:500; letter-spacing:2.6px; text-transform:uppercase;
-  color:#7A858F; margin-top:5px;}
-.quote-doc-logo{height:15mm; width:auto; display:block;}
-.qd-belge{text-align:right; flex-shrink:0;}
-.qd-belge .tur{font-size:19px; font-weight:600; letter-spacing:3.4px; color:#C8211D; line-height:1;}
-.qd-belge dl{display:grid; grid-template-columns:auto auto; gap:2px 14px; margin:10px 0 0;
-  font-size:10px; justify-content:end;}
-.qd-belge dt{color:#7A858F; text-align:right;}
-.qd-belge dd{margin:0; font-weight:600; font-variant-numeric:tabular-nums; text-align:right;}
+/* üst şerit: kırmızı · turuncu · açık gri (sayfa kenarına dayalı) */
+.qd-serit{display:flex; height:3.5pt; width:100%;}
+.qd-serit i{display:block; height:100%;}
+.qd-serit .k{width:31.5%; background:var(--offer-red);}
+.qd-serit .t{width:7.5%; background:var(--offer-orange);}
+.qd-serit .g{flex:1; background:var(--offer-border);}
 
-/* taraflar */
-.qd-etiket{font-size:8.5px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
-  color:#7A858F; margin-bottom:5px;}
-.qd-taraflar{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:18px;
-  background:#F6F8F9; padding:12px 14px; border-radius:3px;}
-.qd-taraf .isim{font-size:13px; font-weight:600; line-height:1.3; margin-bottom:3px;}
-.qd-taraf .satir{font-size:10px; color:#4A545E; line-height:1.55;}
-.qd-hitap{margin:12px 0 0; font-size:10.5px; color:#4A545E; line-height:1.65; max-width:118mm;}
-.qd-hitap b{color:#14181D; font-weight:600;}
+/* kimlik alanı */
+.qd-kimlik{display:flex; justify-content:space-between; align-items:flex-start; gap:24pt;
+  padding:14.5mm 16mm 0; }
+.qd-logo{display:block; width:58mm; max-width:46%; height:auto; margin-top:0.6mm;}
+.qd-belge{text-align:right; flex-shrink:0; min-width:44mm;}
+.qd-belge .ozel{font-size:6.2pt; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--offer-orange); line-height:1.2;}
+.qd-belge .tur{font-size:18pt; font-weight:800; letter-spacing:-.01em; color:var(--offer-primary); line-height:1.15; margin:4pt 0 7pt;}
+.qd-belge dl{display:grid; grid-template-columns:auto auto; column-gap:14pt; row-gap:4.4pt; justify-content:end; margin:0;}
+.qd-belge dt{font-size:7pt; font-weight:500; color:var(--offer-secondary); text-align:right; line-height:1.1;}
+.qd-belge dd{margin:0; font-size:7pt; font-weight:700; color:var(--offer-primary); text-align:right; line-height:1.1;}
+.qd-kimlik-cizgi{border:0; border-top:1px solid var(--offer-border); margin:5mm 16mm 0;}
 
-/* tablo */
-.quote-doc-table{width:100%; border-collapse:collapse; margin-top:16px; table-layout:fixed;}
-.quote-doc-table th{font-size:8.5px; font-weight:600; letter-spacing:1.1px; text-transform:uppercase;
-  color:#4A545E; text-align:left; padding:8px; background:#F6F8F9; border:1px solid #E3E7EB;}
-.quote-doc-table td{font-size:10.5px; padding:6.5px 8px; vertical-align:top; border:1px solid #E3E7EB;}
-.quote-doc-table tbody tr:nth-child(even) td{background:#FCFDFD;}
+/* açılış metni */
+.qd-acilis{margin-top:4mm;}
+.qd-acilis .ust{font-size:6.5pt; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--offer-secondary);}
+.qd-acilis h2{font-size:12.4pt; font-weight:800; color:var(--offer-primary); margin:3pt 0 4pt; line-height:1.2; letter-spacing:-.005em;}
+.qd-acilis p{margin:0; font-size:7.5pt; font-weight:500; color:var(--offer-secondary); line-height:1.45;}
+
+/* taraflar — sabit satır ızgarası: iki kartın etiket / isim satırları aynı Y'de */
+.qd-taraflar{display:grid; grid-template-columns:1fr 1fr; gap:4mm; margin-top:5.5mm; align-items:stretch;}
+.qd-taraf{display:grid; grid-template-rows:auto auto 1fr; align-content:start; align-items:start;
+  background:var(--offer-surface); border:1px solid var(--offer-border); border-radius:4.5pt; padding:11pt 14pt 8pt; min-height:0;}
+.qd-taraf .qd-etiket{font-size:6.5pt; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--offer-secondary); line-height:1.2; height:8pt;}
+.qd-taraf .isim{font-size:9.3pt; font-weight:800; color:var(--offer-primary); line-height:1.25; margin-top:6pt; height:12pt; overflow:visible; white-space:nowrap; text-overflow:ellipsis;}
+.qd-taraf .satirlar{margin-top:6pt; font-size:6.3pt; font-weight:500; color:var(--offer-secondary); line-height:1.5;}
+.qd-taraf .satirlar div{margin-top:3pt;}
+.qd-taraf .satirlar div:first-child{margin-top:0;}
+.qd-taraf .satirlar .yetkili{font-weight:700; color:var(--offer-primary);}
+.qd-taraf .satirlar .ayrac{color:var(--offer-secondary); padding:0 4pt;}
+
+/* bölüm başlığı */
+.qd-bolum-bas{display:flex; justify-content:space-between; align-items:baseline; gap:12pt; margin:4.5mm 0 2.2mm;}
+.qd-bolum-bas h3{font-size:9.2pt; font-weight:800; color:var(--offer-primary); margin:0; line-height:1.2;}
+.qd-bolum-bas span{font-size:6.7pt; font-weight:500; color:var(--offer-secondary);}
+
+/* ürün tablosu */
+.qd-tablo-kap{border:1px solid var(--offer-border); border-radius:4.5pt; overflow:hidden;}
+.quote-doc-table{width:100%; border-collapse:collapse; table-layout:fixed;}
 .quote-doc-table thead{display:table-header-group;}
-.quote-doc-table tr{break-inside:avoid;}
-.quote-doc-table .qd-no{color:#7A858F; font-variant-numeric:tabular-nums;}
-.quote-doc-table .qd-urun{font-weight:600; font-size:11px; line-height:1.35;}
-.quote-doc-table .qd-sub{display:block; font-size:9px; font-weight:400; color:#7A858F; margin-top:2px;}
-.quote-doc-table .qd-aciklama{color:#4A545E; font-size:10px; line-height:1.5; white-space:pre-wrap;}
+.quote-doc-table th{background:var(--offer-surface); color:var(--offer-secondary); font-size:5.9pt; font-weight:800;
+  letter-spacing:.04em; text-transform:uppercase; text-align:left; padding:6.5pt 5.6pt; border-bottom:1px solid var(--offer-border); border-right:1px solid var(--offer-border); line-height:1.2;}
+.quote-doc-table th:last-child,.quote-doc-table td:last-child{border-right:0;}
+.quote-doc-table td{padding:10pt 5.6pt; vertical-align:middle; border-bottom:1px solid var(--offer-border); border-right:1px solid var(--offer-border); font-size:6.5pt; color:var(--offer-secondary); line-height:1.45;}
+.quote-doc-table tbody tr:last-child td{border-bottom:0;}
+.quote-doc-table tr{break-inside:avoid; page-break-inside:avoid;}
+.quote-doc-table .qd-no{color:var(--offer-primary); font-size:7.2pt; font-weight:500;}
+.quote-doc-table .qd-urun{display:block; font-size:8.5pt; font-weight:800; color:var(--offer-primary); line-height:1.25;}
+.quote-doc-table .qd-alt{display:block; font-size:6.5pt; font-weight:500; color:var(--offer-secondary); margin-top:3pt;}
+.quote-doc-table .qd-aciklama{white-space:pre-wrap; font-weight:500;}
+.quote-doc-table .qd-sayi{font-size:7.2pt; font-weight:700; color:var(--offer-primary); white-space:nowrap;}
+.quote-doc-table .qd-sayi .qd-alt{font-weight:500; white-space:nowrap;}
 
-/* toplamlar — renkle değil, kutu ve ağırlıkla öne çıkar */
-.quote-doc-totals{display:flex; justify-content:flex-end; margin-top:9px;}
-.qd-toplam{width:80mm;}
-.qd-toplam .sat{display:flex; justify-content:space-between; gap:20px; padding:5px 2px;
-  font-size:10.5px; color:#4A545E;}
-.qd-toplam .sat b{color:#14181D; font-weight:500; font-variant-numeric:tabular-nums;}
-.qd-toplam .genel{display:flex; justify-content:space-between; align-items:baseline; gap:20px;
-  margin-top:7px; padding:9px 11px; background:#F6F8F9; border:1px solid #E3E7EB; border-radius:3px;}
-.qd-toplam .genel span{font-size:9.5px; font-weight:600; letter-spacing:1.2px;
-  text-transform:uppercase; color:#4A545E;}
-.qd-toplam .genel b{font-size:14.5px; font-weight:600; letter-spacing:-.01em; color:#14181D;
-  font-variant-numeric:tabular-nums;}
-.qd-kdv-notu{text-align:right; font-size:9px; color:#7A858F; margin-top:5px; padding-right:2px;}
+/* finans özeti — tablonun doğal devamı, kutusuz */
+.quote-doc-totals{display:flex; justify-content:flex-end; margin-top:7mm;}
+.qd-toplam{width:55mm;}
+.qd-toplam .sat{display:flex; justify-content:space-between; align-items:baseline; gap:12pt; padding:0 0 7.5pt;}
+.qd-toplam .sat span{font-size:7.1pt; font-weight:550; color:var(--offer-secondary);}
+.qd-toplam .sat b{font-size:7.1pt; font-weight:700; color:var(--offer-primary);}
+.qd-toplam .cizgi{border:0; border-top:1px solid var(--offer-border); margin:1pt 0 8pt;}
+.qd-toplam .genel{display:flex; justify-content:space-between; align-items:baseline; gap:12pt;}
+.qd-toplam .genel span{font-size:7.6pt; font-weight:750; color:var(--offer-primary);}
+.qd-toplam .genel b{font-size:10.8pt; font-weight:750; color:var(--offer-primary); letter-spacing:-.005em;}
+.qd-kdv-notu{text-align:right; font-size:5.4pt; font-weight:500; color:var(--offer-secondary); margin-top:3pt;}
 
-/* notlar / banka / imza */
-.quote-doc-section{margin-top:13px;}
-.quote-doc-section h4{font-size:10px; font-weight:600; letter-spacing:1.4px; text-transform:uppercase;
-  color:#14181D; margin:0 0 8px;}
-.quote-doc-notes{margin:0; padding:0; list-style:none;}
-.quote-doc-notes li{position:relative; padding-left:14px; font-size:10px; line-height:1.55; color:#4A545E;}
-.quote-doc-notes li::before{content:''; position:absolute; left:0; top:7px; width:4px; height:4px;
-  border-radius:50%; background:#C8211D; opacity:.55;}
-.qd-banka{display:grid; grid-template-columns:1fr 1fr; gap:5px 26px;}
-.qd-banka .b{display:flex; justify-content:space-between; gap:12px; font-size:9.5px;
-  padding:3px 0; border-bottom:1px solid #E3E7EB;}
-.qd-banka .b span:first-child{color:#4A545E; font-weight:500; white-space:nowrap;}
-.qd-banka .iban{font-family:'IBM Plex Mono',ui-monospace,Consolas,monospace; font-size:9px;
-  color:#14181D; letter-spacing:-.2px; white-space:nowrap;}
-.qd-imza{display:flex; justify-content:flex-end; margin-top:10px;}
-.qd-imza .kutu{width:62mm; border-top:1px solid #C9D0D7; padding-top:6px; text-align:center;
-  font-size:9px; letter-spacing:1.1px; text-transform:uppercase; color:#7A858F;}
+/* ticari koşullar — sade satır listesi */
+.qd-kosullar{border-top:1px solid var(--offer-border); margin-top:0;}
+.qd-kosul{display:grid; grid-template-columns:42mm 1fr; gap:8pt; padding:6.5pt 5.6pt; border-bottom:1px solid var(--offer-border); break-inside:avoid;}
+.qd-kosul b{font-size:7pt; font-weight:700; color:var(--offer-primary); line-height:1.35;}
+.qd-kosul span{font-size:6.8pt; font-weight:500; color:var(--offer-secondary); line-height:1.35; white-space:pre-wrap;}
 
-/* footer */
-.quote-doc-foot{margin-top:11px; padding-top:8px; border-top:1px solid #E3E7EB;
-  display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;}
-.quote-doc-foot .sol{font-size:9px; color:#7A858F; line-height:1.6; max-width:80mm;}
-.quote-doc-foot .sol b{color:#4A545E; font-weight:600;}
-.quote-doc-foot .sag-grup{display:flex; gap:16px; font-size:9px; color:#4A545E;}
-.quote-doc-foot .oge{display:flex; align-items:center; gap:5px; white-space:nowrap;}
-.quote-doc-foot svg{width:10px; height:10px; flex-shrink:0; fill:#C8211D;}
-.quote-doc-foot a{color:inherit; text-decoration:none;}
-.quote-doc-foot a:hover{text-decoration:underline;}
-.quote-doc-foot a:focus-visible{outline:2px solid #C8211D; outline-offset:2px; border-radius:2px;}
+/* banka + onay */
+.qd-banka-onay{display:grid; grid-template-columns:1fr 1fr; gap:12mm; margin-top:8.5mm; break-inside:avoid;}
+.qd-mini-bas{font-size:6.5pt; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--offer-secondary); margin-bottom:4pt; line-height:1.2;}
+.qd-banka .b{display:flex; justify-content:space-between; align-items:baseline; gap:8pt; padding:4pt 0; border-bottom:1px solid var(--offer-border);}
+.qd-banka .b span:first-child{font-size:6.5pt; font-weight:700; color:var(--offer-primary); white-space:nowrap;}
+.qd-banka .iban{font-size:5.9pt; font-weight:500; color:var(--offer-primary); white-space:nowrap; letter-spacing:.01em;}
+.qd-onay{display:flex; flex-direction:column;}
+.qd-onay .qd-mini-bas{padding-left:0;}
+.qd-onay .cizgi{margin-top:auto; border-top:1px solid var(--offer-border); padding-top:6pt; text-align:center; font-size:5.8pt; font-weight:500; color:var(--offer-secondary);}
+.qd-onay .bosluk{height:38pt;}
+
+/* hukuki dipnot */
+.qd-dipnot{margin-top:6mm; font-size:5.4pt; font-weight:500; color:var(--offer-legal); line-height:1.5;}
+.qd-dipnot p{margin:0 0 2pt;}
+
+/* alt bilgi (tfoot: her sayfada) */
+.qd-alt-bilgi{margin:6mm 16mm 0; padding:5pt 0 4mm; border-top:1px solid var(--offer-border);
+  display:flex; justify-content:space-between; align-items:flex-start; gap:12pt;}
+.qd-alt-bilgi .sol b{display:block; font-size:6.2pt; font-weight:700; color:var(--offer-primary); line-height:1.4;}
+.qd-alt-bilgi .sol span{display:block; font-size:5.4pt; font-weight:500; color:var(--offer-secondary); margin-top:2pt;}
+.qd-alt-bilgi .sag{font-size:5.4pt; font-weight:500; color:var(--offer-secondary); text-align:right; white-space:nowrap; padding-top:1pt;}
+.qd-alt-bilgi .sag .ayrac{padding:0 6pt;}
+.qd-alt-bilgi a{color:inherit; text-decoration:none;}
+
+/* ekranda dar alan: tablo iskeleti korunur, içerik kolonları alt alta iner */
 @media(max-width:880px){
-  .quote-doc{padding:8mm 6mm;}
-  .qd-taraflar,.qd-banka{grid-template-columns:1fr;}
-  .qd-tepe{flex-direction:column; gap:14px;}
-  .qd-belge{text-align:left;} .qd-belge dl{justify-content:start;}
+  .qd-govde{padding:0 6mm;} .qd-kimlik{padding:8mm 6mm 0;} .qd-kimlik-cizgi{margin:6mm 6mm 0;} .qd-alt-bilgi{margin:6mm 6mm 0;}
+  .qd-taraflar,.qd-banka-onay{grid-template-columns:1fr;}
+  .qd-kimlik{flex-direction:column; gap:10pt;} .qd-belge{text-align:left;} .qd-belge dl{justify-content:start;}
   .qd-belge dt,.qd-belge dd{text-align:left;}
+  .qd-alt-bilgi{flex-direction:column;} .qd-alt-bilgi .sag{text-align:left; white-space:normal;}
 }
-@media print{ .quote-doc-foot a{text-decoration:none;} }
-.quote-doc-foot-bottom{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;}
-.quote-doc-social{display:flex; flex-direction:column; gap:1px;}
-.quote-doc-social-row{display:flex; align-items:center; gap:5px; font-size:8.5px; font-weight:600; color:#666;}
-.quote-doc-social-row svg{width:10px; height:10px; flex-shrink:0;}
-.quote-doc-foot-right{text-align:right; font-size:10px; color:#555; line-height:15px;}
-.quote-doc-foot-contact{margin-top:1px; display:flex; gap:14px; justify-content:flex-end;
-  color:#C8211D; font-weight:600; font-size:10px; flex-wrap:wrap;}
-@media(max-width:520px){
-  .quote-doc-bank-row{flex-direction:column; margin-bottom:6px;}
-  .quote-doc-bank-name{width:auto;}
-  .quote-doc-foot-bottom{flex-direction:column; align-items:flex-start;}
-  .quote-doc-foot-right{text-align:left;}
-  .quote-doc-foot-contact{justify-content:flex-start; gap:14px;}
+
+/* yazdırma / PDF */
+@media print{
+  @page{size:A4 portrait; margin:0 0 4mm 0;}
+  .qd-sayfa{height:calc(297mm - 4mm);}   /* tek sayfada alt bilgi sayfanın altına iner; çok sayfada tfoot her sayfanın altında */
+  .quote-doc{border:0 !important; border-radius:0 !important; width:210mm !important; max-width:210mm !important; flex:none !important; margin:0 !important;}
+  .qd-govde{padding:0 16mm !important;} .qd-kimlik{padding:14.5mm 16mm 0 !important;} .qd-kimlik-cizgi{margin:5mm 16mm 0 !important;} .qd-alt-bilgi{margin:6mm 16mm 0 !important;}
+  .qd-taraflar,.qd-banka-onay{grid-template-columns:1fr 1fr !important;}
+  .qd-kimlik{flex-direction:row !important;} .qd-belge{text-align:right !important;} .qd-belge dl{justify-content:end !important;}
+  .qd-belge dt,.qd-belge dd{text-align:right !important;}
+  .qd-alt-bilgi{flex-direction:row !important;} .qd-alt-bilgi .sag{text-align:right !important; white-space:nowrap !important;}
+  .qd-son-blok{break-inside:avoid; page-break-inside:avoid;}
+  .side-drawer,.not-tab,.not-panel,.toast,#hpTip,#bildirimWrap,.sidebar-backdrop,.hizli-olustur-menu{display:none !important;}
+  /* mobil kuralı (table{display:block}) kağıt genişliğinde devreye girmesin */
+  .quote-doc table{display:table !important; white-space:normal !important; overflow:visible !important; width:100% !important;}
+  .quote-doc thead{display:table-header-group !important;} .quote-doc tfoot{display:table-footer-group !important;}
+  .quote-doc tbody{display:table-row-group !important;} .quote-doc tr{display:table-row !important;} .quote-doc td,.quote-doc th{display:table-cell !important;}
+  .quote-doc .qd-belge dl{display:grid !important;} .quote-doc .qd-taraflar,.quote-doc .qd-banka-onay{display:grid !important;}
+  .quote-doc .qd-taraf .isim{white-space:normal !important;}
+  html,body{margin:0 !important; padding:0 !important; width:210mm !important;}
+  .shell,.main-col,.content,#content{position:static !important; padding:0 !important; margin:0 !important; width:210mm !important; max-width:210mm !important; min-height:0 !important;}
 }
+
 .line-items{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:8px;}
 .li-row{display:grid;grid-template-columns:1fr 60px 90px 90px 28px;gap:8px;padding:8px 10px;
   align-items:center;border-bottom:1px solid var(--line);}
@@ -1485,8 +1521,6 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
 .page-sub{font-size:13.5px;line-height:20px;color:var(--ink-2);margin-top:6px;}
 .page-head,.list-page-head{margin-bottom:22px;}
 .gunun-sozu{font-family:var(--font-family-base);color:var(--ink);}
-/* Teklif belgesi önizlemesi (PDF ile aynı görünüm) ekran temasından etkilenmesin */
-.quote-doc{font-family:'Inter','Segoe UI',Arial,sans-serif;}
 
 /* --- Kabuk: sidebar + ana sütun (üst çubuk + içerik) --- */
 .shell{display:flex;min-height:100vh;}
@@ -1941,30 +1975,6 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 .quote-summary small{color:var(--ink-3) !important;}
 .quote-summary .ghost[style]{background:var(--surface) !important;color:var(--ink-2) !important;border-color:var(--line) !important;}
 
-/* Müşteriye giden teklif belgesi — ROTA kurumsal (lacivert + turuncu), yazdırılabilir, temadan bağımsız */
-.quote-doc{border:1px solid #E4E9F0;border-radius:6px;border-left:6px solid #FF6B16;color:#101828;}
-.qd-ust-cizgi{display:none;}
-.qd-belge .tur{color:#101828;font-family:'Manrope','Inter',sans-serif;font-weight:800;font-size:20px;letter-spacing:1.5px;}
-.qd-belge dd{color:#101828;} .qd-belge dt{color:#7B8799;}
-.qd-etiket{color:#7B8799;}
-.qd-taraflar{background:#F6F8FB;border:1px solid #E4E9F0;border-radius:6px;}
-.qd-taraf .isim{color:#101828;font-weight:700;}
-.quote-doc-table th{background:#F6F8FB;color:#657186;border-color:#E4E9F0;}
-.quote-doc-table td{border-color:#E4E9F0;} .quote-doc-table tbody tr:nth-child(even) td{background:#FBFCFD;}
-.quote-doc-table .qd-urun{color:#101828;}
-.qd-toplam{width:84mm;background:#101828;color:#CFD7E3;border-radius:8px;padding:10px 12px 8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-.qd-toplam .sat{color:#CFD7E3;padding:4px 2px;border-bottom:1px solid rgba(255,255,255,.08);}
-.qd-toplam .sat b{color:#FFFFFF;font-weight:600;}
-.qd-toplam .genel{background:transparent;border:0;border-top:1px solid rgba(255,255,255,.18);border-radius:0;margin-top:6px;padding:9px 2px 2px;}
-.qd-toplam .genel span{color:#FF8A4C;}
-.qd-toplam .genel b{color:#FFFFFF;font-size:17px;font-weight:750;font-family:'Inter','Manrope',sans-serif;}
-.qd-kdv-notu{color:#7B8799;}
-.quote-doc-section h4{color:#101828;}
-.quote-doc-notes li::before{background:#FF6B16;opacity:1;}
-.qd-banka .b{border-color:#E4E9F0;} .qd-banka .b span:first-child{color:#101828;font-weight:600;}
-.qd-imza .kutu{border-top-color:#CFD7E3;color:#7B8799;}
-.quote-doc-foot{border-top-color:#E4E9F0;} .quote-doc-foot svg{fill:#FF6B16;}
-@media print{ .qd-toplam{background:#101828 !important;color:#CFD7E3 !important;} .qd-toplam .sat b,.qd-toplam .genel b{color:#fff !important;} .quote-doc{border-left:6px solid #FF6B16 !important;} }
 
 /* Kart yüzeyleri: hafif gölge, 14–16px radius */
 .panel,.table-card,.metric,.card,.form-section,.gg-panel{box-shadow:0 1px 2px rgba(16,24,40,.04);}
@@ -2104,6 +2114,7 @@ const AGENCY = {
   address:'Yenigöl Mah. Defne Sk. No:34 Muratpaşa / ANTALYA',
   phone:'+90 (532) 698 57 66',
   web:'www.dekamedya.com.tr',
+  email:'info@dekamedya.com.tr',
   facebook:'/dekantmedya',
   instagram:'/dekantmedya',
   banks:[
@@ -2114,11 +2125,13 @@ const AGENCY = {
   logo: DEKANT_LOGO,
 };
 
-const DEFAULT_NOTES = `İş bu teklif ve ekleri taraflarca imzalandıktan sonra sözleşme hükmü kazanmaktadır.
-Teslim yeri ve Şekli: ......................
-Ödeme Şekli: ......................
-Uyuşmazlıklar taraflar arasında görüşme ile çözülemediğinde; çözümlenemeyen uyuşmazlıklar için Antalya Mahkemeleri ve İcra Daireleri yetkilidir.`;
-const DEFAULT_INTRO = 'Firmamızdan talep etmiş olduğunuz ürün ve hizmetlere ilişkin fiyat teklifimiz aşağıda bilgilerinize sunulmuştur. Teklifimizin uygun olmasını ümit eder, iyi çalışmalar dileriz.';
+// Belgede "Etiket: değer" satırları Ticari koşullar listesine, diğer satırlar hukuki dipnota gider (teklifKosullari).
+const DEFAULT_NOTES = `Teslimat: Onay sonrası planlanır. Yer ve termin proje onayında netleştirilir.
+Ödeme şekli: Sipariş onayında karşılıklı mutabakat ile belirlenir.
+Üretim başlangıcı: Teklif, teknik detay ve görsel onayın ardından üretim planına alınır.
+İlave talepler: Uygulama öncesinde ayrıca fiyatlandırılarak onaya sunulur.
+Bu teklif ve ekleri taraflarca imzalandığında sipariş onayı niteliği kazanır. Uyuşmazlıklarda öncelikle karşılıklı görüşme esastır; çözümlenemeyen durumlarda Antalya Mahkemeleri ve İcra Daireleri yetkilidir.`;
+const DEFAULT_INTRO = 'Ürün kapsamı, fiyatlandırma ve ticari koşullar değerlendirmelerinize sunulmuştur.';
 
 const STAGES = [
   { key:'KESIF', label:'Keşif' }, { key:'TASARIM', label:'Tasarım' }, { key:'URETIM', label:'Üretim' },
@@ -2130,7 +2143,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-11b';
+window.ROTA_SURUM = 'v2026-09-11d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2333,7 +2346,7 @@ const SUB_STATE = {
 // ---------------- ROL BAZLI ERİŞİM ----------------
 const ROLE_CONFIG = {
   YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
-  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['tum-isler','haftalik-plan','gorevlerim','projeler'] },   // grafik: teklif hazırlar, finans rakamı görmez, planı görüntüler
+  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['tum-isler','haftalik-plan','dis-alimlar','gorevlerim','projeler'] },   // grafik: teklif hazırlar, finans rakamı görmez, planı görüntüler, dış alımları yönetir
   URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'] },
   MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','gorevlerim'] },
   MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['haftalik-plan','gorevlerim'], yonetimSubs:['araclarim','kategoriler'] },
@@ -8286,6 +8299,7 @@ function firmaBilgileriView(){
       <div class="field"><label>Slogan</label><input id="fAgencySlogan" value="${AGENCY.slogan}"></div>
       <div class="field"><label>Adres</label><input id="fAgencyAddress" value="${AGENCY.address}"></div>
       <div class="field"><label>Telefon</label><input id="fAgencyPhone" value="${AGENCY.phone}"></div>
+      <div class="field"><label>E-posta</label><input id="fAgencyEmail" value="${AGENCY.email || ''}" placeholder="info@ornek.com.tr"></div>
       <div class="field"><label>Web Sitesi</label><input id="fAgencyWeb" value="${AGENCY.web || ''}" placeholder="www.ornek.com.tr"></div>
       <div class="field-row">
         <div class="field"><label>Facebook</label><input id="fAgencyFb" value="${AGENCY.facebook || ''}" placeholder="/kullaniciadi"></div>
@@ -8343,6 +8357,7 @@ function submitAgency(){
   AGENCY.address = document.getElementById('fAgencyAddress').value;
   AGENCY.phone = document.getElementById('fAgencyPhone').value;
   AGENCY.web = document.getElementById('fAgencyWeb').value.trim();
+  AGENCY.email = (document.getElementById('fAgencyEmail') || {}).value ? document.getElementById('fAgencyEmail').value.trim() : '';
   AGENCY.facebook = document.getElementById('fAgencyFb').value.trim();
   AGENCY.instagram = document.getElementById('fAgencyIg').value.trim();
   AGENCY.banks = readBankRows();
@@ -11093,6 +11108,163 @@ function mzSil(i){
   renderContent();
 }
 
+// ---------------- MÜŞTERİYE GİDEN TEKLİF BELGESİ ----------------
+// Dekant profesyonel şablon (referans: DEKANT-Profesyonel-Fiyat-Teklifi-P005.pdf).
+// Yalnızca görsel katman: tutarlar quoteSub/quoteKdvAmount/quoteTotal/lineNet ile aynı fonksiyonlardan gelir.
+function teklifParaMetni(q, n){
+  const kod = q.currency || 'TL';
+  const sayi = (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  return kod === 'TL' ? `${sayi} TL` : `${sayi} ${kod}`;          // Türkçe biçim: 2.500,00 TL
+}
+function teklifKdvEtiketi(q){
+  const oranlar = [...new Set((q.items || []).map(it => Number(it.kdv) || 0))];
+  return oranlar.length === 1 ? `KDV (%${oranlar[0].toLocaleString('tr-TR')})` : 'KDV';
+}
+function teklifUzunTarih(iso){
+  if(!iso) return '';
+  const d = new Date(iso + (String(iso).length === 10 ? 'T00:00:00' : ''));
+  if(isNaN(d)) return String(iso);
+  return d.toLocaleDateString('tr-TR', { day:'2-digit', month:'long', year:'numeric' });
+}
+// Teklifin "Notlar" alanındaki satırlar: "Etiket: değer" → ticari koşul satırı, diğerleri → hukuki dipnot.
+// Geçerlilik tarihi varsa "Teklif geçerliliği" satırı gerçek veriden üretilir.
+function teklifKosullari(q){
+  const rows = [], dipnot = [];
+  String(q.notlar || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).forEach(line => {
+    const m = line.match(/^([^:：\d]{2,40}?)\s*[:：]\s*(.*)$/);
+    if(m && m[2].trim()) rows.push({ k: m[1].trim(), v: m[2].trim() });
+    else if(m && !m[2].trim()) rows.push({ k: m[1].trim(), v: '—' });
+    else dipnot.push(line);
+  });
+  if(q.gecerlilik && !rows.some(r => /geçerli/i.test(r.k)))
+    rows.splice(Math.min(2, rows.length), 0, { k:'Teklif geçerliliği', v:`${teklifUzunTarih(q.gecerlilik)} tarihine kadar geçerlidir.` });
+  return { rows, dipnot };
+}
+function teklifBelgesiHtml(q, c){
+  const logo = (typeof DEKANT_LOGO !== 'undefined' && DEKANT_LOGO) ? DEKANT_LOGO : (AGENCY.logo || '');
+  const kosul = teklifKosullari(q);
+  const banks = (AGENCY.banks || []).filter(b => b && (b.name || b.iban));
+  const web = AGENCY.web ? String(AGENCY.web).replace(/^https?:\/\//, '').replace(/^www\./, '') : '';
+  const insta = AGENCY.instagram ? '@' + String(AGENCY.instagram).replace(/^\/+/, '').replace(/^@/, '') : '';
+  const altSag = [web, AGENCY.phone, insta].filter(Boolean);
+  const firmaIletisim = [AGENCY.phone, AGENCY.email].filter(Boolean);
+  const musteriIletisim = c ? [c.phone, c.email].filter(Boolean) : [];
+  const kimlik = `
+    <div class="qd-serit"><i class="k"></i><i class="t"></i><i class="g"></i></div>
+    <div class="qd-kimlik">
+      ${logo ? `<img class="qd-logo" src="${logo}" alt="${notEsc(AGENCY.name)}">` : `<div style="font-size:16pt;font-weight:800;">${notEsc(AGENCY.name)}</div>`}
+      <div class="qd-belge">
+        <div class="ozel">Size özel hazırlandı</div>
+        <div class="tur">Fiyat Teklifi</div>
+        <dl>
+          <dt>Teklif No</dt><dd class="qd-num">${notEsc(q.no || '')}</dd>
+          <dt>Tarih</dt><dd class="qd-num">${formatDate(q.date)}</dd>
+          ${q.gecerlilik ? `<dt>Geçerlilik</dt><dd class="qd-num">${formatDate(q.gecerlilik)}</dd>` : ''}
+          ${q.repName ? `<dt>Temsilci</dt><dd>${notEsc(q.repName)}</dd>` : ''}
+        </dl>
+      </div>
+    </div>
+    <hr class="qd-kimlik-cizgi">`;
+  const altBilgi = `
+    <div class="qd-alt-bilgi">
+      <div class="sol"><b>${notEsc(AGENCY.name)}</b>${AGENCY.address ? `<span>${notEsc(AGENCY.address)}</span>` : ''}</div>
+      <div class="sag">${altSag.map(notEsc).join('<span class="ayrac">•</span>')}</div>
+    </div>`;
+  const satirlar = (q.items || []).map((it, i) => {
+    const m = hasMeasure(it);
+    return `<tr>
+      <td class="qd-no qd-num">${String(i + 1).padStart(2, '0')}</td>
+      <td><span class="qd-urun">${notEsc(it.title || '')}</span>${m ? `<span class="qd-alt">${dimText(it)}</span>` : ''}</td>
+      <td class="qd-aciklama">${notEsc(it.detail || '')}</td>
+      <td class="qd-sag qd-sayi qd-para">${(Number(it.qty) || 0).toLocaleString('tr-TR')} Adet${m ? `<span class="qd-alt">${fmt2(lineQty(it))} ${unitShort(it)}</span>` : ''}</td>
+      <td class="qd-sag qd-sayi qd-para">${teklifParaMetni(q, it.price)}${m ? `<span class="qd-alt">/ ${unitShort(it)}</span>` : ''}</td>
+      <td class="qd-sag qd-sayi qd-para">${teklifParaMetni(q, lineNet(it))}</td>
+    </tr>`;
+  }).join('');
+  return `
+    <div class="quote-doc" id="quoteDocPrintArea" style="flex:2; min-width:320px;">
+      <table class="qd-sayfa">
+        <thead><tr><td>${kimlik}</td></tr></thead>
+        <tfoot><tr><td>${altBilgi}</td></tr></tfoot>
+        <tbody><tr><td><div class="qd-govde">
+
+          <div class="qd-acilis">
+            <div class="ust">Üretimden uygulamaya güvenilir çözüm</div>
+            <h2>Talebinize özel fiyat teklifimiz</h2>
+            <p>${notEsc(q.girisMetni || 'Ürün kapsamı, fiyatlandırma ve ticari koşullar değerlendirmelerinize sunulmuştur.')}</p>
+          </div>
+
+          <div class="qd-taraflar">
+            <div class="qd-taraf">
+              <div class="qd-etiket">Teklifi veren</div>
+              <div class="isim">${notEsc(AGENCY.name)}</div>
+              <div class="satirlar">
+                ${AGENCY.address ? `<div>${notEsc(AGENCY.address)}</div>` : ''}
+                ${firmaIletisim.length ? `<div>${firmaIletisim.map(notEsc).join('<span class="ayrac">•</span>')}</div>` : ''}
+                ${q.repName ? `<div class="yetkili">Yetkili: ${notEsc(q.repName)}</div>` : ''}
+              </div>
+            </div>
+            <div class="qd-taraf">
+              <div class="qd-etiket">Teklif sunulan</div>
+              <div class="isim">${c ? notEsc(c.name) : '—'}</div>
+              <div class="satirlar">
+                <div>${c && c.contact ? `Sayın ${notEsc(c.contact)}` : `Sayın Yetkili'nin değerlendirmesine`}</div>
+                ${c && c.address ? `<div>${notEsc(c.address)}</div>` : ''}
+                ${musteriIletisim.length ? `<div>${musteriIletisim.map(notEsc).join('<span class="ayrac">•</span>')}</div>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="qd-bolum-bas"><h3>Ürün ve hizmet kapsamı</h3><span>Fiyatlar ${q.currency && q.currency !== 'TL' ? notEsc(q.currency) : 'Türk Lirası'} cinsindendir.</span></div>
+          <div class="qd-tablo-kap">
+            <table class="quote-doc-table">
+              <colgroup><col style="width:5%"><col style="width:26%"><col style="width:29.7%"><col style="width:11.3%"><col style="width:14%"><col style="width:14%"></colgroup>
+              <thead><tr><th>#</th><th>Ürün / Hizmet</th><th>Açıklama</th><th class="qd-sag">Miktar</th><th class="qd-sag">Birim Fiyat</th><th class="qd-sag">Tutar</th></tr></thead>
+              <tbody>${satirlar || '<tr><td colspan="6" style="text-align:center;">Kalem eklenmedi.</td></tr>'}</tbody>
+            </table>
+          </div>
+
+          <div class="quote-doc-totals">
+            <div class="qd-toplam">
+              <div class="sat"><span>Ara toplam</span><b class="qd-para">${teklifParaMetni(q, quoteSub(q))}</b></div>
+              <div class="sat"><span>${teklifKdvEtiketi(q)}</span><b class="qd-para">${teklifParaMetni(q, quoteKdvAmount(q))}</b></div>
+              <hr class="cizgi">
+              <div class="genel"><span>Genel toplam</span><b class="qd-para">${teklifParaMetni(q, quoteTotal(q))}</b></div>
+              <div class="qd-kdv-notu">KDV dahil toplam tutardır.</div>
+            </div>
+          </div>
+
+          ${kosul.rows.length ? `
+          <div class="qd-bolum-bas"><h3>Ticari koşullar</h3><span>Teklifin ayrılmaz parçasıdır.</span></div>
+          <div class="qd-kosullar">
+            ${kosul.rows.map(r => `<div class="qd-kosul"><b>${notEsc(r.k)}</b><span>${notEsc(r.v)}</span></div>`).join('')}
+          </div>` : ''}
+
+          <div class="qd-son-blok">
+            ${(banks.length) ? `
+            <div class="qd-banka-onay">
+              <div class="qd-banka">
+                <div class="qd-mini-bas">Ödeme / Banka bilgileri</div>
+                ${banks.map(b => `<div class="b"><span>${notEsc(b.name)}</span><span class="iban qd-para">${notEsc(b.iban)}</span></div>`).join('')}
+              </div>
+              <div class="qd-onay">
+                <div class="qd-mini-bas">Teklif onayı</div>
+                <div class="bosluk"></div>
+                <div class="cizgi">Ad Soyad / Kaşe / İmza / Tarih</div>
+              </div>
+            </div>` : `
+            <div class="qd-banka-onay">
+              <div></div>
+              <div class="qd-onay"><div class="qd-mini-bas">Teklif onayı</div><div class="bosluk"></div><div class="cizgi">Ad Soyad / Kaşe / İmza / Tarih</div></div>
+            </div>`}
+            ${kosul.dipnot.length ? `<div class="qd-dipnot">${kosul.dipnot.map(l => `<p>${notEsc(l)}</p>`).join('')}</div>` : ''}
+          </div>
+
+        </div></td></tr></tbody>
+      </table>
+    </div>`;
+}
+
 function quoteViewPage(id){
   const q = QUOTES.find(x=>x.id===id);
   if(!q) return `<div class="note">Teklif bulunamadı.</div>`;
@@ -11123,84 +11295,7 @@ function quoteViewPage(id){
     </div>
 
     <div class="quote-view-row" style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-      <div class="quote-doc" id="quoteDocPrintArea" style="flex:2; min-width:320px;">
-        <div class="qd-ust-cizgi"></div>
-
-        <div class="qd-tepe">
-          <div class="qd-marka">
-            ${AGENCY.logo
-              ? `<img class="quote-doc-logo" src="${AGENCY.logo}" alt="${notEsc(AGENCY.name)}">`
-              : `<div class="ad">${notEsc(AGENCY.name)}</div><div class="slogan">${notEsc(AGENCY.slogan)}</div>`}
-          </div>
-          <div class="qd-belge">
-            <div class="tur">FİYAT TEKLİFİ</div>
-            <dl>
-              <dt>Teklif No</dt><dd>${notEsc(q.no)}</dd>
-              <dt>Tarih</dt><dd>${formatDate(q.date)}</dd>
-              ${q.gecerlilik ? `<dt>Geçerlilik</dt><dd>${formatDate(q.gecerlilik)}</dd>` : ''}
-              <dt>Temsilci</dt><dd>${notEsc(q.repName || '')}</dd>
-            </dl>
-          </div>
-        </div>
-
-        <div class="qd-taraflar">
-          <div class="qd-taraf">
-            <div class="qd-etiket">Teklifi Veren</div>
-            <div class="isim">${notEsc(AGENCY.name)}</div>
-            <div class="satir">${notEsc(AGENCY.address)}<br>${notEsc(AGENCY.phone)}</div>
-          </div>
-          <div class="qd-taraf">
-            <div class="qd-etiket">Müşteri</div>
-            <div class="isim">${c ? notEsc(c.name) : '—'}</div>
-            <div class="satir">${c && c.contact ? notEsc(c.contact) + '<br>' : ''}${c && c.address ? notEsc(c.address) : ''}</div>
-          </div>
-        </div>
-
-        ${q.girisMetni ? `<p class="qd-hitap"><b>Sayın Yetkili,</b><br>${notEsc(q.girisMetni)}</p>` : ''}
-
-        <table class="quote-doc-table">
-          ${(() => { const sym = CURRENCY_SYMBOLS[q.currency||'TL']; return `
-          <colgroup><col style="width:6%"><col style="width:26%"><col style="width:28%"><col style="width:11%"><col style="width:14%"><col style="width:15%"></colgroup>
-          <thead><tr><th>#</th><th>Ürün / Hizmet</th><th>Açıklama</th>
-            <th class="qd-sag">Miktar</th><th class="qd-sag">Birim Fiyat</th><th class="qd-sag">Tutar</th></tr></thead>
-          <tbody>
-            ${q.items.map((it,i) => { const m = hasMeasure(it); return `<tr>
-              <td class="qd-no">${i+1}</td>
-              <td><span class="qd-urun">${notEsc(it.title)}${m ? `<span class="qd-sub">${dimText(it)}</span>` : ''}</span></td>
-              <td class="qd-aciklama">${notEsc(it.detail||'')}</td>
-              <td class="qd-sag qd-para">${it.qty} ad${m ? '<span class="qd-sub">'+fmt2(lineQty(it))+' '+unitShort(it)+'</span>' : ''}</td>
-              <td class="qd-sag qd-para">${sym}${(Number(it.price)||0).toLocaleString('tr-TR',{minimumFractionDigits:2})}${m ? `<span class="qd-sub">/ ${unitShort(it)}</span>` : ''}</td>
-              <td class="qd-sag qd-para">${sym}${lineNet(it).toLocaleString('tr-TR',{minimumFractionDigits:2})}</td>
-            </tr>`; }).join('')}
-          </tbody>`; })()}
-        </table>
-
-        <div class="quote-doc-totals">
-          ${(() => { const sym = CURRENCY_SYMBOLS[q.currency||'TL']; return `
-          <div class="qd-toplam">
-            <div class="sat"><span>Ara Toplam</span><b>${sym}${quoteSub(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</b></div>
-            <div class="sat"><span>KDV</span><b>${sym}${quoteKdvAmount(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</b></div>
-            <div class="genel"><span>Genel Toplam</span><b>${sym}${quoteTotal(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</b></div>
-            <div class="qd-kdv-notu">Tutarlara KDV dahildir.</div>
-          </div>`; })()}
-        </div>
-
-        ${q.notlar ? `<div class="quote-doc-section"><h4>Notlar</h4><ul class="quote-doc-notes">${q.notlar.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>`<li>${notEsc(line)}</li>`).join('')}</ul></div>` : ''}
-
-        ${(AGENCY.banks && AGENCY.banks.length) ? `<div class="quote-doc-section"><h4>Ödeme / Banka Bilgileri</h4>
-          <div class="qd-banka">${AGENCY.banks.map(b => `<div class="b"><span>${notEsc(b.name)}</span><span class="iban">${notEsc(b.iban)}</span></div>`).join('')}</div></div>` : ''}
-
-        <div class="qd-imza"><div class="kutu">Kaşe / İmza</div></div>
-
-        <div class="quote-doc-foot">
-          <div class="sol"><b>${notEsc(AGENCY.name)}</b><br>${notEsc(AGENCY.address)}</div>
-          <div class="sag-grup">
-            ${AGENCY.web ? `<span class="oge"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM3.5 5.5h9v1h-9v-1zm0 4h9v1h-9v-1z"/></svg>${notEsc(AGENCY.web)}</span>` : ''}
-            ${AGENCY.phone ? `<span class="oge"><svg viewBox="0 0 16 16"><path d="M4 1h3l1.5 3.5-2 1.5a10 10 0 004.5 4.5l1.5-2L16 10v3c0 1.7-1.3 3-3 3A13 13 0 010 3c0-1.7 1.3-2 4-2z"/></svg>${notEsc(AGENCY.phone)}</span>` : ''}
-            ${AGENCY.instagram ? `<span class="oge"><svg viewBox="0 0 16 16"><path d="M4.5 0h7A4.5 4.5 0 0116 4.5v7a4.5 4.5 0 01-4.5 4.5h-7A4.5 4.5 0 010 11.5v-7A4.5 4.5 0 014.5 0zM8 4a4 4 0 100 8 4 4 0 000-8zm0 1.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8z"/></svg>${notEsc(AGENCY.instagram)}</span>` : ''}
-          </div>
-        </div>
-      </div>
+      ${teklifBelgesiHtml(q, c)}
 
       <aside class="quote-summary no-print" style="flex:0 0 310px; min-width:260px; top:88px;">
         <p>TEKLİF ÖZETİ</p>
@@ -11437,6 +11532,84 @@ function convertQuoteToTask(id){ changeQuoteStatus(id, 'Kabul Edildi'); }
 // Kayıtlar buluta kaydedilir; haftalık planın üstünde o haftanın alımları şerit olarak görünür.
 let DIS_ALIMLAR = [];
 let daTamamAcik = false;
+// Dış alım hareket günlüğü: kim, ne zaman, hangi kaydı ekledi/değiştirdi/teslim aldı/sildi.
+// Ekrandan silinmez; buluta kaydedilir (DIS_ALIM_HAREKET). Sayfanın altında "Son hareketler" olarak görünür.
+let DIS_ALIM_HAREKET = [];
+let daHareketTumu = false;
+const DA_ISLEM = {
+  ekleme:    { ad:'ekledi',                      renk:'green' },
+  guncelleme:{ ad:'düzenledi',                   renk:'blue' },
+  teslim:    { ad:'teslim alındı olarak işaretledi', renk:'green' },
+  'geri-al': { ad:'teslim işaretini geri aldı',  renk:'amber' },
+  silme:     { ad:'sildi',                       renk:'red' },
+  temizleme: { ad:'tamamlananları temizledi',    renk:'red' },
+};
+function daKimYapti(){
+  const p = (typeof benimPersonelim === 'function') ? benimPersonelim() : null;
+  const email = (typeof notKullanici === 'function') ? notKullanici() : '';
+  const liveAd = (typeof LIVE !== 'undefined' && LIVE.user && (LIVE.user.name || LIVE.user.ad)) || '';
+  return { ad: p ? p.name : (liveAd || roleCfg().label), email: email, rol: CURRENT_ROLE };
+}
+function daHareketYaz(islem, a, detay){
+  const kim = daKimYapti();
+  DIS_ALIM_HAREKET.unshift({
+    id: benzersizId('dh'), tarih: Date.now(), islem: islem,
+    kim: kim.ad, email: kim.email, rol: kim.rol,
+    kayitId: a ? a.id : null,
+    malzeme: a ? (a.malzeme || '') : '',
+    tedarikci: a ? (a.tedarikci || '') : '',
+    tur: a ? a.tur : null,
+    tarihPlan: a ? (a.tarih || '') : '',
+    detay: detay || '',
+  });
+  if(DIS_ALIM_HAREKET.length > 500) DIS_ALIM_HAREKET.length = 500;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+// Düzenlemede hangi alanlar değişti? (günlükte "tarih: 10.09 → 12.09" gibi görünür)
+function daDegisimOzeti(eski, yeni){
+  const alanlar = [
+    ['tur', 'tür', v => v ? DA_TURLER[v].ad : '—'],
+    ['malzeme', 'malzeme', v => v || '—'],
+    ['tedarikci', 'tedarikçi', v => v || '—'],
+    ['tarih', 'tarih', v => v ? formatDate(v) : '—'],
+    ['tutar', 'tutar', v => v ? tl(v) : '—'],
+    ['sorumluId', 'sorumlu', v => { const p = PERSONELLER.find(x => x.id === v); return p ? p.name : '—'; }],
+    ['aracId', 'araç', v => { const x = VEHICLES.find(y => y.id === v); return x ? x.plate : '—'; }],
+    ['jobId', 'iş', v => { const j = JOBS.find(x => x.id === v); return j ? j.code : '—'; }],
+    ['not', 'not', v => v || '—'],
+  ];
+  return alanlar
+    .filter(([k]) => (eski[k] || '') !== (yeni[k] || '') && !(k === 'tutar' && Number(eski[k] || 0) === Number(yeni[k] || 0)))
+    .map(([k, ad, f]) => `${ad}: ${f(eski[k])} → ${f(yeni[k])}`)
+    .join(' · ');
+}
+function daHareketSatirHtml(h){
+  const islem = DA_ISLEM[h.islem] || { ad: h.islem, renk:'blue' };
+  const kayit = h.malzeme ? `<b>${notEsc(h.malzeme)}</b>${h.tedarikci ? ` <span style="color:var(--ink-3);">(${notEsc(h.tedarikci)})</span>` : ''}` : '';
+  const ne = h.islem === 'temizleme' ? notEsc(h.detay || '') : kayit;
+  const tarihTam = new Date(h.tarih).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  return `
+    <div class="activity-item" title="${tarihTam}">
+      <span>${initialsOf(h.kim || '•')}</span>
+      <div>
+        <p><b>${notEsc(h.kim || '—')}</b><span style="color:var(--ink-3);"> · ${ROLE_CONFIG[h.rol] ? ROLE_CONFIG[h.rol].label : ''}</span>
+          — ${ne} kaydını <span class="tag ${islem.renk}" style="margin-left:2px;">${islem.ad}</span>
+          ${h.islem !== 'temizleme' && h.detay ? `<span style="display:block;color:var(--ink-2);margin-top:2px;">${notEsc(h.detay)}</span>` : ''}</p>
+        <small>${zamanFarkiMetni(h.tarih)} · ${tarihTam}</small>
+      </div>
+    </div>`;
+}
+function daHareketPaneliHtml(){
+  const liste = daHareketTumu ? DIS_ALIM_HAREKET : DIS_ALIM_HAREKET.slice(0, 12);
+  return `
+    <section class="panel" style="margin-top:16px;">
+      <div class="panel-head"><div><h3>Son hareketler</h3><p>Dış alımlarda kim ne yaptı — bu kayıtlar silinemez</p></div>
+        ${DIS_ALIM_HAREKET.length > 12 ? `<button class="ghost" onclick="daHareketTumu=!daHareketTumu; renderContent();">${daHareketTumu ? 'Son 12\'yi göster' : `Tümünü göster (${DIS_ALIM_HAREKET.length})`}</button>` : ''}</div>
+      <div class="activity">
+        ${liste.length ? liste.map(daHareketSatirHtml).join('') : '<div class="empty-state">Henüz hareket kaydı yok.</div>'}
+      </div>
+    </section>`;
+}
 
 const DA_TURLER = {
   toplama:  { ad:'Araçla Toplanacak',          ikon:'🚚', sublabel:'Tedarikçiden biz alacağız' },
@@ -11469,7 +11642,7 @@ function daSatirHtml(a){
           ${p ? `<span>👤 ${notEsc(p.name)}</span>` : ''}
           ${v ? `<span class="mono">🚐 ${v.plate}</span>` : ''}
           ${j ? `<span class="mono">📋 ${j.code} · ${notEsc(j.client)}</span>` : ''}
-          ${a.tutar ? `<span class="mono">${tl(a.tutar)}</span>` : ''}
+          ${a.tutar && finansGorebilir() ? `<span class="mono">${tl(a.tutar)}</span>` : ''}
           ${a.not ? `<span>📝 ${notEsc(a.not)}</span>` : ''}
         </div>
       </div>
@@ -11504,6 +11677,7 @@ function disAlimlarView(){
           <button class="mx-chip" style="margin-left:auto;" onclick="event.stopPropagation(); daTamamTemizle()">Temizle</button></div>
         ${daTamamAcik ? tamam.map(daSatirHtml).join('') : ''}
       </div>` : ''}
+    ${daHareketPaneliHtml()}
   `;
 }
 function openDisAlimModal(id){
@@ -11519,7 +11693,7 @@ function openDisAlimModal(id){
       <datalist id="daTedList">${CUSTOMERS.map(c => `<option value="${notEsc(c.name)}">`).join('')}</datalist></div>
     <div class="field-row">
       <div class="field"><label>Tarih</label><input id="daTarih" type="date" value="${a && a.tarih ? a.tarih : planIso(new Date())}"></div>
-      <div class="field"><label>Tutar (isteğe bağlı)</label><input id="daTutar" type="number" min="0" value="${a && a.tutar ? a.tutar : ''}" placeholder="0"></div>
+      ${finansGorebilir() ? `<div class="field"><label>Tutar (isteğe bağlı)</label><input id="daTutar" type="number" min="0" value="${a && a.tutar ? a.tutar : ''}" placeholder="0"></div>` : ''}
     </div>
     <div class="field-row">
       <div class="field"><label>Sorumlu</label><select id="daSorumlu">
@@ -11546,7 +11720,7 @@ function submitDisAlim(id){
     malzeme: malzeme,
     tedarikci: document.getElementById('daTedarikci').value.trim(),
     tarih: document.getElementById('daTarih').value,
-    tutar: Number(document.getElementById('daTutar').value) || 0,
+    tutar: document.getElementById('daTutar') ? (Number(document.getElementById('daTutar').value) || 0) : (id ? (Number((DIS_ALIMLAR.find(x => x.id === id) || {}).tutar) || 0) : 0),
     sorumluId: document.getElementById('daSorumlu').value || null,
     aracId: document.getElementById('daArac').value || null,
     jobId: document.getElementById('daJob').value || null,
@@ -11555,9 +11729,16 @@ function submitDisAlim(id){
   let oncekiSorumlu = null;
   if(id){
     const a = DIS_ALIMLAR.find(x => x.id === id);
-    if(a){ oncekiSorumlu = a.sorumluId; Object.assign(a, veri); }
+    if(a){
+      oncekiSorumlu = a.sorumluId;
+      const degisim = daDegisimOzeti(a, veri);
+      Object.assign(a, veri);
+      if(degisim) daHareketYaz('guncelleme', a, degisim);
+    }
   } else {
-    DIS_ALIMLAR.push(Object.assign({ id: benzersizId('da'), durum:'bekliyor' }, veri));
+    const yeni = Object.assign({ id: benzersizId('da'), durum:'bekliyor' }, veri);
+    DIS_ALIMLAR.push(yeni);
+    daHareketYaz('ekleme', yeni, veri.tarih ? 'tarih: ' + formatDate(veri.tarih) : '');
   }
   if(veri.sorumluId && veri.sorumluId !== oncekiSorumlu)
     bildirimAtama([veri.sorumluId], `Size dış alım atandı: ${veri.malzeme}${veri.tedarikci ? ' (' + veri.tedarikci + ')' : ''}${veri.tarih ? ' — ' + formatDate(veri.tarih) : ''}`);
@@ -11569,14 +11750,27 @@ function daToggle(id){
   if(!a) return;
   a.durum = a.durum === 'tamam' ? 'bekliyor' : 'tamam';
   if(a.durum === 'tamam') daTamamAcik = true;
+  daHareketYaz(a.durum === 'tamam' ? 'teslim' : 'geri-al', a);
   renderContent();
 }
 function daSil(id){
   const i = DIS_ALIMLAR.findIndex(x => x.id === id);
-  if(i >= 0){ DIS_ALIMLAR.splice(i, 1); closeModal(); renderContent(); showToast('Dış alım silindi.'); }
+  if(i >= 0){
+    const a = DIS_ALIMLAR[i];
+    DIS_ALIMLAR.splice(i, 1);
+    daHareketYaz('silme', a, [DA_TURLER[a.tur] ? DA_TURLER[a.tur].ad : '', a.tarih ? 'tarih: ' + formatDate(a.tarih) : '', a.durum === 'tamam' ? 'durum: tamam' : 'durum: bekliyor'].filter(Boolean).join(' · '));
+    if(typeof bildirimYoneticilere === 'function')
+      bildirimYoneticilere(`${daKimYapti().ad} bir dış alım kaydını sildi: ${a.malzeme}${a.tedarikci ? ' (' + a.tedarikci + ')' : ''}`, 'bilgi');
+    closeModal(); renderContent(); showToast('Dış alım silindi.');
+  }
 }
 function daTamamTemizle(){
+  const silinen = DIS_ALIMLAR.filter(a => a.durum === 'tamam');
+  if(!silinen.length) return;
   DIS_ALIMLAR = DIS_ALIMLAR.filter(a => a.durum !== 'tamam');
+  daHareketYaz('temizleme', null, `${silinen.length} tamamlanmış kayıt: ` + silinen.map(a => a.malzeme).join(', '));
+  if(typeof bildirimYoneticilere === 'function')
+    bildirimYoneticilere(`${daKimYapti().ad} tamamlanan ${silinen.length} dış alım kaydını temizledi.`, 'bilgi');
   renderContent();
 }
 // Haftalık planın üstünde: bu haftanın bekleyen dış alımları
@@ -11861,7 +12055,7 @@ function collectState(){
   return {
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
-    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, BILDIRIMLER,
+    KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, DIS_ALIM_HAREKET, BILDIRIMLER,
     CARI_HAREKETLER,
     MALZEME_FIYATLARI, KURLAR,
   };
@@ -11881,7 +12075,7 @@ function applyState(d){
   MESAI_RATES = (d.MESAI_RATES && typeof d.MESAI_RATES === 'object') ? d.MESAI_RATES : { normal:50, hafta:100, resmi:100 };
   MESAI_KAYIT = (d.MESAI_KAYIT && typeof d.MESAI_KAYIT === 'object') ? d.MESAI_KAYIT : {};
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
-  DIS_ALIMLAR = arr('DIS_ALIMLAR'); BILDIRIMLER = arr('BILDIRIMLER');
+  DIS_ALIMLAR = arr('DIS_ALIMLAR'); DIS_ALIM_HAREKET = arr('DIS_ALIM_HAREKET'); BILDIRIMLER = arr('BILDIRIMLER');
   CARI_HAREKETLER = arr('CARI_HAREKETLER');
   MALZEME_FIYATLARI = Array.isArray(d.MALZEME_FIYATLARI) && d.MALZEME_FIYATLARI.length ? d.MALZEME_FIYATLARI : VARSAYILAN_MALZEMELER();
   KURLAR = (d.KURLAR && typeof d.KURLAR === 'object' && !Array.isArray(d.KURLAR)) ? d.KURLAR : { usd:0, eur:0, tarih:'', kaynak:'' };
