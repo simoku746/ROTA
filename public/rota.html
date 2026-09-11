@@ -1789,6 +1789,7 @@ tbody tr:hover{background:var(--surface-muted);}
 .chart{height:240px;display:flex;align-items:flex-end;gap:18px;border-bottom:1px solid var(--line);padding:0 12px;}
 .bar-group{height:100%;flex:1;display:flex;align-items:flex-end;gap:5px;position:relative;}
 .bar{flex:1;border-radius:5px 5px 0 0;background:var(--line-strong);min-height:2px;}
+.kbr-chart .chart{height:180px;justify-content:flex-start;gap:22px;} .kbr-chart .bar-group{flex:0 1 96px;max-width:96px;}
 .bar.orange{background:var(--signal);} .bar.green{background:var(--ok);} .bar.red{background:var(--risk);} .bar.navy{background:var(--navy-950);}
 .bar-label{position:absolute;bottom:-25px;width:100%;text-align:center;font-size:10px;color:var(--ink-2);}
 .chart-legend{display:flex;gap:16px;margin-left:auto;font-size:11.5px;color:var(--ink-2);flex-wrap:wrap;}
@@ -2316,7 +2317,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-12a';
+window.ROTA_SURUM = 'v2026-09-12b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2332,6 +2333,9 @@ function yeniIsKodu(){
 // Açılışta veri onarımı: geçmişte sayaç hatasıyla oluşmuş çift kimlikleri ayırır
 function veriOnar(){
   let degisti = false;
+  if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && String(k.ad).toLowerCase() === 'kartlı alışveriş')){
+    KATEGORILER.push({ id: benzersizId('kd'), ad:'Kartlı Alışveriş', tip:'gider', sistem:true }); degisti = true;
+  }
   const gorulen = new Set();
   QUOTES.forEach(q => {
     if(gorulen.has(q.id)){
@@ -2473,7 +2477,6 @@ const RAPORLAR_SUBS = [
   { key:'satis-raporu', label:'Satış Raporu' },
   { key:'cari-durum', label:'Cari Hesap Durumu' },
   { key:'gelir-gider-raporu', label:'Gelir Gider Raporu' },
-  { key:'kdv-raporu', label:'KDV Raporu' },
   { key:'kasa-banka-raporu', label:'Kasa\\Banka Raporu' },
 ];
 const TEKLIF_SUBS = [
@@ -4236,7 +4239,7 @@ function raporlarGovde(){
   if(raporlarSub==='satis-raporu') return alisSatisRaporuView('satis');
   if(raporlarSub==='cari-durum') return cariDurumRaporuView();
   if(raporlarSub==='gelir-gider-raporu') return kategoriRaporuView();
-  if(raporlarSub==='kdv-raporu') return kdvRaporuView();
+  if(raporlarSub==='kdv-raporu'){ raporlarSub = 'odemeler-raporu'; }   // KDV raporu sekmesi kaldırıldı (v2026-09-12b)
   if(raporlarSub==='kasa-banka-raporu') return kasaBankaRaporuView();
   const sub = RAPORLAR_SUBS.find(s=>s.key===raporlarSub);
   return `<div class="page-head"><div><div class="page-title">${sub.label}</div></div></div>`;
@@ -5460,25 +5463,99 @@ function kdvRaporuView(){
 // Sadece gerçekten kasa/bankadan para giren/çıkan kayıtlar listelenir — henüz ödenmemiş
 // "alış" tipi giderler (cariye borç doğuran ama nakit hareketi olmayan kayıtlar) burada gösterilmez.
 function kasaBankaHareketleri(){
-  return [
-    ...GELIRLER.filter(g => gelirNakitEtkisi(g) > 0).map(g => ({ ...g, gelir:true })),
-    ...GIDERLER.filter(g => giderNakitEtkisi(g) > 0).map(g => ({ ...g, gelir:false })),
-  ].sort((a,b) => trTarihMs(b.tarih) - trTarihMs(a.tarih));
+  // Nakit hareketleri: tahsilatlar (+), kasa/bankadan ödenen giderler (−, kartla ödenenler hariç), kart ekstresi ödemeleri (−)
+  const liste = [
+    ...GELIRLER.filter(g => gelirNakitEtkisi(g) > 0).map(g => ({ ...g, gelir:true, nakitTarih: g.tarih, tutar: gelirNakitEtkisi(g) })),
+    ...GIDERLER.filter(g => giderNakitEtkisi(g) > 0 && !kartAdiMi(g.hesap)).map(g => ({ ...g, gelir:false, nakitTarih: g.odemeTarihi || g.tarih, tutar: giderNakitEtkisi(g) })),
+  ];
+  KREDI_KARTLARI.forEach(k => (k.odemeler || []).forEach(o => liste.push({ id: 'kk' + k.id + o.tarih + o.tutar, gelir:false, client: k.name, tur: 'Kart ekstresi ödemesi', hesap: o.hesap, tarih: o.tarih, nakitTarih: o.tarih, tutar: Number(o.tutar) || 0 })));
+  return liste.sort((a,b) => trTarihMs(b.nakitTarih) - trTarihMs(a.nakitTarih));
 }
+// Kasa\Banka Raporu — dönem kırılımı (günlük / haftalık / aylık / yıllık), hesap ve tür filtresi
+let kbrKirilim = 'aylik';       // 'gunluk' | 'haftalik' | 'aylik' | 'yillik'
+let kbrHesap = '';              // '' = tüm hesaplar
+let kbrTur = 'hepsi';           // 'hepsi' | 'gelir' | 'gider'
+let kbrAcikDonem = null;        // detayı açık dönem anahtarı
+const KBR_AYLAR = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+function kbrHaftaBasi(d){ const x = new Date(d); const g = (x.getDay() + 6) % 7; x.setDate(x.getDate() - g); x.setHours(0,0,0,0); return x; }
+function kbrDonemAnahtar(ms){
+  const d = new Date(ms);
+  if(kbrKirilim === 'gunluk') return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  if(kbrKirilim === 'haftalik'){ const h = kbrHaftaBasi(d); return h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2,'0') + '-' + String(h.getDate()).padStart(2,'0') + 'H'; }
+  if(kbrKirilim === 'yillik') return String(d.getFullYear());
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0');
+}
+function kbrDonemEtiket(key){
+  if(kbrKirilim === 'gunluk'){ const [y,m,g] = key.split('-'); return `${Number(g)} ${KBR_AYLAR[Number(m)-1]} ${y}`; }
+  if(kbrKirilim === 'haftalik'){ const [y,m,g] = key.replace('H','').split('-'); const b = new Date(+y, +m-1, +g); const e = new Date(b); e.setDate(b.getDate() + 6);
+    return `${b.getDate()} ${KBR_AYLAR[b.getMonth()]} – ${e.getDate()} ${KBR_AYLAR[e.getMonth()]} ${e.getFullYear()}`; }
+  if(kbrKirilim === 'yillik') return key;
+  const [y,m] = key.split('-'); return `${KBR_AYLAR[Number(m)-1]} ${y}`;
+}
+function kbrKirilimSec(k){ kbrKirilim = k; kbrAcikDonem = null; renderContent(); }
 function kasaBankaRaporuView(){
+  const hesaplar = [...BANK_ACCOUNTS, ...KASA_ACCOUNTS].map(a => a.name);
+  let hareketler = kasaBankaHareketleri().filter(h => trTarihMs(h.nakitTarih));
+  if(kbrHesap) hareketler = hareketler.filter(h => h.hesap === kbrHesap);
+  if(kbrTur === 'gelir') hareketler = hareketler.filter(h => h.gelir);
+  if(kbrTur === 'gider') hareketler = hareketler.filter(h => !h.gelir);
+  const donemler = new Map();
+  hareketler.forEach(h => {
+    const key = kbrDonemAnahtar(trTarihMs(h.nakitTarih));
+    if(!donemler.has(key)) donemler.set(key, { key, giris:0, cikis:0, adet:0, satirlar:[] });
+    const d = donemler.get(key); d.adet++; d.satirlar.push(h);
+    if(h.gelir) d.giris += h.tutar; else d.cikis += h.tutar;
+  });
+  const liste = [...donemler.values()].sort((a, b) => b.key.localeCompare(a.key));
+  const giris = liste.reduce((t, d) => t + d.giris, 0), cikis = liste.reduce((t, d) => t + d.cikis, 0);
+  const maks = Math.max(1, ...liste.map(d => Math.max(d.giris, d.cikis)));
+  const grafik = liste.slice(0, 12).reverse();
+  const kir = [['gunluk','Günlük'],['haftalik','Haftalık'],['aylik','Aylık'],['yillik','Yıllık']];
   return `
-    <div class="list-page-head"><div class="page-title">Kasa\\Banka Raporu</div></div>
-    <div class="filter-bar" style="border-radius:12px; margin-bottom:12px;"><span>📅 Tüm kayıtlar</span><span>⌨️ TL</span><span>⌨️ Gelir/Gider</span></div>
-    <div class="toggle-row"><button>Günlük</button><button>Haftalık</button><button>Aylık</button><button class="active">Yıllık</button></div>
-    ${kasaBankaHareketleri().length ? `<div class="chart-box">
-      <div class="flow-chart"><div class="flow-line"></div><div class="flow-bar"></div></div>
-      <div style="text-align:center; font-size:11px; color:var(--text-muted);">${new Date().toLocaleDateString('tr-TR',{month:'short',year:'numeric'})}</div>
-    </div>` : ''}
-    <div class="report-body" style="border-top:1px solid var(--border);">
-      ${kasaBankaHareketleri().length ? '' : '<div class="empty-state">Henüz gelir ya da gider kaydı yok.</div>'}
-      ${kasaBankaHareketleri().map(h => `
-      <div class="ledger-row"><div><div class="ledger-title" style="color:var(--accent);">${h.client || h.tur}</div><div class="ledger-sub">${h.tur}</div></div><div class="ledger-amount">${h.gelir ? '' : '-'}${tl(h.tutar)}<span class="${h.gelir ? 'odendi' : 'kalan'}">${h.hesap || ''} · ${h.tarih}</span></div></div>`).join('')}
-      <div class="ledger-footer"><span>🔻 Toplam: ${kasaBankaHareketleri().length} kayıt</span></div>
+    <div class="page-head">
+      <div><div class="eyebrow">RAPOR MERKEZİ</div><div class="page-title">Kasa \\ Banka Raporu</div>
+        <div class="page-sub">Kasa ve banka hesaplarına giren tahsilatlar ile çıkan ödemeler. Kartla yapılan harcamalar kart ekstresi ödendiğinde nakit çıkışı olarak görünür.</div></div>
+      <div class="action-row"><div class="toggle-row" role="tablist" aria-label="Dönem kırılımı">${kir.map(([k, ad]) => `<button role="tab" aria-selected="${kbrKirilim === k}" class="${kbrKirilim === k ? 'active' : ''}" onclick="kbrKirilimSec('${k}')">${ad}</button>`).join('')}</div></div>
+    </div>
+    <div class="metric-grid compact">
+      <div class="metric"><div class="metric-top"><span>Giriş</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${tl(giris)}</strong><small>${hareketler.filter(h => h.gelir).length} tahsilat</small></div>
+      <div class="metric"><div class="metric-top"><span>Çıkış</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${tl(cikis)}</strong><small>${hareketler.filter(h => !h.gelir).length} ödeme</small></div>
+      <div class="metric"><div class="metric-top"><span>Net</span><span class="metric-icon">◎</span></div><strong style="color:${giris - cikis >= 0 ? 'var(--ok)' : 'var(--risk)'};">${tl(giris - cikis)}</strong><small>${liste.length} dönem</small></div>
+      <div class="metric"><div class="metric-top"><span>Kasa & banka bakiyesi</span><span class="metric-icon blue">₺</span></div><strong>${tl([...KASA_ACCOUNTS, ...BANK_ACCOUNTS].filter(a => a.currency === 'TL').reduce((t, a) => t + (Number(a.balance) || 0), 0))}</strong><small>${KASA_ACCOUNTS.length + BANK_ACCOUNTS.length} hesap</small></div>
+    </div>
+    <div class="table-card">
+      <div class="toolbar" style="padding:14px 16px;margin:0;border-bottom:1px solid var(--line);">
+        <select class="tb-filter" onchange="kbrHesap=this.value; renderContent();" aria-label="Hesap"><option value="">Tüm hesaplar</option>${hesaplar.map(h => `<option ${kbrHesap === h ? 'selected' : ''}>${notEsc(h)}</option>`).join('')}</select>
+        <select class="tb-filter" onchange="kbrTur=this.value; renderContent();" aria-label="Tür"><option value="hepsi" ${kbrTur === 'hepsi' ? 'selected' : ''}>Giriş + Çıkış</option><option value="gelir" ${kbrTur === 'gelir' ? 'selected' : ''}>Yalnız girişler</option><option value="gider" ${kbrTur === 'gider' ? 'selected' : ''}>Yalnız çıkışlar</option></select>
+        <span style="margin-left:auto;font-size:12px;color:var(--ink-3);">${hareketler.length} kayıt</span>
+      </div>
+      ${grafik.length ? `<div class="chart-wrap kbr-chart" style="padding:14px 16px 0;"><div class="chart">
+        ${grafik.map(d => `<div class="bar-group" title="${kbrDonemEtiket(d.key)}: giriş ${tl(d.giris)} · çıkış ${tl(d.cikis)}">
+          <div class="bar green" style="height:${Math.round(d.giris / maks * 100)}%"></div>
+          <div class="bar red" style="height:${Math.round(d.cikis / maks * 100)}%"></div>
+          <span class="bar-label">${kbrKirilim === 'haftalik' ? kbrDonemEtiket(d.key).split(' – ')[0] : kbrDonemEtiket(d.key)}</span></div>`).join('')}
+      </div><div style="height:26px;"></div></div>` : ''}
+      <table class="data-table">
+        <thead><tr><th>Dönem</th><th class="sag">Giriş</th><th class="sag">Çıkış</th><th class="sag">Net</th><th class="sag">Kayıt</th><th></th></tr></thead>
+        <tbody>
+          ${liste.length ? liste.map(d => `
+            <tr class="clickable" onclick="kbrAcikDonem = kbrAcikDonem === '${d.key}' ? null : '${d.key}'; renderContent();">
+              <td><strong>${kbrDonemEtiket(d.key)}</strong></td>
+              <td class="money" style="color:var(--ok);">${tl(d.giris)}</td>
+              <td class="money" style="color:var(--risk);">${tl(d.cikis)}</td>
+              <td class="money" style="color:${d.giris - d.cikis >= 0 ? 'var(--ok)' : 'var(--risk)'};">${tl(d.giris - d.cikis)}</td>
+              <td class="sag">${d.adet}</td>
+              <td class="sag" style="color:var(--ink-3);">${kbrAcikDonem === d.key ? '⌄' : '›'}</td>
+            </tr>
+            ${kbrAcikDonem === d.key ? `<tr><td colspan="6" style="padding:0;background:var(--surface-muted);">
+              <table class="data-table" style="background:transparent;">
+                <thead><tr><th>Tarih</th><th>Cari / Açıklama</th><th>Hesap</th><th class="sag">Tutar</th></tr></thead>
+                <tbody>${d.satirlar.map(h => `<tr><td>${notEsc(h.nakitTarih || '')}</td><td><strong>${notEsc(h.client || h.tur || '—')}</strong><small>${notEsc(h.tur || '')}${h.belgeNo ? ' · ' + notEsc(h.belgeNo) : ''}</small></td><td>${notEsc(h.hesap || '—')}</td><td class="money" style="color:${h.gelir ? 'var(--ok)' : 'var(--risk)'};">${h.gelir ? '+' : '−'}${tl(h.tutar)}</td></tr>`).join('')}</tbody>
+              </table></td></tr>` : ''}`).join('')
+          : '<tr><td colspan="6"><div class="empty-state">Bu filtrede kasa/banka hareketi yok.</div></td></tr>'}
+        </tbody>
+        ${liste.length ? `<tfoot><tr><td><b>Toplam</b></td><td class="money"><b>${tl(giris)}</b></td><td class="money"><b>${tl(cikis)}</b></td><td class="money"><b>${tl(giris - cikis)}</b></td><td class="sag">${hareketler.length}</td><td></td></tr></tfoot>` : ''}
+      </table>
     </div>
   `;
 }
@@ -5487,6 +5564,10 @@ function kasaBankaRaporuView(){
 let KASA_ACCOUNTS = [ { name:'Dolar Kasa', balance:0, currency:'$' }, { name:'Merkez Kasa', balance:2000, currency:'TL' } ];
 let BANK_ACCOUNTS = [ { name:'Garanti Bankası - Ana Hesap', balance:2944, currency:'TL' } ];
 let CEK_SENET = [];
+// Kredi kartları: gider/ödeme hesabı olarak seçilebilir; balance negatif = kart borcu (buluta kaydedilir)
+let KREDI_KARTLARI = [];
+function kartBorcu(k){ return Math.max(0, -(Number(k.balance) || 0)); }
+function kartAdiMi(ad){ return !!KREDI_KARTLARI.find(k => k.name === ad); }
 let cekSenetStep = 'list';
 let cekSenetDuzenleId = null;
 
@@ -5495,7 +5576,7 @@ let cekSenetDuzenleId = null;
 // yeni tahsilat/ödeme kayıtları bakiyeye otomatik işlenir (var olan bakiyeyi geriye dönük değiştirmez).
 function hesapAdindanBul(ad){
   if(!ad) return null;
-  return KASA_ACCOUNTS.find(a => a.name === ad) || BANK_ACCOUNTS.find(a => a.name === ad) || null;
+  return KASA_ACCOUNTS.find(a => a.name === ad) || BANK_ACCOUNTS.find(a => a.name === ad) || KREDI_KARTLARI.find(a => a.name === ad) || null;
 }
 function hesapBakiyeDeltaUygula(hesapAdi, tutarTL){
   const a = hesapAdindanBul(hesapAdi);
@@ -5684,8 +5765,10 @@ function faturalarView(){
 
 let gelirStep = 'list';
 
-function hesapSecenekleri(){
-  return [...BANK_ACCOUNTS, ...KASA_ACCOUNTS].map(a => `<option>${a.name}</option>`).join('');
+function hesapSecenekleri(kartDahil){
+  const temel = [...BANK_ACCOUNTS, ...KASA_ACCOUNTS].map(a => `<option>${notEsc(a.name)}</option>`).join('');
+  if(!kartDahil || !KREDI_KARTLARI.length) return temel;
+  return `<optgroup label="Kasa / Banka">${temel}</optgroup><optgroup label="Kredi Kartları">${KREDI_KARTLARI.map(k => `<option>${notEsc(k.name)}</option>`).join('')}</optgroup>`;
 }
 function bugunTR(){ return new Date().toLocaleDateString('tr-TR'); }
 function toggleNewMenu(e, id){
@@ -5939,7 +6022,8 @@ function giderEkleForm(){
             <option value="alis-odeme" ${giderFormTur !== 'odeme' && giderFormTur !== 'tekrarlayan' ? 'selected' : ''}>Alış + peşin ödeme — bakiyeyi değiştirmez, geçmişte görünür</option>
           </select></div>
         <div class="field"><label>${tarihLabel}</label><input id="gTarih" value="${bugunTR()}"></div>
-        <div class="field"><label>Hesap</label><select id="gHesap">${hesapSecenekleri()}</select></div>
+        <div class="field"><label>Hesap</label><select id="gHesap" onchange="kartKategoriOner('gHesap','gKategori')">${hesapSecenekleri(true)}</select>
+          <div class="hint" style="margin-top:4px;">Kredi kartı seçilirse tutar kartın borcuna yazılır; kasa/banka bakiyesi değişmez.</div></div>
         <div class="field"><label>Kategori</label>${kategoriSelectHtml('gKategori','gider','')}</div>
         <div class="field"><label>Açıklama</label><input id="gAciklama" placeholder="Açıklama"></div>
         <div class="field-row">
@@ -6016,7 +6100,7 @@ function openGiderDuzenle(id){
     <div class="field"><label>Başlık (tedarikçi / gider adı)</label><input id="giClient" value="${notEsc(g.client || '')}" placeholder="Boş bırakılabilir"></div>
     <div class="field"><label>Açıklama / Tür</label><input id="giTur" value="${notEsc(g.tur || '')}"></div>
     <div class="field"><label>Tarih</label><input id="giTarih" value="${notEsc(g.tarih || '')}"></div>
-    <div class="field"><label>Hesap</label><select id="giHesap">${hesapSecenekleri()}</select></div>
+    <div class="field"><label>Hesap</label><select id="giHesap">${hesapSecenekleri(true)}</select></div>
     <div class="field"><label>Kategori</label>${kategoriSelectHtml('giKategori','gider', g.kategoriId || '')}</div>
     <div class="field-row">
       <div class="field" style="flex:2;"><label>Tutar (₺, KDV dahil)</label><input id="giTutar" type="number" value="${Number(g.tutar) || 0}"></div>
@@ -6069,12 +6153,20 @@ let KATEGORILER = [
   { id:'kd2', ad:'Maaş',          tip:'gider', sistem:true },
   { id:'kd3', ad:'Mesai',         tip:'gider', sistem:true },
   { id:'kd4', ad:'Malzeme Alımı', tip:'gider' },
+  { id:'kd5', ad:'Kartlı Alışveriş', tip:'gider', sistem:true },
 ];
 const GELIR_RAMPA = ['var(--cat-g1)','var(--cat-g2)','var(--cat-g3)','var(--cat-g4)','var(--cat-g5)'];
 const GIDER_RAMPA = ['var(--cat-r1)','var(--cat-r2)','var(--cat-r3)','var(--cat-r4)','var(--cat-r5)'];
 
 function kategorilerByTip(tip){ return KATEGORILER.filter(k => k.tip === tip); }
 function kategoriAdi(id){ const k = KATEGORILER.find(x => x.id === id); return k ? k.ad : 'Kategorisiz'; }
+// Kredi kartı seçilince kategori boşsa "Kartlı Alışveriş" önerilir
+function kartKategoriOner(hesapId, katId){
+  const h = document.getElementById(hesapId), k = document.getElementById(katId);
+  if(!h || !k || !kartAdiMi(h.value)) return;
+  const kid = kategoriIdByAd('Kartlı Alışveriş', 'gider');
+  if(kid && !k.value) k.value = kid;
+}
 function kategoriIdByAd(ad, tip){
   const k = KATEGORILER.find(x => x.tip === tip && x.ad.toLowerCase() === String(ad).toLowerCase());
   return k ? k.id : null;
@@ -6250,7 +6342,8 @@ function personelDetayView(){
         <button class="primary-btn" data-newmenu onclick="toggleNewMenu(event,'personelMenu')">İşlemler ⌄</button>
         <div class="new-menu" id="personelMenu">
           <button onclick="openHareketModal('maas')">+ Yeni Maaş / Prim</button>
-          <button onclick="openHareketModal('avans')">+ Yeni Avans</button>
+          <button onclick="openHareketModal('avans')">+ Yeni Avans / Prim</button>
+          <button onclick="openHareketModal('odeme')">+ Ödeme Ekle</button>
           <button onclick="openPersonelForm('${p.id}')">Personel Düzenle</button>
           <button onclick="togglePersonelArsiv('${p.id}')">${p.arsiv ? 'Arşivden Çıkar' : 'Arşivle'}</button>
           <button style="color:var(--risk);" onclick="deletePersonel('${p.id}')">Personel Sil</button>
@@ -6274,7 +6367,7 @@ function personelDetayView(){
         ${rows.map((r,i) => `<tr>
           <td><b>${r.tur}</b></td>
           <td>${r.tarih}</td>
-          <td style="color:#555;">${r.aciklama || '—'}</td>
+          <td style="color:var(--ink-2);">${r.aciklama || '—'}${r.hesap ? ` <span style="color:var(--ink-3);">· ${notEsc(r.hesap)}</span>` : ''}</td>
           <td style="text-align:right;font-family:var(--font-mono);color:${r.tutar < 0 ? 'var(--risk)' : 'var(--ink)'};">${tlSigned(r.tutar)}</td>
           <td style="text-align:right;font-family:var(--font-mono);">${tlSigned(r.bakiye)}</td>
           <td style="text-align:right;white-space:nowrap;width:52px;">
@@ -6284,31 +6377,44 @@ function personelDetayView(){
       </tbody>
     </table>
     <div class="due" style="margin-bottom:18px;">Toplam: ${rows.length} kayıt</div>`
-    : `<div class="note">Bu personel için henüz hareket yok. <b>İşlemler</b> menüsünden maaş, prim veya avans ekleyebilirsiniz.</div>`}
+    : `<div class="note">Bu personel için henüz hareket yok. <b>İşlemler</b> menüsünden maaş/prim tahakkuku, avans veya ödeme ekleyebilirsiniz.</div>`}
 
     <div style="display:flex;gap:8px;">
       <button class="btn" style="flex:0 0 auto;" onclick="personelListeyeDon()">‹ Personel Listesi</button>
     </div>`;
 }
 
+// Personel ekstresi: Maaş/Prim/Mesai tahakkuku bakiyeye ARTI (personele borçlanırız), Avans/Prim ödemesi ve Ödeme EKSİ.
+// Ödeme: personelin ödenmemiş maaş/mesai giderlerini sırayla "ödendi" yapar, artan kısım için ödenmiş gider açar.
 const HAREKET_TURLERI = {
-  maas:  { baslik:'Yeni Maaş / Prim', tur:'Maaş / Prim',    isaret: 1, aksiyon:'Ekle' },
-  avans: { baslik:'Yeni Avans',       tur:'Avans',          isaret:-1, aksiyon:'Ekle' },
+  maas:  { baslik:'Yeni Maaş / Prim (tahakkuk)', tur:'Maaş / Prim', isaret: 1, aksiyon:'Ekle' },
+  avans: { baslik:'Yeni Avans / Prim',           tur:'Avans',       isaret:-1, aksiyon:'Ekle' },
+  odeme: { baslik:'Personele Ödeme Ekle',        tur:'Ödeme',       isaret:-1, aksiyon:'Ödemeyi Kaydet' },
 };
+function personelOdenmemisGiderler(p){
+  return GIDERLER.filter(g => g.client === p.name && !g.odendi && !g.customerId && (Number(g.tutar) || 0) > 0)
+    .sort((a, b) => trTarihMs(a.tarih) - trTarihMs(b.tarih));
+}
 function openHareketModal(kind){
   const k = HAREKET_TURLERI[kind];
+  const p = personelById(personelSecili); if(!p) return;
+  const bakiye = personelBakiye(p);
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>${k.baslik}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="field"><label>Ödeme Tarihi</label><input id="hrTarih" value="${bugunTR()}"></div>
-    <div class="field"><label>Açıklama</label><input id="hrAciklama" placeholder="Örn. Ağustos maaşı"></div>
-    <div class="field"><label>Tutar (₺)</label><input id="hrTutar" type="number" min="0" placeholder="0"></div>
-    <div class="hint" style="margin:-6px 0 10px;">${k.isaret > 0
-      ? 'Maaş ve primler bakiyeye <b>artı</b> yazılır.'
-      : 'Avans personele yapılan ödemedir, bakiyeden <b>düşülür</b>.'}</div>
-    <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
+    ${kind === 'odeme' ? `<p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-2);">Personel bakiyesi: <b style="color:${bakiye < 0 ? 'var(--risk)' : 'var(--ink)'};">${tlSigned(bakiye)}</b>${bakiye > 0 ? ' — bu tutar ödendiğinde bakiye sıfırlanır.' : (bakiye < 0 ? ' — personel şirkete borçlu görünüyor (avans fazlası).' : ' — açık borç yok.')}</p>` : ''}
+    ${kind === 'avans' ? `<div class="field"><label>Tür</label><select id="hrTur"><option value="Avans">Avans</option><option value="Prim">Prim (ödendi)</option></select></div>` : ''}
+    <div class="field"><label>${kind === 'maas' ? 'Tahakkuk Tarihi' : 'Ödeme Tarihi'}</label><input id="hrTarih" value="${bugunTR()}"></div>
+    <div class="field"><label>Açıklama</label><input id="hrAciklama" placeholder="${kind === 'maas' ? 'Örn. Ağustos maaşı' : (kind === 'odeme' ? 'Örn. Ağustos maaş ödemesi' : 'Örn. Bayram avansı')}"></div>
+    <div class="field"><label>Tutar (₺)</label><input id="hrTutar" inputmode="decimal" placeholder="0" value="${kind === 'odeme' && bakiye > 0 ? virgulYaz(Math.round(bakiye * 100) / 100) : ''}"></div>
+    ${kind !== 'maas' ? `<div class="field"><label>Ödeme yapılan hesap</label><select id="hrHesap">${hesapSecenekleri(true)}</select></div>` : ''}
+    <div class="hint" style="margin:-6px 0 10px;">${kind === 'maas'
+      ? 'Maaş, prim ve mesai tahakkukları bakiyeye <b>artı</b> yazılır (personele borçlanılır); ödeme yapılınca <b>Ödeme Ekle</b> ile bakiye düşülür.'
+      : (kind === 'avans' ? 'Avans/prim personele yapılan ödemedir, bakiyeden <b>düşülür</b> ve seçilen hesaptan çıkar.'
+      : 'Ödeme bakiyeden <b>düşülür</b>, seçilen hesaptan çıkar ve personelin ödenmemiş maaş/mesai giderlerini <b>ödendi</b> yapar.')}</div>
+    ${kind !== 'odeme' ? `<label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
       <input type="checkbox" id="hrGider" checked style="width:16px;height:16px;">
       Giderlere de işle — <b>Maaş</b> kategorisi
-    </label>
+    </label>` : ''}
     <button class="modal-submit" onclick="submitHareket('${kind}')">${k.aksiyon}</button>`;
   showModal();
 }
@@ -6316,32 +6422,47 @@ function submitHareket(kind){
   const k = HAREKET_TURLERI[kind];
   const p = personelById(personelSecili);
   if(!p) return;
-  const tutar = Number(document.getElementById('hrTutar').value) || 0;
-  if(!tutar){ showToast('Tutar girin.'); return; }
-  p.hareketler.push({
-    id: benzersizId('hr'),
-    tur: k.tur,
-    tarih: document.getElementById('hrTarih').value || bugunTR(),
-    aciklama: document.getElementById('hrAciklama').value.trim(),
-    tutar: tutar * k.isaret,
-  });
+  const tutar = virgulSayi(document.getElementById('hrTutar').value) || 0;
+  if(!(tutar > 0)){ showToast('Tutar girin.'); return; }
+  const tarih = document.getElementById('hrTarih').value || bugunTR();
+  const aciklama = document.getElementById('hrAciklama').value.trim();
+  const hesapEl = document.getElementById('hrHesap'); const hesap = hesapEl ? hesapEl.value : (BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa');
+  const turEl = document.getElementById('hrTur'); const tur = turEl ? turEl.value : k.tur;
+  p.hareketler = p.hareketler || [];
+  const hareket = { id: benzersizId('hr'), tur, tarih, aciklama, tutar: tutar * k.isaret, hesap: kind === 'maas' ? '' : hesap };
+  p.hareketler.push(hareket);
+  if(kind === 'odeme'){
+    // 1) ödenmemiş maaş/mesai giderlerini sırayla kapat, 2) artan kısım için ödenmiş gider aç, 3) hesaptan düş
+    let kalan = Math.round(tutar * 100) / 100; const kapananlar = [];
+    personelOdenmemisGiderler(p).forEach(g => {
+      if(kalan <= 0.005) return;
+      const t = Number(g.tutar) || 0;
+      if(t <= kalan + 0.005){ g.odendi = true; g.hesap = hesap; g.odemeTarihi = tarih; kalan = Math.round((kalan - t) * 100) / 100; kapananlar.push(g); }
+      else {
+        // kısmi ödeme: tahakkuk kaydı ödenen ve kalan olarak ikiye ayrılır (toplam gider değişmez)
+        g.tutar = Math.round((t - kalan) * 100) / 100;
+        const odenen = { id: benzersizId('gi'), client: p.name, hesap, tur: g.tur, tarih: g.tarih, tutar: kalan, odendi: true, odemeTarihi: tarih, kategoriId: g.kategoriId, notu: (g.notu ? g.notu + ' · ' : '') + 'kısmi ödeme' };
+        GIDERLER.unshift(odenen); kapananlar.push(odenen); kalan = 0;
+      }
+    });
+    if(kalan > 0.005){
+      GIDERLER.unshift({ id: benzersizId('gi'), client: p.name, hesap, tur: 'Personel Ödemesi', tarih, tutar: kalan, odendi: true, odemeTarihi: tarih, kategoriId: kategoriIdByAd('Maaş','gider'), notu: aciklama });
+    }
+    hesapBakiyeDeltaUygula(hesap, -tutar);
+    hareket.kapananGiderler = kapananlar.map(g => g.id);
+    closeModal(); renderContent();
+    showToast(`Ödeme kaydedildi — ${tl(tutar)} (${hesap}); ${kapananlar.length} gider ödendi olarak işaretlendi. Bakiye: ${tlSigned(personelBakiye(p))}`);
+    return;
+  }
   const gidereIsle = document.getElementById('hrGider');
   if(!gidereIsle || gidereIsle.checked){
-    const yeniGider = {
-      id: benzersizId('gi'),
-      client: p.name,
-      hesap: BANK_ACCOUNTS[0] ? BANK_ACCOUNTS[0].name : 'Kasa',
-      tur: k.tur,
-      tarih: document.getElementById('hrTarih').value || bugunTR(),
-      tutar: tutar,
-      odendi: kind === 'avans',
-      kategoriId: kategoriIdByAd('Maaş','gider'),
-    };
+    const yeniGider = { id: benzersizId('gi'), client: p.name, hesap, tur, tarih, tutar, odendi: kind === 'avans', odemeTarihi: kind === 'avans' ? tarih : '', kategoriId: kategoriIdByAd('Maaş','gider') };
     GIDERLER.unshift(yeniGider);
     hesapBakiyeDeltaUygula(yeniGider.hesap, -giderNakitEtkisi(yeniGider));
+    hareket.giderId = yeniGider.id;
   }
   closeModal(); renderContent();
-  showToast(`${k.tur} eklendi — ${tlSigned(tutar * k.isaret)}`);
+  showToast(`${tur} eklendi — ${tlSigned(tutar * k.isaret)}`);
 }
 function openHareketDuzenle(hid){
   const p = personelById(personelSecili); if(!p) return;
@@ -6763,6 +6884,13 @@ function saveMesai(){
       d.giderId = gid;
     }
   }
+  // Personel ekstresine mesai tahakkuku (bakiyeye artı) — aynı dönem yeniden kaydedilirse güncellenir
+  if(p){
+    p.hareketler = p.hareketler || [];
+    let h = d.hareketId ? p.hareketler.find(x => x.id === d.hareketId) : null;
+    if(!h){ h = { id: benzersizId('hr'), tur:'Mesai', giderId: d.giderId || null }; p.hareketler.push(h); d.hareketId = h.id; }
+    h.tarih = d.kayitTarihi; h.tutar = Math.round(toplam); h.aciklama = 'Mesai ücreti';
+  }
   mesaiPersonelId = null;
   renderContent();
   showToast(`${p ? p.name : 'Personel'} — ${tl(toplam)} mesai kaydedildi (Giderler → Mesai).`);
@@ -6776,6 +6904,7 @@ function mesaiSil(id){
     (bagliGider ? `\n\nGiderler'deki bağlı "Mesai Ücreti" kaydı (${tl0(bagliGider.tutar)}) da silinecek.` : '');
   if(!confirm(mesaj)) return;
   if(bagliGider){ hesapBakiyeDeltaUygula(bagliGider.hesap, giderNakitEtkisi(bagliGider)); GIDERLER = GIDERLER.filter(g => g.id !== d.giderId); }
+  if(p && d.hareketId && Array.isArray(p.hareketler)) p.hareketler = p.hareketler.filter(x => x.id !== d.hareketId);
   delete MESAI_KAYIT[id];
   if(mesaiPersonelId === id) mesaiPersonelId = null;
   renderContent();
@@ -7220,6 +7349,8 @@ const CH_TURLER = {
   'virman-giris':   { ad: 'Virman (Giriş)',          sinif: 'mor',     yon: 'borc'   },
   'acilis-borc':    { ad: 'Açılış Bakiyesi (Borç)',  sinif: 'gri',     yon: 'borc'   },
   'acilis-alacak':  { ad: 'Açılış Bakiyesi (Alacak)',sinif: 'gri',     yon: 'alacak' },
+  'cek-alinan':     { ad: 'Alınan Çek/Senet',        sinif: 'yesil',   yon: 'alacak' },   // müşteriden alınan çek: borcunu azaltır
+  'cek-verilen':    { ad: 'Verilen Çek/Senet',       sinif: 'kirmizi', yon: 'borc'   },   // tedarikçiye verilen / ciro edilen çek: borcumuzu azaltır
 };
 const CH_YONTEMLER = ['Nakit','Havale','EFT','FAST','Kredi Kartı','Çek','Diğer'];
 
@@ -7425,6 +7556,11 @@ function cariListesiView(){
   const odemeK  = liste.reduce((t, c) => t + (c.bakiyeK < 0 ? -c.bakiyeK : 0), 0);
   const tahsilSayi = liste.filter(c => c.bakiyeK > 0).length;
   const odemeSayi = liste.filter(c => c.bakiyeK < 0).length;
+  const tumSatirlar = cariTumSatirlar().filter(r => !r.iptal);
+  const toplamSatisK = tumSatirlar.filter(r => r.tip === 'satis-faturasi').reduce((t, r) => t + r.borcK, 0);
+  const tahsilatSatirlari = tumSatirlar.filter(r => r.tip === 'tahsilat' || r.tip === 'cek-alinan');
+  const toplamTahsilatK = tahsilatSatirlari.reduce((t, r) => t + r.alacakK, 0);
+  const tahsilatAdet = tahsilatSatirlari.length;
   return `
     <div class="page-head">
       <div><div class="eyebrow">ÖN MUHASEBE</div><div class="page-title">Cari Hesaplar</div>
@@ -7432,9 +7568,9 @@ function cariListesiView(){
       <div class="action-row">${chIslemMenuHtml('chListeMenu', '')}</div>
     </div>
     <div class="metric-grid compact">
-      <div class="metric"><div class="metric-top"><span>Tahsil edilecek</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${chTL(tahsilK)}</strong><small>${tahsilSayi} cari</small></div>
+      <div class="metric"><div class="metric-top"><span>Toplam satış</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${chTL(toplamSatisK)}</strong><small>tahsil edilecek ${chTL(tahsilK)} · ${tahsilSayi} cari</small></div>
       <div class="metric"><div class="metric-top"><span>Ödenecek</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${chTL(odemeK)}</strong><small>${odemeSayi} cari</small></div>
-      <div class="metric"><div class="metric-top"><span>Net durum</span><span class="metric-icon">◎</span></div><strong>${chTL(tahsilK - odemeK)}</strong><small>${tahsilK - odemeK >= 0 ? 'alacak fazlası' : 'borç fazlası'}</small></div>
+      <div class="metric"><div class="metric-top"><span>Toplam tahsilat</span><span class="metric-icon">◎</span></div><strong>${chTL(toplamTahsilatK)}</strong><small>${tahsilatAdet} tahsilat kaydı</small></div>
       <div class="metric"><div class="metric-top"><span>Cari sayısı</span><span class="metric-icon blue">${NAV_SVG.users}</span></div><strong>${liste.length}</strong><small>${iptalSayi ? iptalSayi + ' iptal kayıt saklı' : 'aktif görünüm'}</small></div>
     </div>
     <div class="table-card">
@@ -7632,7 +7768,7 @@ function chModalAc(tur, onCid){
     </div>
     ${odeme ? `
     <div class="field-row">
-      <div class="field"><label>Kasa / Banka <span style="color:var(--risk);">*</span></label><select id="chHesap">${hesapSecenekleri()}</select></div>
+      <div class="field"><label>Kasa / Banka${tur === 'odeme' ? ' / Kart' : ''} <span style="color:var(--risk);">*</span></label><select id="chHesap">${hesapSecenekleri(tur === 'odeme')}</select></div>
       <div class="field"><label>Ödeme Yöntemi</label><select id="chYontem">${CH_YONTEMLER.map(y => `<option>${y}</option>`).join('')}</select></div>
     </div>` : ''}
     <div class="field-row">
@@ -7968,6 +8104,21 @@ function kasaBankaView(){
         </div>
       </section>
     </div>
+    <div class="table-card" style="margin-top:16px;">
+      <div class="panel-head"><div><h3>Kredi kartları</h3><p>Kartla yapılan ödemeler kart borcuna yazılır; kart ekstresi ödendiğinde borç düşer</p></div>
+        <button class="ghost" style="margin-left:auto;" onclick="openKartModal()">＋ Kart Ekle</button></div>
+      <table class="data-table">
+        <thead><tr><th>Kart</th><th class="sag">Limit</th><th class="sag">Kart borcu</th><th class="sag">Kullanılabilir</th><th></th></tr></thead>
+        <tbody>
+          ${KREDI_KARTLARI.length ? KREDI_KARTLARI.map(k => `<tr><td><strong>${notEsc(k.name)}</strong><small>${k.sonOdemeGun ? 'Son ödeme: her ayın ' + k.sonOdemeGun + '. günü' : 'Kredi kartı'}</small></td>
+            <td class="money">${k.limit ? tl(k.limit) : '—'}</td>
+            <td class="money" style="color:${kartBorcu(k) ? 'var(--risk)' : 'var(--ink)'};">${tl(kartBorcu(k))}</td>
+            <td class="money">${k.limit ? tl(Math.max(0, k.limit - kartBorcu(k))) : '—'}</td>
+            <td class="sag" style="white-space:nowrap;"><span class="mini-islem" title="Ekstre öde" onclick="openKartOdeModal('${k.id}')">₺</span><span class="mini-islem" title="Düzenle" onclick="openKartModal('${k.id}')">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteKart('${k.id}')">✕</span></td></tr>`).join('')
+          : '<tr><td colspan="5"><div class="empty-state">Henüz kredi kartı yok. “Kart Ekle” ile tanımlayın; Ödeme Ekle ekranındaki Hesap listesinde görünür.</div></td></tr>'}
+        </tbody>
+      </table>
+    </div>
     <div class="two-col" style="margin-top:16px;">
       <div class="table-card">
         <table class="data-table">
@@ -7993,6 +8144,55 @@ function kasaBankaView(){
   `;
 }
 function hesapBul(tur, id){ return (tur === 'kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS).find(x => x.id === id); }
+function openKartModal(id){
+  const k = id ? KREDI_KARTLARI.find(x => x.id === id) : null;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${k ? 'Kartı Düzenle' : 'Yeni Kredi Kartı'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Kart Adı</label><input id="kkName" value="${k ? notEsc(k.name) : ''}" placeholder="Örn. Garanti Bonus · 1234"></div>
+    <div class="field-row">
+      <div class="field"><label>Limit (₺)</label><input id="kkLimit" inputmode="decimal" value="${k && k.limit ? virgulYaz(k.limit) : ''}" placeholder="0"></div>
+      <div class="field"><label>Son ödeme günü</label><input id="kkGun" type="number" min="1" max="31" value="${k && k.sonOdemeGun ? k.sonOdemeGun : ''}" placeholder="ör. 15"></div>
+    </div>
+    <div class="field"><label>${k ? 'Güncel kart borcu (₺)' : 'Başlangıç kart borcu (₺)'}</label><input id="kkBorc" inputmode="decimal" value="${k ? virgulYaz(kartBorcu(k)) : '0'}"></div>
+    <div class="hint" style="margin:-4px 0 12px;">Kart numarasının tamamını yazmayın; son 4 hane yeterli.</div>
+    <button class="modal-submit" onclick="submitKart('${k ? k.id : ''}')">${k ? 'Kaydet' : 'Kartı Ekle'}</button>`;
+  showModal(); document.getElementById('kkName').focus();
+}
+function submitKart(id){
+  const name = document.getElementById('kkName').value.trim(); if(!name){ showToast('Kart adı girin.'); return; }
+  const limit = virgulSayi(document.getElementById('kkLimit').value), gun = Number(document.getElementById('kkGun').value) || 0;
+  const borc = virgulSayi(document.getElementById('kkBorc').value);
+  const k = id ? KREDI_KARTLARI.find(x => x.id === id) : null;
+  if(k){ k.name = name; k.limit = limit; k.sonOdemeGun = gun; k.balance = -borc; }
+  else KREDI_KARTLARI.push({ id: benzersizId('kk'), name, limit, sonOdemeGun: gun, balance: -borc, currency:'TL' });
+  closeModal(); renderContent(); showToast(k ? 'Kart güncellendi.' : `${name} eklendi.`);
+}
+function deleteKart(id){
+  const k = KREDI_KARTLARI.find(x => x.id === id); if(!k) return;
+  if(!confirm(`"${k.name}" kartı silinsin mi?${kartBorcu(k) ? ' Kartta ' + tl(kartBorcu(k)) + ' borç görünüyor.' : ''} Geçmiş gider kayıtları silinmez.`)) return;
+  KREDI_KARTLARI = KREDI_KARTLARI.filter(x => x.id !== id); renderContent(); showToast('Kart silindi.');
+}
+// Kart ekstresi ödemesi: kasa/bankadan çıkar, kart borcunu düşürür (Giderler'e yazılmaz — harcamalar zaten gider)
+function openKartOdeModal(id){
+  const k = KREDI_KARTLARI.find(x => x.id === id); if(!k) return;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Kart Ekstresi Öde</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <p style="margin:0 0 12px;color:var(--ink-2);font-size:12.5px;"><b>${notEsc(k.name)}</b> · güncel borç ${tl(kartBorcu(k))}</p>
+    <div class="field"><label>Ödenecek tutar (₺)</label><input id="kkOdeTutar" inputmode="decimal" value="${virgulYaz(kartBorcu(k))}"></div>
+    <div class="field"><label>Ödeme yapılan hesap</label><select id="kkOdeHesap">${hesapSecenekleri(false)}</select></div>
+    <div class="field"><label>Tarih</label><input id="kkOdeTarih" value="${bugunTR()}"></div>
+    <button class="modal-submit" onclick="submitKartOde('${k.id}')">Öde</button>`;
+  showModal();
+}
+function submitKartOde(id){
+  const k = KREDI_KARTLARI.find(x => x.id === id); if(!k) return;
+  const tutar = virgulSayi(document.getElementById('kkOdeTutar').value); if(!(tutar > 0)){ showToast('Tutar girin.'); return; }
+  const hesap = document.getElementById('kkOdeHesap').value;
+  hesapBakiyeDeltaUygula(hesap, -tutar);
+  k.balance = Math.round(((Number(k.balance) || 0) + tutar) * 100) / 100;
+  k.odemeler = k.odemeler || []; k.odemeler.unshift({ tarih: document.getElementById('kkOdeTarih').value || bugunTR(), tutar, hesap, kim: (typeof daKimYapti === 'function') ? daKimYapti().ad : '' });
+  closeModal(); renderContent(); showToast(`${k.name} ekstresi ödendi — ${tl(tutar)} (${hesap}).`);
+}
 function openAccountModal(tur, id){
   const a = id ? hesapBul(tur, id) : null;
   document.getElementById('modalBox').innerHTML = `
@@ -8035,62 +8235,137 @@ function deleteAccount(tur, id){
   showToast('Hesap silindi.');
 }
 
+let cekSenetFiltre = 'hepsi';   // 'hepsi' | 'alinan' | 'verilen' | 'ciro'
+function csCariAd(id){ const c = CUSTOMERS.find(x => x.id === id); return c ? c.name : '—'; }
+function csAlinanMi(c){ return /^Alınan/.test(c.belgeTipi || ''); }
+function csTutarK(c){ return Math.round((Number(c.tutar) || 0) * 100); }
+function csDurum(c){
+  if(csAlinanMi(c)) return c.ciroCari ? { ad:'Ciro edildi → ' + csCariAd(c.ciroCari), sinif:'orange' } : { ad:'Portföyde', sinif:'blue' };
+  return { ad:'Verildi', sinif:'red' };
+}
 function cekSenetList(){
+  let liste = CEK_SENET.slice();
+  if(cekSenetFiltre === 'alinan') liste = liste.filter(csAlinanMi);
+  if(cekSenetFiltre === 'verilen') liste = liste.filter(c => !csAlinanMi(c));
+  if(cekSenetFiltre === 'ciro') liste = liste.filter(c => csAlinanMi(c) && c.ciroCari);
+  liste.sort((x, y) => String(y.vadeTarihi || '').localeCompare(String(x.vadeTarihi || '')));
+  const toplam = t => liste.filter(t).reduce((s, c) => s + (c.paraBirimi === 'TL' || !c.paraBirimi ? (Number(c.tutar) || 0) : 0), 0);
+  const sekme = [['hepsi','Tümü'],['alinan','Alınan'],['verilen','Verilen'],['ciro','Ciro edilenler']];
   return `
     <div class="list-page-head">
-      <div class="page-title">Çek / Senet</div>
-      <button class="primary-btn" onclick="cekSenetStep='form'; renderContent();">+ Yeni</button>
+      <div><div class="page-title">Çek / Senet</div>
+        <div class="page-sub">Alınan çek müşterinin borcunu düşer; ciro edilip başka cariye verildiğinde o carinin hesabından da düşer.</div></div>
+      <button class="primary-btn" onclick="cekSenetDuzenleId=null; cekSenetStep='form'; renderContent();">+ Yeni</button>
     </div>
-    ${CEK_SENET.length===0 ? '<div class="note">Henüz kayıtlı çek/senet yok.</div>' : `
-      <table>
-        <thead><tr><th>Tip</th><th>Tedarikçi</th><th>Belge No</th><th>Vade Tarihi</th><th>Tutar</th><th></th></tr></thead>
+    <div class="metric-grid compact">
+      <div class="metric"><div class="metric-top"><span>Portföydeki alınan</span><span class="metric-icon blue">▤</span></div><strong>${tl(toplam(c => csAlinanMi(c) && !c.ciroCari))}</strong><small>${liste.filter(c => csAlinanMi(c) && !c.ciroCari).length} belge</small></div>
+      <div class="metric"><div class="metric-top"><span>Ciro edilen</span><span class="metric-icon">↪</span></div><strong>${tl(toplam(c => csAlinanMi(c) && c.ciroCari))}</strong><small>${liste.filter(c => csAlinanMi(c) && c.ciroCari).length} belge</small></div>
+      <div class="metric"><div class="metric-top"><span>Verilen</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${tl(toplam(c => !csAlinanMi(c)))}</strong><small>${liste.filter(c => !csAlinanMi(c)).length} belge</small></div>
+    </div>
+    <div class="table-card">
+      <div class="toolbar" style="padding:12px 16px;margin:0;border-bottom:1px solid var(--line);">
+        <div class="segmented" style="margin-left:0;">${sekme.map(([k, ad]) => `<button class="${cekSenetFiltre === k ? 'active' : ''}" onclick="cekSenetFiltre='${k}'; renderContent();">${ad}</button>`).join('')}</div>
+      </div>
+      ${liste.length === 0 ? '<div class="empty-state">Bu görünümde çek/senet kaydı yok.</div>' : `
+      <table class="data-table">
+        <thead><tr><th>Tip</th><th>${cekSenetFiltre === 'verilen' ? 'Kime verildi' : 'Cari (kimden / kime)'}</th><th>Çekin verildiği yer (ciro)</th><th>Belge No</th><th>Vade</th><th class="sag">Tutar</th><th>Durum</th><th></th></tr></thead>
         <tbody>
-          ${CEK_SENET.map(c => {
-            const cust = CUSTOMERS.find(x=>x.id===c.tedarikci);
-            return `<tr><td>${c.belgeTipi}</td><td>${cust?cust.name:'—'}</td><td>${c.belgeNo}</td><td>${formatDate(c.vadeTarihi)}</td><td>${Number(c.tutar).toLocaleString('tr-TR')} ${c.paraBirimi}</td>
-              <td style="text-align:right;white-space:nowrap;">
+          ${liste.map(c => { const d = csDurum(c); return `<tr>
+              <td><strong>${notEsc(c.belgeTipi)}</strong></td>
+              <td>${notEsc(csCariAd(c.tedarikci))}</td>
+              <td>${csAlinanMi(c) ? (c.ciroCari ? `<strong>${notEsc(csCariAd(c.ciroCari))}</strong><small>${c.ciroTarihi ? 'ciro ' + formatDate(c.ciroTarihi) : ''}</small>` : '<span style="color:var(--ink-3);">—</span>') : '<span style="color:var(--ink-3);">—</span>'}</td>
+              <td>${notEsc(c.belgeNo || '—')}</td>
+              <td>${formatDate(c.vadeTarihi)}</td>
+              <td class="money">${(Number(c.tutar) || 0).toLocaleString('tr-TR',{minimumFractionDigits:2})} ${notEsc(c.paraBirimi || 'TL')}</td>
+              <td><span class="tag ${d.sinif}">${notEsc(d.ad)}</span>${c.cariIsle === false ? '<small style="display:block;color:var(--ink-3);">cariye işlenmedi</small>' : ''}</td>
+              <td class="sag" style="white-space:nowrap;">
+                ${csAlinanMi(c) && !c.ciroCari ? `<span class="mini-islem" title="Ciro et (başka cariye ver)" onclick="openCekSenetDuzenle('${c.id}', true)">↪</span>` : ''}
                 <span class="mini-islem" title="Düzenle" onclick="openCekSenetDuzenle('${c.id}')">✎</span>
-                <span class="mini-islem sil" title="Sil" onclick="deleteCekSenet('${c.id}')">✕</span></td></tr>`;
-          }).join('')}
+                <span class="mini-islem sil" title="Sil" onclick="deleteCekSenet('${c.id}')">✕</span></td></tr>`; }).join('')}
         </tbody>
-      </table>
-    `}
+      </table>`}
+    </div>
   `;
 }
-function openCekSenetDuzenle(id){
+function openCekSenetDuzenle(id, ciroOdak){
   cekSenetDuzenleId = id;
   cekSenetStep = 'form';
   renderContent();
+  if(ciroOdak){ const el = document.getElementById('csCiroCari'); if(el){ el.focus(); el.scrollIntoView({ block:'center' }); } }
+}
+// Çek/senet ile bağlı cari hareketleri (CARI_HAREKETLER) — alınan: müşteri alacak; verilen/ciro: cari borç
+function csHareketUygula(c){
+  c.hareketler = c.hareketler || {};
+  const tutarK = csTutarK(c);
+  const tl = !c.paraBirimi || c.paraBirimi === 'TL';
+  const ortak = { para:'TL', kur:1, tutarK, tarih: c.islemTarihi ? formatDate(c.islemTarihi) : bugunTR(), vade: c.vadeTarihi ? formatDate(c.vadeTarihi) : '', belgeNo: c.belgeNo || ('CS-' + c.id.slice(-4).toUpperCase()), yontem: /Senet/.test(c.belgeTipi) ? 'Senet' : 'Çek', cekId: c.id };
+  const ust = (key, cid, tip, aciklama, tarih) => {
+    const h = c.hareketler[key] ? CARI_HAREKETLER.find(x => x.id === c.hareketler[key]) : null;
+    const gerekli = c.cariIsle !== false && tl && cid && tutarK > 0;
+    if(!gerekli){ if(h && !h.iptal) h.iptal = { zaman: new Date().toLocaleString('tr-TR'), kim: chKullanici() }; return; }
+    const cst = CUSTOMERS.find(x => x.id === cid);
+    if(h){ Object.assign(h, ortak, { customerId: cid, musteriAdi: cst ? cst.name : '', tip, aciklama, tarih: tarih || ortak.tarih }); if(h.iptal) delete h.iptal; h.guncelleyen = chKullanici(); h.guncellemeZamani = new Date().toLocaleString('tr-TR'); }
+    else { const yeni = Object.assign({ id: benzersizId('ch'), olusturan: chKullanici(), olusturmaZamani: new Date().toLocaleString('tr-TR'), customerId: cid, musteriAdi: cst ? cst.name : '', tip, aciklama }, ortak, { tarih: tarih || ortak.tarih }); CARI_HAREKETLER.unshift(yeni); c.hareketler[key] = yeni.id; }
+  };
+  if(csAlinanMi(c)){
+    ust('alinan', c.tedarikci, 'cek-alinan', `${c.belgeTipi}${c.belgeNo ? ' · ' + c.belgeNo : ''}${c.aciklama ? ' — ' + c.aciklama : ''}`);
+    ust('ciro', c.ciroCari, 'cek-verilen', `Ciro: ${csCariAd(c.tedarikci)} çeki${c.belgeNo ? ' · ' + c.belgeNo : ''}${c.aciklama ? ' — ' + c.aciklama : ''}`, c.ciroTarihi ? formatDate(c.ciroTarihi) : '');
+  } else {
+    ust('ciro', null, 'cek-verilen', '');   // alınan → verilen tipine çevrildiyse eski ciro kaydı iptal
+    ust('alinan', null, 'cek-alinan', '');
+    ust('verilen', c.tedarikci, 'cek-verilen', `${c.belgeTipi}${c.belgeNo ? ' · ' + c.belgeNo : ''}${c.aciklama ? ' — ' + c.aciklama : ''}`);
+  }
+}
+function csHareketIptal(c){
+  Object.values(c.hareketler || {}).forEach(id => { const h = CARI_HAREKETLER.find(x => x.id === id); if(h && !h.iptal) h.iptal = { zaman: new Date().toLocaleString('tr-TR'), kim: chKullanici() }; });
 }
 function deleteCekSenet(id){
   const c = CEK_SENET.find(x => x.id === id); if(!c) return;
-  if(!confirm(`${c.belgeTipi} · ${c.belgeNo || 'belge'} — ${Number(c.tutar).toLocaleString('tr-TR')} ${c.paraBirimi} kaydı silinsin mi?`)) return;
+  if(!confirm(`${c.belgeTipi} · ${c.belgeNo || 'belge'} — ${Number(c.tutar).toLocaleString('tr-TR')} ${c.paraBirimi} kaydı silinsin mi?${c.hareketler && Object.keys(c.hareketler).length ? '\nBağlı cari hareketleri iptal edilir (geçmişte saklanır).' : ''}`)) return;
+  csHareketIptal(c);
   CEK_SENET = CEK_SENET.filter(x => x.id !== id);
   renderContent();
   showToast('Çek/Senet kaydı silindi.');
 }
+function csFormTipDegis(){
+  const tip = document.getElementById('csTip').value;
+  const alinan = /^Alınan/.test(tip);
+  const cb = document.getElementById('csCiroBlok'); if(cb) cb.style.display = alinan ? '' : 'none';
+  const lb = document.getElementById('csCariEtiket'); if(lb) lb.textContent = alinan ? 'Kimden alındı (müşteri / cari)' : 'Kime verildi (tedarikçi / cari)';
+}
 function cekSenetForm(){
   const e = cekSenetDuzenleId ? CEK_SENET.find(x => x.id === cekSenetDuzenleId) : null;
-  const custOptions = '<option value="">Seçiniz..</option>' + CUSTOMERS.map(c=>`<option value="${c.id}" ${e && e.tedarikci===c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+  const custOptions = sec => '<option value="">Seçiniz..</option>' + CUSTOMERS.slice().sort((a, b) => a.name.localeCompare(b.name, 'tr')).map(c=>`<option value="${c.id}" ${sec === c.id ? 'selected' : ''}>${notEsc(c.name)}</option>`).join('');
   const tipOpt = t => `<option ${e && e.belgeTipi===t ? 'selected' : ''}>${t}</option>`;
   const pbOpt = t => `<option ${e && e.paraBirimi===t ? 'selected' : ''}>${t}</option>`;
+  const alinan = !e || /^Alınan/.test(e.belgeTipi || '');
   return `
     <div class="page-title" style="margin-bottom:16px;">${e ? 'Çek / Senet Düzenle' : 'Çek / Senet Ekle'}</div>
     <div class="form-page">
       <div class="form-block">
         <div class="field"><label>Belge Tipi</label>
-          <select id="csTip">${['Verilen Çek','Alınan Çek','Verilen Senet','Alınan Senet'].map(tipOpt).join('')}</select>
+          <select id="csTip" onchange="csFormTipDegis()">${['Alınan Çek','Alınan Senet','Verilen Çek','Verilen Senet'].map(tipOpt).join('')}</select>
         </div>
-        <div class="field"><label>Tedarikçi</label><select id="csTedarikci">${custOptions}</select></div>
+        <div class="field"><label id="csCariEtiket">${alinan ? 'Kimden alındı (müşteri / cari)' : 'Kime verildi (tedarikçi / cari)'}</label><select id="csTedarikci">${custOptions(e ? e.tedarikci : '')}</select>
+          <div class="hint" style="margin-top:4px;">Alınan çek bu carinin borcunu düşer; verilen çek bu cariye olan borcumuzu düşer.</div></div>
         <div class="field"><label>Belge No</label><input id="csBelgeNo" value="${e ? notEsc(e.belgeNo || '') : ''}" placeholder="Belge numarası"></div>
-        <div class="field"><label>İşlem Tarihi</label><input type="date" id="csIslemTarihi" value="${e ? (e.islemTarihi || '') : ''}"></div>
-        <div class="field"><label>Vade Tarihi</label><input type="date" id="csVadeTarihi" value="${e ? (e.vadeTarihi || '') : ''}"></div>
+        <div class="field-row">
+          <div class="field"><label>İşlem Tarihi</label><input type="date" id="csIslemTarihi" value="${e ? (e.islemTarihi || '') : mxBugunIso()}"></div>
+          <div class="field"><label>Vade Tarihi</label><input type="date" id="csVadeTarihi" value="${e ? (e.vadeTarihi || '') : ''}"></div>
+        </div>
         <div class="field-row">
           <div class="field" style="flex:2;"><label>Tutar</label><input type="number" id="csTutar" value="${e ? (e.tutar || '') : ''}" placeholder="0"></div>
           <div class="field"><label>&nbsp;</label><select id="csParaBirimi">${['TL','$','€'].map(pbOpt).join('')}</select></div>
         </div>
         <div class="field"><label>Açıklama</label><input id="csAciklama" value="${e ? notEsc(e.aciklama || '') : ''}" placeholder="Açıklama"></div>
-        <div class="field"><label>Etiketler</label><input id="csEtiket" placeholder="Kendi Etiketini Ekle"></div>
+        <div id="csCiroBlok" style="${alinan ? '' : 'display:none;'}">
+          <div class="group-header" style="margin:14px 0 10px;"><span>— Ciro (çeki başka cariye verme)</span></div>
+          <div class="field"><label>Çekin verildiği yer (ciro edilen cari)</label><select id="csCiroCari">${custOptions(e ? e.ciroCari : '')}</select>
+            <div class="hint" style="margin-top:4px;">Boş bırakılırsa çek portföyde kalır. Seçilirse çek tutarı seçilen carinin hesabından (borcumuzdan) düşer.</div></div>
+          <div class="field"><label>Ciro Tarihi</label><input type="date" id="csCiroTarihi" value="${e ? (e.ciroTarihi || '') : ''}"></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;">
+          <input type="checkbox" id="csCariIsle" ${!e || e.cariIsle !== false ? 'checked' : ''} style="width:16px;height:16px;"> Cari hesaplarına işle (Cari Hareketleri'nde görünür)</label>
       </div>
       <div class="form-page-footer">
         <button class="back-btn" onclick="cekSenetDuzenleId=null; cekSenetStep='list'; renderContent();">←</button>
@@ -8109,17 +8384,27 @@ function submitCekSenet(){
     tutar: document.getElementById('csTutar').value || 0,
     paraBirimi: document.getElementById('csParaBirimi').value,
     aciklama: document.getElementById('csAciklama').value,
+    ciroCari: /^Alınan/.test(document.getElementById('csTip').value) ? (document.getElementById('csCiroCari').value || '') : '',
+    ciroTarihi: document.getElementById('csCiroTarihi').value || '',
+    cariIsle: document.getElementById('csCariIsle').checked,
   };
+  if(!veri.tedarikci){ showToast('Cari seçin.'); return; }
+  if(!(Number(veri.tutar) > 0)){ showToast('Tutar girin.'); return; }
+  if(veri.ciroCari && veri.ciroCari === veri.tedarikci){ showToast('Ciro edilen cari, çeki aldığınız cariyle aynı olamaz.'); return; }
+  let c;
   if(cekSenetDuzenleId){
-    const c = CEK_SENET.find(x => x.id === cekSenetDuzenleId);
+    c = CEK_SENET.find(x => x.id === cekSenetDuzenleId);
     if(c) Object.assign(c, veri);
     cekSenetDuzenleId = null;
   } else {
-    CEK_SENET.push(Object.assign({ id: benzersizId('cs') }, veri));
+    c = Object.assign({ id: benzersizId('cs') }, veri);
+    CEK_SENET.push(c);
   }
+  if(c) csHareketUygula(c);
+  if(veri.paraBirimi !== 'TL' && veri.cariIsle) showToast('Dövizli çek cari hesabına işlenmez (cari defter TL). Kayıt listede tutulur.');
   cekSenetStep = 'list';
   renderContent();
-  showToast('Çek/Senet kaydedildi.');
+  showToast(veri.ciroCari ? `Çek kaydedildi ve ${csCariAd(veri.ciroCari)} hesabından düşüldü.` : 'Çek/Senet kaydedildi.');
 }
 
 const STAGE_COLORS = { KESIF:'#94A3B8', TASARIM:'#F59E0B', URETIM:'#FF5A1F', MONTAJ:'#3B82F6', TAHSILAT:'#10B981' };
@@ -13144,6 +13429,7 @@ const LIVE = { user:null, version:0, lastSaved:'', saving:false, timer:null, pen
 const VARSAYILAN_KATEGORILER = () => [
   { id:'kd2', ad:'Maaş',  tip:'gider', sistem:true },
   { id:'kd3', ad:'Mesai', tip:'gider', sistem:true },
+  { id:'kd5', ad:'Kartlı Alışveriş', tip:'gider', sistem:true },
 ];
 
 function collectState(){
@@ -13152,7 +13438,7 @@ function collectState(){
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
     KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, DIS_ALIM_HAREKET, BILDIRIMLER,
     CARI_HAREKETLER,
-    MALZEME_FIYATLARI, KURLAR, MALIYET_SABLONLARI,
+    MALZEME_FIYATLARI, KURLAR, MALIYET_SABLONLARI, KREDI_KARTLARI,
   };
 }
 function applyState(d){
@@ -13175,6 +13461,7 @@ function applyState(d){
   MALZEME_FIYATLARI = Array.isArray(d.MALZEME_FIYATLARI) && d.MALZEME_FIYATLARI.length ? d.MALZEME_FIYATLARI : VARSAYILAN_MALZEMELER();
   KURLAR = (d.KURLAR && typeof d.KURLAR === 'object' && !Array.isArray(d.KURLAR)) ? d.KURLAR : { usd:0, eur:0, tarih:'', kaynak:'' };
   MALIYET_SABLONLARI = arr('MALIYET_SABLONLARI');
+  KREDI_KARTLARI = arr('KREDI_KARTLARI');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   window.__onarimYapildi = (typeof veriOnar === 'function') ? !!veriOnar() : false;   // çift kimlik + yetim kayıt onarımı
   if(d.AGENCY && typeof d.AGENCY === 'object'){
