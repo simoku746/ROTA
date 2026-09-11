@@ -2130,7 +2130,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-11a';
+window.ROTA_SURUM = 'v2026-09-11b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2333,13 +2333,15 @@ const SUB_STATE = {
 // ---------------- ROL BAZLI ERİŞİM ----------------
 const ROLE_CONFIG = {
   YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
-  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['tum-isler','gorevlerim','projeler'] },
+  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['tum-isler','haftalik-plan','gorevlerim','projeler'] },   // grafik: teklif hazırlar, finans rakamı görmez, planı görüntüler
   URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'] },
   MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','gorevlerim'] },
-  MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['gorevlerim'], yonetimSubs:['araclarim','kategoriler'] },
+  MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['haftalik-plan','gorevlerim'], yonetimSubs:['araclarim','kategoriler'] },
 };
 let CURRENT_ROLE = 'YONETICI';
 function roleCfg(){ return ROLE_CONFIG[CURRENT_ROLE]; }
+// Finansal rakamları (tahsilat, gelir-gider, tutar/toplam, satış raporları) yalnız Ön Muhasebe erişimi olan roller görür
+function finansGorebilir(){ return roleCfg().tabs.includes('on-muhasebe'); }
 function initialsOf(name){ return name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase(); }
 
 function togglePwVisibility(){
@@ -2400,6 +2402,7 @@ function renderNav(){
       let subs = SUBMENUS[p.key];
       if(p.key==='gorev-yonetimi') subs = subs.filter(s => roleCfg().gorevSubs.includes(s.key));
       if(p.key==='yonetim') subs = subs.filter(s => (roleCfg().yonetimSubs||[]).includes(s.key));
+      if(p.key==='teklifler' && !finansGorebilir()) subs = subs.filter(s => s.key === 'liste');
       const activeSub = SUB_STATE[p.key].get();
       html += `<div class="subnav ${openSubmenu===p.key?'open':''}">
         ${subs.map(s => `<button class="${currentPage===p.key && activeSub===s.key?'active':''}" onclick="selectSub('${p.key}','${s.key}')">${s.label}</button>`).join('')}
@@ -2434,7 +2437,7 @@ function globalAraSonuclar(q){
   if(tabs.includes('kisiler')) CUSTOMERS.filter(c => icerir(c.name) || icerir(c.contact) || icerir(c.phone) || icerir(c.company)).slice(0, 5)
     .forEach(c => out.push({ grup:'Kişiler', baslik:c.name, alt:[c.contact, c.phone].filter(Boolean).join(' · ') || (c.durum || ''), etiket:c.durum || 'Kişi', renk:c.durum === 'Tedarikçi' ? 'orange' : 'blue', onclick:`goTo('kisiler'); openKisiDrawer('${c.id}')` }));
   if(tabs.includes('teklifler')) QUOTES.filter(q => icerir(q.no) || icerir(teklifMusteriAdi(q)) || icerir(q.repName)).slice(0, 5)
-    .forEach(q => out.push({ grup:'Teklifler', baslik:`${q.no || 'Teklif'} · ${teklifMusteriAdi(q)}`, alt:`${formatDate(q.date)} · ${CURRENCY_SYMBOLS[q.currency||'TL']}${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}`, etiket:q.status, renk:statusSlug(q.status) === 'st-reddedildi' ? 'red' : (statusSlug(q.status) === 'st-gonderildi' ? 'orange' : 'green'), onclick:`goTo('teklifler'); openQuoteView('${q.id}')` }));
+    .forEach(q => out.push({ grup:'Teklifler', baslik:`${q.no || 'Teklif'} · ${teklifMusteriAdi(q)}`, alt:`${formatDate(q.date)}${finansGorebilir() ? ' · ' + CURRENCY_SYMBOLS[q.currency||'TL'] + Math.round(quoteTotal(q)).toLocaleString('tr-TR') : ''}`, etiket:q.status, renk:statusSlug(q.status) === 'st-reddedildi' ? 'red' : (statusSlug(q.status) === 'st-gonderildi' ? 'orange' : 'green'), onclick:`goTo('teklifler'); openQuoteView('${q.id}')` }));
   if(tabs.includes('gorev-yonetimi')) JOBS.filter(j => icerir(j.code) || icerir(j.client) || icerir(j.desc) || (j.assignees||[]).some(icerir)).slice(0, 5)
     .forEach(j => out.push({ grup:'İşler', baslik:`${j.code} · ${j.client}`, alt:j.desc, etiket:STAGE_LABELS_TR[j.stage] || j.stage, renk:'gray', onclick:`openJobDrawer('${j.id}')` }));
   return out;
@@ -2601,6 +2604,7 @@ function renderContent(){
     if(kisilerStep==='form' && openAccordions.has('acc2')){ renderContactRows(); renderAddressRows(); }
   }
   else if(currentPage==='teklifler'){
+    if(teklifSub==='rapor' && !finansGorebilir()) teklifSub = 'liste';
     if(teklifSub==='rapor' && teklifStep==='list'){ el.innerHTML = teklifRaporuView(); }
     else {
       el.innerHTML = teklifView();
@@ -2876,7 +2880,7 @@ const PLAN_DEPARTMANLAR = {
   'Tümü':            { stages:null,                 deps:null },
 };
 const PLAN_VARSAYILAN_SURE = 120;   // tepsiden bırakılan iş için dakika
-function planYetkili(){ return CURRENT_ROLE === 'YONETICI'; }
+function planYetkili(){ return CURRENT_ROLE === 'YONETICI' || CURRENT_ROLE === 'URETIM'; }   // düzenleme: yönetim/koordinatör + üretim sorumlusu; diğer roller yalnız görüntüler
 function planSecim(){ return PLAN_DEPARTMANLAR[planDepartman] || PLAN_DEPARTMANLAR['Üretim + Montaj']; }
 // İşin mevcut aşaması için planlanmış bloğu
 function planBlogu(j){ return PLAN_TASKS.find(t => t.jobId === j.id && t.stage === j.stage) || null; }
@@ -2984,15 +2988,15 @@ function planTepsiHtml(){
     <div class="hp-tepsi" ondragover="planTepsiOver(event)" ondragleave="planDragLeave(event)" ondrop="planTepsiDrop(event)">
       <span class="hp-tepsi-baslik">Planlanmamış <b>${isler.length}</b></span>
       ${isler.length ? isler.map(j => { const c = planRenk(j.client);
-        return `<div class="hp-is" draggable="${yetki}" title="${yetki ? 'Gün / kişi hücresine sürükleyin' : 'Planlamayı yönetici yapar'}"
+        return `<div class="hp-is" draggable="${yetki}" title="${yetki ? 'Gün / kişi hücresine sürükleyin' : 'Planlamayı yönetim ve üretim sorumlusu yapar'}"
           style="background:var(--${c});border-color:var(--${c}b);color:var(--${c}f);"
           ondragstart="planIsDragStart(event,'${j.id}')" ondragend="planIsDragEnd(event)"
           onclick="openJobDrawer('${j.id}')">
           <b>${j.client}</b><i>${j.desc}</i>
-          <u>${j.code}${j.tutar ? ' · ₺'+Number(j.tutar).toLocaleString('tr-TR') : ''}${sec.stages && sec.stages.length > 1 ? ' · '+(STAGES.find(s=>s.key===j.stage)||{}).label : ''}</u>
+          <u>${j.code}${j.tutar && finansGorebilir() ? ' · ₺'+Number(j.tutar).toLocaleString('tr-TR') : ''}${sec.stages && sec.stages.length > 1 ? ' · '+(STAGES.find(s=>s.key===j.stage)||{}).label : ''}</u>
         </div>`; }).join('')
       : `<span class="hp-tepsi-bos">${asamaAdi} aşamasında planlanmayı bekleyen iş yok. Bir planı buraya sürükleyerek geri alabilirsiniz.</span>`}
-      ${yetki ? '' : '<span class="hp-tepsi-bos" style="margin-left:auto;">🔒 Planlamayı yönetici yapar</span>'}
+      ${yetki ? '' : '<span class="hp-tepsi-bos" style="margin-left:auto;">🔒 Planlamayı yönetim ve üretim sorumlusu yapar</span>'}
     </div>`;
 }
 function planIsDragStart(e, jobId){
@@ -3006,6 +3010,7 @@ function planIsDragEnd(e){ e.currentTarget.classList.remove('suruklenen'); planS
 function planTepsiOver(e){ if(planSurukleId){ e.preventDefault(); e.currentTarget.classList.add('drop'); } }
 function planTepsiDrop(e){
   e.preventDefault(); e.currentTarget.classList.remove('drop');
+  if(!planYetkili()) return;
   const t = PLAN_TASKS.find(x => x.id === planSurukleId);
   planSurukleId = null; planSurukleKaynakKisi = null;
   if(!t) return;
@@ -3029,6 +3034,7 @@ function planChipDragEnd(e){ e.currentTarget.classList.remove('suruklenen'); pla
 function planHucreDrop(e, iso, kisiId){
   e.preventDefault();
   e.currentTarget.classList.remove('drop');
+  if(!planYetkili()) return;
   if(planSurukleIsId){                                   // tepsiden yeni planlama
     const j = JOBS.find(x => x.id === planSurukleIsId);
     planSurukleIsId = null;
@@ -3073,6 +3079,7 @@ function planResizeEtiket(e, dk){
 }
 function planResizeEtiketGizle(){ const et = document.getElementById('hpResizeTag'); if(et) et.style.display = 'none'; }
 function planResizeStart(e, id){
+  if(!planYetkili()) return;
   e.preventDefault(); e.stopPropagation();
   const t = PLAN_TASKS.find(x => x.id === id); if(!t) return;
   const kart = e.currentTarget.parentElement;
@@ -3130,7 +3137,7 @@ function planTipGoster(e, id){
     <div class="hp-tip-row"><span>Tarih</span><b style="color:var(--ink);">${formatDate(t.date)}</b></div>
     <div class="hp-tip-row"><span>Saat</span><b style="color:var(--ink);">${dkToSaatMetni(bas)} – ${dkToSaatMetni(bit)}</b></div>
     <div class="hp-tip-row"><span>Süre</span><b style="color:var(--ink);">${dkToSaat(t.durationMinutes)}</b></div>
-    ${t.cost ? `<div class="hp-tip-row"><span>Değer</span><b style="color:var(--ink);">₺${t.cost.toLocaleString('tr-TR')}</b></div>` : ''}
+    ${t.cost && finansGorebilir() ? `<div class="hp-tip-row"><span>Değer</span><b style="color:var(--ink);">₺${t.cost.toLocaleString('tr-TR')}</b></div>` : ''}
     <div class="hp-tip-row"><span>İlerleme</span><b style="color:var(--ink);">%${t.ilerleme||0}</b></div>
     ${(t.personelIds||[]).length ? `<div class="hp-tip-row" style="align-items:flex-start;">
       <span>Ekip</span><b style="color:var(--ink);text-align:right;">${
@@ -3504,6 +3511,18 @@ function planSaatView(){
 // ---- Blok ekleme / düzenleme ----
 function openPlanTaskModal(id){
   planTipGizle();
+  const _acildi = openPlanTaskModalIc(id);
+  const kutu = document.getElementById('modalBox');
+  if(!finansGorebilir()){ const tutar = kutu.querySelector('#ptTutar'); if(tutar){ const f = tutar.closest('.field'); if(f) f.style.display = 'none'; } }
+  if(!planYetkili()){
+    kutu.querySelectorAll('input,select,textarea').forEach(el => { el.disabled = true; });
+    kutu.querySelectorAll('.modal-submit').forEach(el => el.remove());
+    kutu.querySelectorAll('[onclick*="deletePlanTask"]').forEach(el => el.remove());
+    const h = kutu.querySelector('.modal-head h2'); if(h) h.insertAdjacentHTML('afterend', '<div class="hint" style="margin:0 0 10px;">Görüntüleme modu — planı yönetim ve üretim sorumlusu düzenler.</div>');
+  }
+  return _acildi;
+}
+function openPlanTaskModalIc(id){
   const t = id ? PLAN_TASKS.find(x => x.id === id) : null;
   const gunler = planHaftaGunleri();
   const job = t && t.jobId ? JOBS.find(j => j.id === t.jobId) : null;
@@ -3557,6 +3576,7 @@ function openPlanTaskModal(id){
   showModal();
 }
 function submitPlanTask(id){
+  if(!planYetkili()){ showToast('Haftalık planı yalnız yönetim ve üretim sorumlusu düzenleyebilir.'); return; }
   const val = x => { const el = document.getElementById(x); return el ? el.value : ''; };
   const ad = val('ptAd').trim();
   if(!ad){ showToast('Görev adı girin.'); return; }
@@ -3583,6 +3603,7 @@ function submitPlanTask(id){
   showToast(mevcut ? 'Blok güncellendi.' : 'Blok eklendi.');
 }
 function deletePlanTask(id){
+  if(!planYetkili()){ showToast('Haftalık planı yalnız yönetim ve üretim sorumlusu düzenleyebilir.'); return; }
   PLAN_TASKS = PLAN_TASKS.filter(x => x.id !== id);
   closeModal(); renderContent(); showToast('Blok silindi.');
 }
@@ -7977,7 +7998,7 @@ function anaSayfaOncelikler(){
     else if(j.stage === 'TASARIM' && j.approval !== 'ONAYLANDI') rows.push({ sira:1, baslik:j.client, alt:`${j.desc} · Tasarım`, etiket:j.approval === 'REVIZYON' ? 'Revizyon' : 'Onay bekliyor', renk:'orange', onclick:`openJobDrawer('${j.id}')`, kim:(j.assignees||[])[0] || '—' });
     else if(j.stage === 'MONTAJ') rows.push({ sira:2, baslik:j.client, alt:`${j.desc} · Montaj`, etiket:'Sahada', renk:'blue', onclick:`openJobDrawer('${j.id}')`, kim:(j.assignees||[])[0] || '—' });
   });
-  QUOTES.filter(q => q.status === 'Gönderildi').forEach(q => rows.push({ sira:1, baslik:teklifMusteriAdi(q), alt:`Teklif ${q.no || ''} · ${CURRENCY_SYMBOLS[q.currency||'TL']}${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}`, etiket:'Karar bekliyor', renk:'orange', onclick:`goTo('teklifler'); openQuoteView('${q.id}')`, kim:q.repName || '—' }));
+  QUOTES.filter(q => q.status === 'Gönderildi').forEach(q => rows.push({ sira:1, baslik:teklifMusteriAdi(q), alt:`Teklif ${q.no || ''}${finansGorebilir() ? ' · ' + CURRENCY_SYMBOLS[q.currency||'TL'] + Math.round(quoteTotal(q)).toLocaleString('tr-TR') : ''}`, etiket:'Karar bekliyor', renk:'orange', onclick:`goTo('teklifler'); openQuoteView('${q.id}')`, kim:q.repName || '—' }));
   (GENERAL_TASKS || []).filter(t => t.overdue && t.status !== 'Tamamlandı').forEach(t => rows.push({ sira:0, baslik:t.title, alt:`${t.project || 'Genel'} · Termin ${t.due || '—'}`, etiket:'Gecikti', renk:'red', onclick:`openGeneralBoard('${(t.project||'Genel').replace(/'/g, "\\'")}')`, kim:(t.assignees||[])[0] || '—' }));
   return rows.sort((x, y) => x.sira - y.sira).slice(0, 7);
 }
@@ -8020,10 +8041,18 @@ function anaSayfaView(){
       <div class="date-chip">${tarihMetni} <strong>${gunMetni}</strong></div>
     </div>
     <div class="metric-grid">
+      ${finansGorebilir() ? `
       ${metric('Açık işler', openTasks, waitingApproval ? `${waitingApproval} iş onay bekliyor` : `${inMontaj} iş sahada`, waitingApproval ? 'risk' : '', NAV_SVG.tasks, 'orange', "selectSub('gorev-yonetimi','tum-isler')")}
       ${metric('Bekleyen teklifler', CURRENCY_SYMBOLS.TL + ' ' + Math.round(gonderilenTutar).toLocaleString('tr-TR'), `${gonderilen.length} teklif karar bekliyor · ${draftQuotes} taslak`, '', NAV_SVG.file, 'blue', "goTo('teklifler')")}
-      ${metric('Beklenen tahsilat', chTL(tahsilEdilecekK), `${tahsilCari} caride açık bakiye`, '', NAV_SVG.wallet, 'green', roleCfg().tabs.includes('on-muhasebe') ? "selectSub('on-muhasebe','cari-hareketleri')" : '')}
-      ${metric('Bu ay tahsilat', tl(buAyTutar), `${buAy.length} tahsilat kaydı`, buAy.length ? 'trend' : '', NAV_SVG.chart, '', roleCfg().tabs.includes('on-muhasebe') ? "selectSub('on-muhasebe','gelirler')" : '')}
+      ${metric('Beklenen tahsilat', chTL(tahsilEdilecekK), `${tahsilCari} caride açık bakiye`, '', NAV_SVG.wallet, 'green', "selectSub('on-muhasebe','cari-hareketleri')")}
+      ${metric('Bu ay tahsilat', tl(buAyTutar), `${buAy.length} tahsilat kaydı`, buAy.length ? 'trend' : '', NAV_SVG.chart, '', "selectSub('on-muhasebe','gelirler')")}`
+      : `
+      ${metric('Açık işler', openTasks, 'tahsilata gelmemiş', '', NAV_SVG.tasks, 'orange', roleCfg().gorevSubs.includes('tum-isler') ? "selectSub('gorev-yonetimi','tum-isler')" : "selectSub('gorev-yonetimi','gorevlerim')")}
+      ${metric('Onay bekleyen', waitingApproval, 'üretime geçemiyor', waitingApproval ? 'risk' : '', '!', waitingApproval ? 'red' : '', '')}
+      ${metric('Sahada', inMontaj, 'montaj aşamasında', '', NAV_SVG.box, 'blue', '')}
+      ${roleCfg().tabs.includes('teklifler')
+        ? metric('Bekleyen teklifler', gonderilen.length, `${draftQuotes} taslak`, '', NAV_SVG.file, 'green', "goTo('teklifler')")
+        : metric('Planlı işler', PLAN_TASKS.length, 'haftalık planda', '', NAV_SVG.home, 'green', roleCfg().gorevSubs.includes('haftalik-plan') ? "selectSub('gorev-yonetimi','haftalik-plan')" : '')}`}
     </div>
     ${homeVehicleAlertsHtml()}
     <div class="dashboard-grid">
@@ -10153,6 +10182,7 @@ function teklifListView(){
   const kararTutar = kararBekleyen.reduce((t, q) => t + quoteTotal(q), 0);
   const suresiDolacak = QUOTES.filter(q => { const g = teklifGecerlilikDurumu(q); return g && g !== 'Hala Geçerli' && g !== 'Süresi Geçmiş'; });
   const suresiGecmis = QUOTES.filter(q => teklifGecerlilikDurumu(q) === 'Süresi Geçmiş' && (q.status === 'Gönderildi' || q.status === 'Taslak'));
+  const finans = finansGorebilir();
   const durumTag = st => { const slug = statusSlug(st); const renk = slug === 'st-kabul-edildi' || slug === 'st-faturalandi' ? 'green' : slug === 'st-reddedildi' ? 'red' : slug === 'st-gonderildi' ? 'orange' : 'gray'; return `<span class="tag ${renk}"><i class="tk-durum-ikon"></i>${st}</span>`; };
   return `
     <div class="page-head">
@@ -10160,12 +10190,12 @@ function teklifListView(){
         <div class="page-sub">Teklifleri sonuç, geçerlilik ve sorumlu bazında takip edin.</div></div>
       <div class="action-row"><button class="primary" onclick="yeniTeklifBaslat()">＋ Yeni Teklif</button></div>
     </div>
-    <div class="metric-grid">
+    ${finans ? `<div class="metric-grid">
       <div class="metric"><div class="metric-top"><span>Açık teklif</span><span class="metric-icon orange">${NAV_SVG.file}</span></div><strong>${acik.length}</strong><small>₺ ${Math.round(acikTutar).toLocaleString('tr-TR')} toplam</small></div>
       <div class="metric"><div class="metric-top"><span>Kabul oranı</span><span class="metric-icon green">${NAV_SVG.chart}</span></div><strong>% ${kabulOrani}</strong><small>${kabul.length} kabul / ${sonuclanan.length} sonuçlanan</small></div>
       <div class="metric"><div class="metric-top"><span>Karar bekleyen</span><span class="metric-icon blue">◷</span></div><strong>${kararBekleyen.length}</strong><small>₺ ${Math.round(kararTutar).toLocaleString('tr-TR')} potansiyel</small></div>
       <div class="metric"><div class="metric-top"><span>Süresi dolacak</span><span class="metric-icon red">!</span></div><strong>${suresiDolacak.length}</strong><small class="${suresiGecmis.length ? 'risk' : ''}">${suresiGecmis.length ? suresiGecmis.length + ' teklifin süresi geçti' : 'Geçerlilik takibi'}</small></div>
-    </div>
+    </div>` : ''}
     <div class="table-card">
       <div class="toolbar" style="padding:14px 16px;margin:0;border-bottom:1px solid var(--line);">
         <input class="tb-field" placeholder="Teklif ara (numara, müşteri, temsilci, etiket)" value="${notEsc(f.q)}"
@@ -10210,7 +10240,7 @@ function teklifListView(){
       </div>` : ''}
       <div class="table-card scroll" style="border:0;border-radius:0;box-shadow:none;">
       <table class="data-table">
-        <thead><tr><th>Teklif</th><th>Müşteri / Kapsam</th><th class="sag">Tutar</th><th>Durum</th><th>Temsilci</th><th>Geçerlilik</th></tr></thead>
+        <thead><tr><th>Teklif</th><th>Müşteri / Kapsam</th>${finans ? '<th class="sag">Tutar</th>' : ''}<th>Durum</th><th>Temsilci</th><th>Geçerlilik</th></tr></thead>
         <tbody>
         ${liste.length ? liste.map(q => {
           const ad = teklifMusteriAdi(q);
@@ -10219,7 +10249,7 @@ function teklifListView(){
           return `<tr class="clickable" onclick="teklifTikla('${q.id}')" ondblclick="teklifCiftTikla('${q.id}')" title="Tek tık: önizleme · Çift tık: tam görünüm">
             <td><strong style="font-family:var(--font-display);">${q.no || '—'}</strong><small>${formatDate(q.date)}</small></td>
             <td><strong>${ad}</strong><small>${kapsam ? notEsc(kapsam) : (q.tur || 'Satış Teklifi')}</small></td>
-            <td class="money">${CURRENCY_SYMBOLS[q.currency||'TL']} ${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}</td>
+            ${finans ? `<td class="money">${CURRENCY_SYMBOLS[q.currency||'TL']} ${Math.round(quoteTotal(q)).toLocaleString('tr-TR')}</td>` : ''}
             <td>${durumTag(q.status)}</td>
             <td><span style="display:inline-flex;align-items:center;gap:8px;"><span class="mini-avatar tk-av" title="${notEsc(q.repName || 'Temsilci belirtilmemiş')}" style="margin:0;">${q.repName ? initials(q.repName) : '—'}</span>${notEsc(q.repName || '—')}</span></td>
             <td>${q.gecerlilik ? formatDate(q.gecerlilik) : '—'}${g ? `<small style="color:${g === 'Süresi Geçmiş' ? 'var(--risk)' : (g === 'Hala Geçerli' ? 'var(--ink-2)' : 'var(--signal)')};">${g}</small>` : ''}</td>
@@ -10229,7 +10259,7 @@ function teklifListView(){
       </table>
       </div>
       <div class="table-summary"><span>${liste.length}${aktifFiltre ? ` / ${QUOTES.length}` : ''} kayıt gösteriliyor${aktifFiltre ? ` · <span style="cursor:pointer;text-decoration:underline;" onclick="teklifFiltreTemizle()">filtreyi temizle</span>` : ''}</span>
-        <strong>Toplam: ₺ ${Math.round(liste.reduce((t, q) => t + (q.currency && q.currency !== 'TL' ? 0 : quoteTotal(q)), 0)).toLocaleString('tr-TR')}</strong></div>
+        ${finans ? `<strong>Toplam: ₺ ${Math.round(liste.reduce((t, q) => t + (q.currency && q.currency !== 'TL' ? 0 : quoteTotal(q)), 0)).toLocaleString('tr-TR')}</strong>` : ''}</div>
     </div>
   `;
 }
@@ -11174,7 +11204,7 @@ function quoteViewPage(id){
 
       <aside class="quote-summary no-print" style="flex:0 0 310px; min-width:260px; top:88px;">
         <p>TEKLİF ÖZETİ</p>
-        <div class="tf-totals">
+        <div class="tf-totals" style="${finansGorebilir() ? '' : 'display:none;'}">
           <div><span>Ara toplam</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteSub(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
           <div><span>KDV</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteKdvAmount(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
           <div class="grand"><span>GENEL TOPLAM</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteTotal(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
