@@ -550,46 +550,6 @@ tr:last-child td{border-bottom:none;}
   font-family:var(--font-mono);font-size:12px;color:var(--ink-2);padding:10px 4px 0;}
 .tf-totals .grand,.totals b{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);}
 
-.mx-head{display:grid;grid-template-columns:minmax(240px,1fr) 76px 106px 112px 32px;gap:8px;
-  font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.7px;color:var(--ink-3);padding:0 4px 8px;}
-.mx-row{display:grid;grid-template-columns:minmax(240px,1fr) 76px 106px 112px 32px;gap:8px;align-items:center;
-  padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
-.mx-row .mx-aciklama{grid-column:1 / -1;height:28px;font-size:11.5px;color:var(--ink-2);
-  border:1px dashed var(--line-strong);background:var(--surface);}
-.mx-row .mx-aciklama:focus{border-style:solid;}
-.mx-row .mx-aciklama::placeholder{color:var(--ink-3);}
-.mx-row input{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
-  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
-.mx-row input:focus{outline:none;border-color:var(--ink);}
-.mx-row .mx-tutar{font-family:var(--font-mono);font-weight:600;text-align:right;background:var(--surface-sunk);border-color:var(--line);}
-.mx-olcu{grid-column:1 / -1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);}
-.mx-olcu select{height:28px;padding:0 7px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;max-width:210px;}
-.mx-olcu input{height:28px;width:82px;padding:0 8px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;}
-.mx-olcu .m2sonuc{font-family:var(--font-mono);font-weight:700;color:var(--ok);}
-.mx-bagli{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);
-  background:var(--surface);border:1px dashed var(--line-strong);border-radius:6px;padding:4px 8px;max-width:300px;}
-.kur-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);
-  border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;}
-.kur-bar b{font-family:var(--font-display);}
-.kur-bar label{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12px;}
-.kur-bar input{height:28px;width:96px;padding:0 8px;border:1px solid var(--line-strong);border-radius:6px;
-  background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:12px;}
-.kur-bar .kur-kaynak{margin-left:auto;font-size:11px;color:var(--ink-3);font-style:normal;}
-.mz-head,.mz-row{display:grid;grid-template-columns:minmax(180px,1fr) 92px 110px 92px 120px 32px;gap:8px;align-items:center;}
-.mz-head{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);padding:0 7px 6px;}
-.mz-row{padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
-.mz-row input,.mz-row select{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
-  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
-.mz-row .mz-tl{font-family:var(--font-mono);font-weight:600;text-align:right;font-size:12px;color:var(--ink-2);}
-.mx-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;}
-.mx-chip{height:26px;padding:0 11px;border:1px dashed var(--line-strong);border-radius:999px;
-  background:var(--surface);color:var(--ink-2);font-size:11.5px;cursor:pointer;font-family:inherit;}
-.mx-chip:hover{border-style:solid;border-color:var(--ink);color:var(--ink);}
-.mx-ozet{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:14px 16px;}
-.mx-ozet .t-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);padding:5px 0;}
-.mx-ozet .t-row span:last-child{font-family:var(--font-mono);color:var(--ink);font-weight:600;}
-.mx-ozet .t-row.final{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;font-size:13.5px;}
 .islem-item{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 12px;
   background:none;border:none;text-align:left;cursor:pointer;font-size:12.5px;color:var(--ink);}
 .islem-item:hover{background:var(--surface-sunk);}
@@ -1997,6 +1957,219 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 
 @media(max-width:1180px){ .metric-grid{grid-template-columns:1fr 1fr;} .dashboard-grid,.two-col{grid-template-columns:1fr;} .builder-grid{grid-template-columns:1fr;} .quote-summary{position:static;} .ch-kpi{grid-template-columns:1fr 1fr;} }
 @media(max-width:880px){ .metric-grid,.ch-kpi{grid-template-columns:1fr;} .toolbar{flex-wrap:wrap;} .tb-field{min-width:100%;} .segmented{margin-left:0;} .data-table{min-width:700px;} .table-card{overflow-x:auto;} .form-grid{grid-template-columns:1fr;} .form-grid .span-2{grid-column:auto;} .quick-grid{grid-template-columns:1fr;} .page-head,.list-page-head{display:block;} .page-head .action-row,.list-page-head .action-row{margin-top:12px;} .account-hero{align-items:flex-start;} .balance-block{text-align:left;} .topbar .primary span.etiket{display:none;} }
+/* ================= TEKLİF MALİYETLERİ (iç kullanım) — referans: ROTA-Teklif-Maliyetleri-Tasarim-Referansi.html =================
+   Tema token'ları kullanılır (açık/koyu). Turuncu yalnız ana aksiyon + aktif adım; yeşil yalnız pozitif finans; kırmızı hata/negatif. */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.mx-bas{align-items:flex-start;}
+.mx-bas-aksiyon{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.mx-rozet{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:999px;background:var(--surface-sunk);color:var(--ink-2);font-size:12px;font-weight:700;letter-spacing:0;cursor:help;}
+.mx-kur-chip{height:40px;padding:0 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;cursor:pointer;font-family:inherit;}
+.mx-kur-chip:hover{border-color:var(--line-strong);background:var(--surface-muted);}
+.mx-kaydet{height:40px;}
+.mx-kaydet.kaydedildi,.mx-kaydet.nötr{background:var(--surface);color:var(--ink-2);border:1px solid var(--line);opacity:1;}
+.mx-kaydet.kaydediliyor{opacity:.75;}
+.mx-kaydet.hata{background:var(--risk);}
+.mx-kaydet:disabled{cursor:default;}
+/* adımlar */
+.mx-adimlar{display:flex;gap:28px;margin:6px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto;}
+.mx-adim{border:0;background:transparent;padding:4px 8px 12px;color:var(--ink-2);font-weight:650;font-size:13.5px;font-family:inherit;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;border-bottom:3px solid transparent;margin-bottom:-1px;}
+.mx-adim .no{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:750;}
+.mx-adim.aktif{color:var(--signal);border-bottom-color:var(--signal);font-weight:750;}
+.mx-adim.aktif .no{background:var(--signal);border-color:var(--signal);color:#fff;}
+.mx-adim:hover{color:var(--ink);}
+/* yerleşim */
+.mx-yerlesim{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start;}
+.mx-yerlesim.ters{grid-template-columns:minmax(0,1fr) 380px;}
+.mx-panel{position:sticky;top:16px;padding:18px;}
+.mx-kart{min-width:0;}
+/* toolbar */
+.mx-toolbar{display:grid;grid-template-columns:minmax(200px,1fr) 190px auto auto;gap:10px;padding:14px;border-bottom:1px solid var(--line);align-items:center;}
+.mx-toolbar .tb-field{min-width:0;width:100%;}
+.mx-toolbar .ghost,.mx-toolbar .primary{height:40px;white-space:nowrap;}
+/* tablo */
+.mx-tablo{padding:0 14px 14px;}
+.mx-kolonlar,.mx-satir{display:grid;grid-template-columns:18px minmax(200px,2.2fr) minmax(150px,1.1fr) 82px 78px 74px 118px 118px 66px;align-items:center;column-gap:8px;}
+.mx-kolonlar{height:42px;padding:0 10px;color:var(--ink-3);font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.06em;}
+.mx-kolonlar .sag,.mx-satir .sag{text-align:right;}
+.mx-grup{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px;background:var(--surface);}
+.mx-grup-bas{height:42px;background:var(--surface-muted);display:flex;align-items:center;padding:0 10px;gap:8px;font-weight:800;font-size:12.5px;color:var(--ink);}
+.mx-chev{width:26px;height:26px;border:0;background:transparent;color:var(--ink-2);font-size:16px;cursor:pointer;border-radius:6px;padding:0;}
+.mx-chev:hover{background:var(--surface-sunk);}
+.mx-grup-ikon{font-size:13px;}
+.mx-grup-adet{color:var(--ink-3);font-size:11.5px;font-weight:600;}
+.mx-grup-toplam{margin-left:auto;font-weight:750;font-size:13px;color:var(--ink);}
+.mx-satir{min-height:52px;padding:6px 10px;border-top:1px solid var(--line);font-size:13px;position:relative;background:var(--surface);}
+.mx-satir:hover{background:var(--surface-muted);}
+.mx-satir.sorunlu{box-shadow:inset 3px 0 0 var(--hold);}
+.mx-satir.surukleniyor{opacity:.45;}
+.mx-satir.hedef{outline:2px dashed var(--signal);outline-offset:-2px;}
+.mx-tut{color:var(--ink-3);cursor:grab;font-size:11px;letter-spacing:-2px;user-select:none;}
+.mx-kalem{min-width:0;}
+.mx-kalem strong{display:block;font-size:13px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mx-kalem .alt,.mx-bfiyat .alt{color:var(--ink-2);font-size:11px;margin-top:3px;line-height:1.3;}
+.mx-kalem .alt.sorun{color:var(--hold);font-weight:650;}
+.mx-ted{min-width:0;}
+.mx-ted-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:32px;padding:0 9px;border:1px solid var(--line);background:var(--surface-muted);border-radius:7px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit;}
+.mx-ted-chip:hover{border-color:var(--line-strong);}
+.mx-ted-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mx-nokta{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--ink-3);}
+.mx-nokta.yesil{background:var(--ok);} .mx-nokta.turuncu{background:var(--hold);} .mx-nokta.kirmizi{background:var(--risk);} .mx-nokta.gri{background:var(--ink-3);}
+.mx-fiyat-sayi{display:block;font-size:11px;color:var(--info);margin-top:3px;text-decoration:none;font-weight:600;}
+.mx-fiyat-sayi:hover{text-decoration:underline;}
+.mx-manuel{display:inline-block;font-size:10.5px;color:var(--ink-2);background:var(--surface-sunk);border-radius:999px;padding:1px 7px;margin-top:3px;font-weight:650;}
+.mx-inp{height:36px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);padding:0 8px;font-size:13px;font-family:inherit;width:100%;min-width:0;}
+.mx-inp.sag{text-align:right;}
+.mx-inp:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-soft);}
+select.mx-inp{padding:0 4px;}
+.mx-hesapli{display:inline-block;height:36px;line-height:36px;padding:0 4px;font-weight:650;color:var(--ink);}
+.mx-fiyat-kap{display:flex;align-items:center;border:1px solid var(--line);border-radius:7px;background:var(--surface);overflow:hidden;}
+.mx-fiyat-kap .sim{padding:0 0 0 8px;color:var(--ink-3);font-size:12px;font-weight:700;}
+.mx-fiyat-kap .mx-inp{border:0;border-radius:0;box-shadow:none;height:34px;}
+.mx-fiyat-kap:focus-within{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-soft);}
+.mx-toplam{text-align:right;font-weight:750;font-size:13.5px;color:var(--ink);}
+.kirmizi{color:var(--risk);} .turuncu{color:var(--hold);}
+.mx-islem{display:flex;justify-content:flex-end;gap:2px;}
+.mx-uc{width:30px;height:30px;border:0;background:transparent;color:var(--ink-2);border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;padding:0;}
+.mx-uc:hover{background:var(--surface-sunk);color:var(--ink);}
+.mx-menu-kap{position:relative;}
+.mx-menu{position:absolute;right:0;top:34px;z-index:40;width:220px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-md);padding:6px;display:flex;flex-direction:column;text-align:left;}
+.mx-menu button{border:0;background:transparent;text-align:left;height:34px;padding:0 10px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit;white-space:nowrap;}
+.mx-menu button:hover,.mx-menu button:focus-visible{background:var(--surface-sunk);outline:none;}
+.mx-menu button.tehlike{color:var(--risk);}
+.mx-menu-alt{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;padding:4px 0;display:flex;flex-direction:column;}
+.mx-menu-alt>span{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:750;padding:4px 10px;}
+.mx-ekle-cizgi{height:42px;width:100%;border:1px dashed var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink-2);font-weight:700;font-family:inherit;cursor:pointer;font-size:13px;}
+.mx-ekle-cizgi:hover{border-color:var(--signal);color:var(--signal);}
+.mx-uyari{margin-top:10px;display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--hold-soft,#FFF5EE);border:1px solid rgba(183,110,0,.35);border-radius:9px;color:var(--hold);font-size:13px;}
+.mx-uyari>b{font-size:16px;}
+.mx-uyari span small{color:var(--ink-2);font-size:11.5px;}
+.mx-uyari button{margin-left:auto;height:34px;background:var(--surface);border:1px solid var(--signal);color:var(--signal);border-radius:7px;font-weight:700;padding:0 12px;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.mx-uyari.bilgi{background:var(--info-soft);border-color:rgba(49,87,183,.3);color:var(--info);}
+.mx-uyari.bilgi button{border-color:var(--info);color:var(--info);}
+.mx-bos{padding:48px 24px;text-align:center;}
+.mx-bos .ikon{font-size:34px;margin-bottom:8px;}
+.mx-bos h3{margin:0 0 6px;font-size:16px;font-weight:750;color:var(--ink);}
+.mx-bos p{margin:0 auto 16px;max-width:420px;color:var(--ink-2);font-size:13px;}
+.mx-bos .aksiyon{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.mx-mobil-ekle{display:none;}
+/* skeleton */
+.mx-skel-bas{height:42px;margin:14px;border-radius:8px;background:linear-gradient(90deg,var(--surface-sunk) 25%,var(--surface-muted) 50%,var(--surface-sunk) 75%);background-size:400% 100%;animation:mxSkel 1.2s infinite;}
+.mx-skel-satir{display:flex;gap:10px;padding:10px 14px;} .mx-skel-satir i{display:block;height:16px;border-radius:5px;background:var(--surface-sunk);animation:mxSkel 1.2s infinite;}
+@keyframes mxSkel{0%{opacity:.55}50%{opacity:1}100%{opacity:.55}}
+/* kârlılık paneli */
+.mx-panel-bas{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mx-panel-bas h2{font-family:var(--font-display);font-size:20px;font-weight:800;margin:0;color:var(--ink);}
+.mx-panel-bas small{color:var(--ink-3);font-size:11px;margin-left:auto;}
+.mx-durum-rozet{font-size:11px;color:var(--ok);background:var(--ok-soft);padding:5px 8px;border-radius:999px;font-weight:800;}
+.mx-metrik{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:var(--ink-2);font-size:13px;gap:10px;}
+.mx-metrik strong{color:var(--ink);font-weight:700;}
+.mx-metrik b{font-size:18px;color:var(--ink);font-weight:750;}
+.mx-metrik.pozitif b{color:var(--ok);} .mx-metrik.negatif b{color:var(--risk);}
+.mx-ayrac{height:1px;background:var(--line);margin:14px 0 0;}
+.mx-marj-kutu{margin-top:14px;padding:14px 16px;background:var(--ok-soft);border:1px solid rgba(13,122,74,.25);border-radius:10px;}
+.mx-marj-kutu span{display:block;font-weight:750;color:var(--ok);font-size:12.5px;}
+.mx-marj-kutu strong{display:block;font-size:34px;color:var(--ok);margin-top:2px;font-variant-numeric:tabular-nums;letter-spacing:-.5px;}
+.mx-marj-kutu em{display:block;font-style:normal;font-size:11.5px;color:var(--ink-2);margin-top:4px;}
+.mx-marj-kutu.negatif{background:var(--risk-soft);border-color:rgba(180,35,24,.3);}
+.mx-marj-kutu.negatif span,.mx-marj-kutu.negatif strong,.mx-marj-kutu.negatif em{color:var(--risk);}
+.mx-segment{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-sunk);border:1px solid var(--line);border-radius:9px;padding:3px;margin:14px 0 12px;}
+.mx-segment button{height:36px;border:0;border-radius:7px;background:transparent;font-weight:750;font-size:12.5px;color:var(--ink-2);cursor:pointer;font-family:inherit;}
+.mx-segment button.aktif{background:var(--signal-soft);color:var(--signal-ink);}
+.mx-hedef{display:flex;align-items:center;gap:8px;}
+.mx-hedef label{font-weight:700;font-size:13px;color:var(--ink);cursor:help;}
+.mx-hedef-giris{margin-left:auto;display:flex;align-items:center;gap:4px;}
+.mx-hedef-giris input{width:76px;height:38px;border:1px solid var(--line);border-radius:8px;text-align:center;font-weight:800;font-size:15px;background:var(--surface);color:var(--ink);font-family:inherit;}
+.mx-hedef-giris input:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-soft);}
+.mx-hedef-giris span{font-weight:700;color:var(--ink-2);}
+.mx-slider{width:100%;accent-color:var(--signal);margin:12px 0 4px;}
+.mx-oneri{background:var(--surface-muted);border:1px solid var(--line);border-radius:10px;padding:13px;margin-top:6px;}
+.mx-oneri small{color:var(--ink-2);font-weight:700;font-size:11.5px;}
+.mx-oneri .satir{display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap;}
+.mx-oneri strong{font-size:22px;color:var(--ink);font-weight:800;letter-spacing:-.3px;}
+.mx-oneri button{margin-left:auto;height:36px;}
+.mx-dagilim{margin-top:16px;}
+.mx-dagilim h3{font-size:13.5px;margin:0 0 10px;font-weight:750;color:var(--ink);}
+.mx-bar{height:9px;display:flex;border-radius:99px;overflow:hidden;background:var(--surface-sunk);}
+.mx-bar i{display:block;height:100%;}
+.mx-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin-top:9px;font-size:11px;color:var(--ink-2);}
+.mx-legend span{display:flex;flex-direction:column;gap:2px;}
+.mx-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.mx-legend b{color:var(--ink);font-size:12px;}
+.mx-panel-not{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-3);}
+/* tooltip */
+[data-tip]{position:relative;}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 6px);z-index:50;width:max-content;max-width:260px;background:var(--navy-950);color:#fff;font-size:11.5px;font-weight:500;line-height:1.4;padding:8px 10px;border-radius:8px;box-shadow:var(--shadow-md);white-space:normal;}
+/* modal formu */
+.mx-form .field-row{gap:9px;} .mx-form .field{flex:1;}
+.mx-form-bolum{font-size:10.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:6px 0 10px;padding-top:10px;border-top:1px solid var(--line);}
+.mx-form-aksiyon{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap;}
+.mx-form-aksiyon .primary,.mx-form-aksiyon .ghost{height:38px;}
+.primary.tehlike{background:var(--risk);}
+.mx-karsilastir{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;background:var(--surface-muted);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+.mx-karsilastir small{display:block;color:var(--ink-2);font-size:11px;font-weight:700;}
+.mx-karsilastir b{display:block;font-size:18px;font-weight:800;color:var(--ink);margin-top:2px;}
+.mx-karsilastir em{display:block;font-style:normal;font-size:12px;font-weight:700;margin-top:2px;}
+.mx-karsilastir em.pozitif{color:var(--ok);} .mx-karsilastir em.negatif{color:var(--risk);}
+.mx-karsilastir .ok{font-size:20px;color:var(--ink-3);}
+.mx-dagitim label{display:block;padding:8px 0;font-size:13px;color:var(--ink);border-bottom:1px solid var(--line);}
+.mx-dagitim label:last-child{border-bottom:0;}
+.mx-sablon-liste{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:50vh;overflow:auto;}
+.mx-sablon{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer;}
+.mx-sablon:hover{background:var(--surface-muted);}
+.mx-sablon span{flex:1;min-width:0;} .mx-sablon b{display:block;font-size:13px;} .mx-sablon small{display:block;color:var(--ink-2);font-size:11.5px;margin-top:2px;}
+/* drawer içerikleri */
+.mx-drawer{position:relative;padding-right:8px;}
+.mx-drawer-arac{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:12.5px;color:var(--ink-2);}
+.mx-drawer-arac button{margin-left:auto;}
+.mx-yeni-fiyat{border:1px solid var(--line);border-radius:10px;padding:12px 14px 6px;margin-bottom:14px;background:var(--surface-muted);}
+.mx-yeni-fiyat .mx-form-bolum{border-top:0;padding-top:0;margin-top:0;}
+.mx-fiyat-liste{display:flex;flex-direction:column;gap:10px;}
+.mx-fiyat-kart{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);}
+.mx-fiyat-kart.secili{border-color:var(--signal);box-shadow:0 0 0 2px var(--signal-soft);}
+.mx-fiyat-kart .ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;}
+.mx-fiyat-kart .ust .urun{color:var(--ink-2);font-size:12px;margin-left:auto;}
+.mx-fiyat-kart .deger{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 14px;margin:10px 0 8px;}
+.mx-fiyat-kart .deger small{display:block;font-size:10.5px;color:var(--ink-3);font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.mx-fiyat-kart .deger b{display:block;font-size:13px;color:var(--ink);font-weight:750;margin-top:2px;}
+.mx-fiyat-kart .deger em{font-style:normal;font-weight:500;color:var(--ink-2);font-size:11px;}
+.mx-fiyat-kart .alt{font-size:11.5px;color:var(--ink-2);margin-bottom:10px;}
+.mx-fiyat-kart .aksiyon{display:flex;gap:8px;} .mx-fiyat-kart .aksiyon .primary,.mx-fiyat-kart .aksiyon .ghost{height:34px;}
+.mx-durum-etiket{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-2);white-space:nowrap;}
+.mx-fiyat-tablo td{padding:6px 8px;} .mx-fiyat-tablo th{padding:0 8px;}
+.mx-fiyat-tablo .mx-inp{height:34px;}
+.mx-gecmis td,.mx-gecmis th{padding:8px 8px;font-size:12px;vertical-align:top;}
+.mx-kontrol{padding:10px 16px 6px;display:flex;flex-direction:column;gap:6px;font-size:13px;}
+.mx-kontrol>div{padding:8px 10px;border-radius:8px;background:var(--surface-muted);}
+.mx-kontrol .ok{color:var(--ok);} .mx-kontrol .uyari{color:var(--hold);background:var(--hold-soft);} .mx-kontrol .hata{color:var(--risk);background:var(--risk-soft);} .mx-kontrol .bilgi{color:var(--ink-2);}
+/* koyu tema uyumu: tokenlar zaten değişir; yalnız gölgeli/sabit renkler */
+html.dark .mx-uyari{background:rgba(183,110,0,.14);}
+/* responsive */
+@media(max-width:1439px){ .mx-yerlesim,.mx-yerlesim.ters{grid-template-columns:minmax(0,1fr) 32%;} .mx-kolonlar,.mx-satir{grid-template-columns:18px minmax(170px,2fr) minmax(130px,1fr) 76px 70px 70px 106px 106px 62px;} }
+@media(max-width:1100px){
+  .mx-yerlesim,.mx-yerlesim.ters{grid-template-columns:1fr;}
+  .mx-panel{position:static;}
+  .mx-tablo{overflow-x:auto;} .mx-kolonlar,.mx-satir{min-width:860px;}
+  .mx-toolbar{grid-template-columns:1fr 1fr;} .mx-toolbar .tb-field{grid-column:1/-1;}
+}
+@media(max-width:720px){
+  .mx-bas-aksiyon{width:100%;}
+  .mx-kur-chip{font-size:12px;padding:0 10px;}
+  .mx-adimlar{gap:12px;}
+  .mx-tablo{overflow:visible;padding:0 10px 10px;}
+  .mx-kolonlar{display:none;}
+  .mx-satir{min-width:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-areas:"kalem toplam" "ted islem" "giris giris";gap:8px 10px;padding:12px;}
+  .mx-kalem strong{white-space:normal;}
+  .mx-tut{display:none;}
+  .mx-kalem{grid-area:kalem;} .mx-toplam{grid-area:toplam;align-self:start;} .mx-ted{grid-area:ted;} .mx-islem{grid-area:islem;}
+  .mx-miktar,.mx-birim,.mx-doviz,.mx-bfiyat{grid-area:giris;}
+  .mx-miktar{grid-column:1;grid-row:3;} .mx-birim{display:none;} .mx-doviz{display:none;} .mx-bfiyat{grid-column:2;grid-row:3;}
+  .mx-satir .mx-miktar::before{content:"Miktar";display:block;font-size:10px;color:var(--ink-3);font-weight:700;text-transform:uppercase;margin-bottom:3px;}
+  .mx-satir .mx-bfiyat::before{content:"Birim maliyet";display:block;font-size:10px;color:var(--ink-3);font-weight:700;text-transform:uppercase;margin-bottom:3px;text-align:right;}
+  .mx-slider{display:none;}
+  .mx-toolbar{grid-template-columns:1fr;}
+  .mx-mobil-ekle{display:block;position:fixed;left:16px;right:16px;bottom:16px;z-index:30;height:46px;}
+}
+
 </style>
 <div class="top-right-bar">
   <div class="preview-flag" id="saveStatus" title="Değişiklikler otomatik kaydedilir">●&nbsp;Yükleniyor</div>
@@ -2143,7 +2316,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-11g';
+window.ROTA_SURUM = 'v2026-09-12a';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -10788,10 +10961,24 @@ function statusSlug(s){
     .replace(/[^a-z0-9]+/g,'-');
 }
 
-// ---------------- TEKLİF MALİYET HESABI ----------------
-// Her teklifin içine gömülü maliyet dökümü: q.maliyet = { items:[{ad, miktar, fiyat}] }
-// Müşteriye giden belgede GÖRÜNMEZ; iç maliyet ve kâr takibi içindir.
-// ---- Tedarikçi malzeme fiyatları + günlük kur ----
+// ---------------- TEKLİF MALİYETLERİ (iç kullanım) ----------------
+// Her teklifin içine gömülü maliyet çalışması: q.maliyet = { items, hedefOran, hedefMod, kurSabit, gecmis }
+// Müşteriye giden belgede GÖRÜNMEZ. Tedarikçi fiyat listesi MALZEME_FIYATLARI tüm tekliflerde ortaktır.
+// Hesaplar merkezi fonksiyonlardadır (mxNetMiktar … mxGrupDagilimi); ekran yalnız bunları çağırır.
+const MALIYET_AYAR = { eskimeGun:30, uyariOran:0.75, hedefUst:95, varsayilanHedef:30, gecmisTavan:300 };
+const MX_GRUPLAR = [
+  { id:'malzeme',     ad:'Malzeme',                ikon:'▱', renk:'#2F80ED' },
+  { id:'iscilik',     ad:'İşçilik',                ikon:'♙', renk:'#FF641A' },
+  { id:'dis_hizmet',  ad:'Dış Hizmet & Lojistik',  ikon:'▣', renk:'#8358DF' },
+  { id:'genel_gider', ad:'Genel Gider',            ikon:'▤', renk:'#16845B' },
+  { id:'diger',       ad:'Diğer',                  ikon:'◌', renk:'#667085' },
+];
+const MX_BIRIMLER = ['adet','m²','mt','kg','saat','gün','sefer','paket','takım','götürü'];
+const MX_PARALAR = ['TL','USD','EUR'];
+const MX_HESAP = { dogrudan:'Doğrudan miktar', en_boy:'En × boy', en_boy_adet:'En × boy × adet', uzunluk:'Uzunluk', saat:'Saat', goturu:'Götürü' };
+const MX_ISLEM_AD = { ekleme:'Maliyet eklendi', silme:'Maliyet silindi', miktar:'Miktar değişti', fiyat:'Birim fiyat değişti', tedarikci:'Tedarikçi değişti',
+  kur:'Kur değişti', hedef:'Hedef marj değişti', uygulama:'Önerilen fiyat teklife uygulandı', duzenleme:'Kalem düzenlendi', tasima:'Grup değişti', not:'Not eklendi', kopya:'Kalem kopyalandı' };
+
 function VARSAYILAN_MALZEMELER(){
   return [
     { id:'mz1', ad:'Kompozit Panel',   birim:'m²',   fiyat:0, para:'USD' },
@@ -10803,8 +10990,12 @@ function VARSAYILAN_MALZEMELER(){
   ];
 }
 let MALZEME_FIYATLARI = VARSAYILAN_MALZEMELER();
+let MALIYET_SABLONLARI = [];
 let KURLAR = { usd: 0, eur: 0, tarih: '', kaynak: '' };
-let maliyetTab = 'kalemler';
+let maliyetTab = 'kalemler';                   // eski durum değişkeni (geriye uyum)
+// Ekran durumu (kaydedilmez)
+const mxDurum = { adim:'maliyetler', ara:'', grup:'', sadeceSorunlu:false, kapali:{}, menu:null, surukle:null, seciliFiyatKalem:null, tumFiyatlar:false };
+
 function paraSimge(pb){ return pb === 'USD' ? '$' : (pb === 'EUR' ? '€' : '₺'); }
 // Türkçe ondalık: "15,5" da "15.5" da kabul edilir
 function virgulSayi(v){
@@ -10812,22 +11003,46 @@ function virgulSayi(v){
   let t = String(v).trim().replace(/\s/g, '');
   if(!t) return 0;
   if(t.includes(',')){
-    // Virgül ondalık ayırıcı: noktalar binlik ayırıcıdır
     t = t.replace(/\./g, '').replace(',', '.');
   } else {
     const parcalar = t.split('.');
-    // Tek nokta + sonrasında tam 3 hane (25.000) ya da birden fazla nokta (1.250.000) → binlik
     if(parcalar.length > 2 || (parcalar.length === 2 && /^\d{3}$/.test(parcalar[1]))) t = parcalar.join('');
   }
   return Number(t) || 0;
 }
 function virgulYaz(n){ return (n || n === 0) && n !== '' ? String(n).replace('.', ',') : ''; }
-function malzemeTL(mz){
-  const f = Number(mz.fiyat) || 0;
-  if(mz.para === 'USD') return f * (Number(KURLAR.usd) || 0);
-  if(mz.para === 'EUR') return f * (Number(KURLAR.eur) || 0);
-  return f;
+// Para: kuruşa yuvarla (kayan nokta hatasız). Ara hesaplar ham kalır, yuvarlama sonuçta yapılır.
+function kurus(n){ n = Number(n) || 0; return Math.round((n + (n >= 0 ? 1e-9 : -1e-9)) * 100) / 100; }
+function mxPara(n, para){
+  n = Number(n) || 0;
+  const s = Math.abs(n).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  return (n < 0 ? '−' : '') + paraSimge(para || 'TL') + s;
 }
+function mxYuzde(n, hane){ return n === null || n === undefined || !isFinite(n) ? '—' : '%' + (Number(n)).toLocaleString('tr-TR', { minimumFractionDigits:0, maximumFractionDigits: hane === undefined ? 1 : hane }); }
+function mxSayi(n, hane){ return (Number(n) || 0).toLocaleString('tr-TR', { maximumFractionDigits: hane === undefined ? 2 : hane }); }
+function mxBugunIso(){ return planIso(new Date()); }
+function mxIsoTarih(v){                            // "dd.mm.yyyy" ya da ISO → ISO
+  if(!v) return '';
+  const m = String(v).match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  return String(v).slice(0, 10);
+}
+function mxGunFarki(iso){ if(!iso) return null; const d = new Date(mxIsoTarih(iso) + 'T00:00:00'); if(isNaN(d)) return null; return Math.round((new Date(mxBugunIso() + 'T00:00:00') - d) / 86400000); }
+
+// ---- Kur ----
+function malzemeTL(mz, kur){
+  kur = kur || KURLAR;
+  const f = Number(mz.fiyat) || 0;
+  return f * mxKurDegeri(mz.para, kur);
+}
+function mxKurDegeri(para, kur){
+  kur = kur || KURLAR;
+  if(!para || para === 'TL' || para === 'TRY') return 1;
+  if(para === 'USD') return Number(kur.usd) || 0;
+  if(para === 'EUR') return Number(kur.eur) || 0;
+  return 0;
+}
+function mxKur(q){ return (q && q.maliyet && q.maliyet.kurSabit && q.maliyet.kurSabit.usd) ? q.maliyet.kurSabit : KURLAR; }
 // Günlük kur: canlıda /api/kur (TCMB döviz satış), olmazsa piyasa kuru; elle de girilebilir
 async function kurGetir(zorla){
   const bugun = new Date().toLocaleDateString('tr-TR');
@@ -10843,12 +11058,18 @@ async function kurGetir(zorla){
       d = { usd: ru && ru.rates && ru.rates.TRY, eur: re && re.rates && re.rates.TRY, tarih:'', kaynak:'Piyasa (yaklaşık)' };
     }
     if(d && d.usd){
+      const eski = { usd:KURLAR.usd, eur:KURLAR.eur };
       KURLAR.usd = Math.round(d.usd * 10000) / 10000;
       KURLAR.eur = Math.round((d.eur || 0) * 10000) / 10000;
       KURLAR.tarih = d.tarih || bugun; KURLAR.kaynak = d.kaynak || 'TCMB Döviz Satış';
       KURLAR.cekilme = bugun;
       mxKurlaYenile();
-      if(currentPage === 'teklifler' && teklifStep === 'maliyet') renderContent();
+      if(currentPage === 'teklifler' && teklifStep === 'maliyet'){
+        const q = mxAktifTeklif();
+        if(q && !(q.maliyet && q.maliyet.kurSabit) && (eski.usd !== KURLAR.usd || eski.eur !== KURLAR.eur))
+          mxGecmisYaz(q, 'kur', '', `USD ${mxSayi(eski.usd,4)} · EUR ${mxSayi(eski.eur,4)}`, `USD ${mxSayi(KURLAR.usd,4)} · EUR ${mxSayi(KURLAR.eur,4)}`);
+        renderContent();
+      }
       showToast(`Kur güncellendi: $${KURLAR.usd.toLocaleString('tr-TR')} · €${KURLAR.eur.toLocaleString('tr-TR')}`);
     } else if(zorla) showToast('Kur alınamadı — elle girebilirsiniz.');
   }catch(e){ if(zorla) showToast('Kur alınamadı — elle girebilirsiniz.'); }
@@ -10859,253 +11080,1127 @@ function kurElleDegistir(alan, deger){
   mxKurlaYenile();
   renderContent();
 }
-// Kur değişince malzemeye bağlı tüm maliyet satırlarının TL fiyatı tazelenir
+// Kur değişince tüm tekliflerdeki dövizli satırların ₺ birim maliyeti tazelenir (sabit kurlu teklifler hariç)
 function mxKurlaYenile(){
-  QUOTES.forEach(q => ((q.maliyet && q.maliyet.items) || []).forEach(r => {
-    if(!r.malzemeId) return;
-    const mz = MALZEME_FIYATLARI.find(x => x.id === r.malzemeId);
-    if(mz) r.fiyat = Math.round(malzemeTL(mz) * 100) / 100;
-  }));
+  QUOTES.forEach(q => { if(q.maliyet && Array.isArray(q.maliyet.items)) q.maliyet.items.forEach(r => mxSatirHesapla(r, mxKur(q))); });
 }
+
+// ---- Veri modeli / geriye uyumlu dönüşüm ----
 const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası'];
-function ensureMaliyet(q){ if(!q.maliyet || !Array.isArray(q.maliyet.items)) q.maliyet = { items: [] }; return q.maliyet; }
-function maliyetToplam(q){
-  return ((q.maliyet && q.maliyet.items) || []).reduce((s,r) => s + (Number(r.miktar)||1) * (Number(r.fiyat)||0), 0);
+function mxGrupTahmin(ad){
+  const a = String(ad || '').toLowerCase();
+  if(/işçilik|iscilik|montaj|usta|ekip|atölye|atolye/.test(a)) return 'iscilik';
+  if(/nakliye|vinç|vinc|kargo|lojistik|kiral|hizmet|sefer/.test(a)) return 'dis_hizmet';
+  return 'malzeme';
 }
+function mxKalemNormalle(r, q){
+  if(!r.id) r.id = benzersizId('mk');
+  if(r.aktif === undefined) r.aktif = true;
+  if(!r.para){                                    // eski kayıt: ₺ birim fiyat + malzeme bağı
+    const mz = r.malzemeId ? MALZEME_FIYATLARI.find(x => x.id === r.malzemeId) : null;
+    r.para = mz ? (mz.para || 'TL') : 'TL';
+    r.fiyatOrj = mz ? (Number(mz.fiyat) || 0) : (Number(r.fiyat) || 0);
+    r.birim = mz ? mz.birim : (r.birim || 'adet');
+    r.grup = r.grup || (mz ? 'malzeme' : mxGrupTahmin(r.ad));
+    r.hesapTuru = (r.en && r.boy) ? (r.birim === 'mt' ? 'uzunluk' : 'en_boy') : 'dogrudan';
+    r.manuel = !mz;
+    if(mz){ r.fiyatKaydiId = mz.id; r.tedarikciAd = mz.tedarikci || ''; r.tedarikciId = mz.tedarikciId || null; r.fiyatTarihi = mz.tarih || ''; r.gecerlilik = mz.gecerlilik || ''; }
+  }
+  if(!r.grup) r.grup = 'diger';
+  if(!r.birim) r.birim = 'adet';
+  if(!r.hesapTuru) r.hesapTuru = 'dogrudan';
+  if(r.fiyatOrj === undefined) r.fiyatOrj = Number(r.fiyat) || 0;
+  if(r.sira === undefined) r.sira = 0;
+  if(r.miktar === undefined || r.miktar === '') r.miktar = 1;
+  return r;
+}
+function ensureMaliyet(q){
+  if(!q.maliyet || !Array.isArray(q.maliyet.items)) q.maliyet = { items: [] };
+  const m = q.maliyet;
+  if(m.hedefOran === undefined) m.hedefOran = MALIYET_AYAR.varsayilanHedef;
+  if(!m.hedefMod) m.hedefMod = 'marj';
+  if(!Array.isArray(m.gecmis)) m.gecmis = [];
+  if(!Array.isArray(m.gruplar)) m.gruplar = [];   // kullanıcı tanımlı ek gruplar {id, ad}
+  m.items.forEach((r, i) => { mxKalemNormalle(r, q); if(!r.sira) r.sira = i + 1; });
+  m.items.forEach(r => mxSatirHesapla(r, mxKur(q)));
+  return m;
+}
+function mxFiyatNormalle(mz){
+  if(!mz.id) mz.id = benzersizId('mz');
+  if(!mz.para) mz.para = 'TL';
+  if(!mz.birim) mz.birim = 'adet';
+  if(mz.kdvDahil === undefined) mz.kdvDahil = false;
+  if(mz.kdvOran === undefined) mz.kdvOran = 20;
+  if(mz.tedarikci === undefined) mz.tedarikci = '';
+  if(mz.tarih === undefined) mz.tarih = '';
+  return mz;
+}
+function mxGruplar(q){
+  const ek = (q && q.maliyet && q.maliyet.gruplar) || [];
+  const temel = MX_GRUPLAR.map(g => { const o = ek.find(e => e.id === g.id); return o ? Object.assign({}, g, { ad: o.ad }) : g; });   // yeniden adlandırılmış varsayılan grup
+  return temel.concat(ek.filter(e => !MX_GRUPLAR.some(g => g.id === e.id)).map(g => Object.assign({ ikon:'◇', renk:'#667085' }, g)));
+}
+function mxGrupBul(q, id){ return mxGruplar(q).find(g => g.id === id) || MX_GRUPLAR[MX_GRUPLAR.length - 1]; }
+function mxTedarikciler(){
+  const adlar = new Set();
+  CUSTOMERS.filter(c => c.durum === 'Tedarikçi').forEach(c => adlar.add(c.name));
+  MALZEME_FIYATLARI.forEach(mz => { if(mz.tedarikci) adlar.add(mz.tedarikci); });
+  return [...adlar].sort((a, b) => a.localeCompare(b, 'tr'));
+}
+function mxTedarikciIdBul(ad){ const c = CUSTOMERS.find(x => x.name === ad && x.durum === 'Tedarikçi'); return c ? c.id : null; }
+
+// ---- HESAP FONKSİYONLARI (merkezi, test edilebilir) ----
+function mxNetMiktar(r){
+  const en = Number(r.en) || 0, boy = Number(r.boy) || 0, adet = Number(r.adet) || 1, miktar = Number(r.miktar) || 0;
+  switch(r.hesapTuru){
+    case 'en_boy':      return en * boy / 10000;
+    case 'en_boy_adet': return en * boy * adet / 10000;
+    case 'uzunluk':     return (boy / 100) * adet;
+    case 'goturu':      return 1;
+    default:            return miktar;
+  }
+}
+function mxFireliMiktar(net, fire){ return (Number(net) || 0) * (1 + (Number(fire) || 0) / 100); }
+function mxMaliyetMiktar(r){ return r.hesapTuru === 'dogrudan' || r.hesapTuru === 'saat' ? (Number(r.miktar) || 0) : mxFireliMiktar(mxNetMiktar(r), r.fire); }
+function mxTLcevir(tutar, para, kur){ return (Number(tutar) || 0) * mxKurDegeri(para, kur); }
+function mxSatirToplam(r, kur){
+  if(r.aktif === false) return 0;
+  return kurus(mxMaliyetMiktar(r) * (Number(r.fiyatOrj) || 0) * mxKurDegeri(r.para, kur));
+}
+function mxToplamMaliyet(q, kur){
+  kur = kur || mxKur(q);
+  return kurus(((q.maliyet && q.maliyet.items) || []).filter(r => r.aktif !== false).reduce((s, r) => s + mxSatirToplam(r, kur), 0));
+}
+function mxBrutKar(satis, maliyet){ return kurus((Number(satis) || 0) - (Number(maliyet) || 0)); }
+function mxMarjOrani(kar, satis){ return (Number(satis) || 0) > 0 ? kar / satis * 100 : null; }
+function mxMarkupOrani(kar, maliyet){ return (Number(maliyet) || 0) > 0 ? kar / maliyet * 100 : null; }
+function mxOneriMarj(maliyet, hedef){ hedef = Number(hedef); return hedef >= 0 && hedef < 100 ? kurus((Number(maliyet) || 0) / (1 - hedef / 100)) : null; }
+function mxOneriMarkup(maliyet, oran){ return kurus((Number(maliyet) || 0) * (1 + (Number(oran) || 0) / 100)); }
+function mxGrupDagilimi(q, kur){
+  kur = kur || mxKur(q);
+  const toplam = mxToplamMaliyet(q, kur);
+  return mxGruplar(q).map(g => {
+    const tutar = kurus(((q.maliyet && q.maliyet.items) || []).filter(r => r.aktif !== false && r.grup === g.id).reduce((s, r) => s + mxSatirToplam(r, kur), 0));
+    return { id:g.id, ad:g.ad, renk:g.renk, tutar, yuzde: toplam > 0 ? tutar / toplam * 100 : 0 };
+  }).filter(d => d.tutar > 0);
+}
+// Teklifin KDV hariç satış tutarı ₺ (teklif dövizliyse kurla çevrilir)
+function mxSatisTL(q, kur){ return kurus(mxTLcevir(quoteSub(q), q.currency || 'TL', kur || mxKur(q))); }
+function mxOzet(q){
+  const kur = mxKur(q), m = ensureMaliyet(q);
+  const maliyet = mxToplamMaliyet(q, kur), satis = mxSatisTL(q, kur), kar = mxBrutKar(satis, maliyet);
+  const oneri = m.hedefMod === 'markup' ? mxOneriMarkup(maliyet, m.hedefOran) : mxOneriMarj(maliyet, m.hedefOran);
+  return { maliyet, satis, kar, marj: mxMarjOrani(kar, satis), markup: mxMarkupOrani(kar, maliyet), hedefOran: m.hedefOran, hedefMod: m.hedefMod, oneri, dagilim: mxGrupDagilimi(q, kur), kur };
+}
+// Satırın türetilmiş alanları: miktar (fireli), fiyat (₺ birim) — eski maliyetToplam ve raporlar bu alanları okur
+function mxSatirHesapla(r, kur){
+  if(r.hesapTuru !== 'dogrudan' && r.hesapTuru !== 'saat'){ const mm = mxMaliyetMiktar(r); if(mm) r.miktar = Math.round(mm * 10000) / 10000; }
+  r.fiyat = kurus((Number(r.fiyatOrj) || 0) * mxKurDegeri(r.para, kur));
+  r.toplamTL = mxSatirToplam(r, kur);
+  return r;
+}
+function maliyetToplam(q){ if(!q.maliyet || !Array.isArray(q.maliyet.items)) return 0; return mxToplamMaliyet(q, mxKur(q)); }
+
+// ---- Fiyat durumu / sorunlar ----
+function mxFiyatDurumu(r, kur){
+  if(!r.tedarikciAd && !r.fiyatKaydiId) return { renk:'gri', metin: r.manuel ? 'Manuel fiyat' : 'Tedarikçisiz kayıt' };
+  if(r.manuel) return { renk:'gri', metin:'Manuel fiyat' };
+  const gecerlilikFark = mxGunFarki(r.gecerlilik);
+  if(r.gecerlilik && gecerlilikFark !== null && gecerlilikFark > 0) return { renk:'kirmizi', metin:'Fiyat geçerliliği dolmuş' };
+  const yas = mxGunFarki(r.fiyatTarihi);
+  if(yas === null) return { renk:'kirmizi', metin:'Fiyat tarihi yok' };
+  if(yas > MALIYET_AYAR.eskimeGun) return { renk:'kirmizi', metin:`Fiyat ${yas} gün eski` };
+  if(yas > MALIYET_AYAR.eskimeGun * MALIYET_AYAR.uyariOran) return { renk:'turuncu', metin:`Fiyat ${yas} günlük — eskime sınırına yakın` };
+  return { renk:'yesil', metin:`Güncel fiyat (${yas} günlük)` };
+}
+function mxSatirSorunlari(r, kur){
+  const s = [];
+  if(r.aktif === false) return s;
+  const durum = mxFiyatDurumu(r, kur);
+  if(durum.renk === 'kirmizi') s.push({ kod:'eski', metin:durum.metin });
+  if(!r.tedarikciAd && !r.fiyatKaydiId) s.push({ kod:'tedarikcisiz', metin:'Tedarikçi seçilmedi' });
+  if(r.para !== 'TL' && !mxKurDegeri(r.para, kur)) s.push({ kod:'kurYok', metin:`${r.para} kuru bulunamadı` });
+  if(!(Number(r.fiyatOrj) > 0)) s.push({ kod:'sifir', metin:'Birim maliyet sıfır' });
+  if(!(mxMaliyetMiktar(r) > 0)) s.push({ kod:'miktar', metin:'Miktar eksik' });
+  if(r.manuel && r.fiyatKaydiId) s.push({ kod:'manuel', metin:'Tedarikçi fiyatı elle değiştirildi' });
+  return s;
+}
+function mxSorunOzeti(q){
+  const kur = mxKur(q);
+  const items = ensureMaliyet(q).items.filter(r => r.aktif !== false);
+  const eski = items.filter(r => mxSatirSorunlari(r, kur).some(s => s.kod === 'eski'));
+  const diger = items.filter(r => mxSatirSorunlari(r, kur).some(s => s.kod !== 'eski'));
+  return { eski, diger, toplam: items.filter(r => mxSatirSorunlari(r, kur).length).length };
+}
+
+// ---- Geçmiş ----
+function mxKim(){ return (typeof daKimYapti === 'function') ? daKimYapti().ad : roleCfg().label; }
+function mxGecmisYaz(q, islem, kalem, eski, yeni){
+  const m = ensureMaliyet(q);
+  m.gecmis.unshift({ id: benzersizId('mg'), tarih: Date.now(), kim: mxKim(), islem, kalem: kalem || '', eski: eski === undefined ? '' : String(eski), yeni: yeni === undefined ? '' : String(yeni) });
+  if(m.gecmis.length > MALIYET_AYAR.gecmisTavan) m.gecmis.length = MALIYET_AYAR.gecmisTavan;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+
+// ---- Sayfa ----
+function mxAktifTeklif(){ return QUOTES.find(x => x.id === teklifViewId); }
 function openMaliyet(id){
+  if(typeof finansGorebilir === 'function' && !finansGorebilir()){ showToast('Maliyet bilgileri için yetkiniz yok.'); return; }
   pushHistory();
   teklifViewId = id; teklifStep = 'maliyet'; maliyetTab = 'kalemler';
+  mxDurum.adim = 'maliyetler'; mxDurum.ara = ''; mxDurum.grup = ''; mxDurum.sadeceSorunlu = false; mxDurum.menu = null;
   kurGetir(false);
-  
   const q = QUOTES.find(x => x.id === id);
-  if(q){ const m = ensureMaliyet(q); if(!m.items.length) m.items.push({ ad:'', miktar:1, fiyat:0 }); }
+  if(q) ensureMaliyet(q);
   renderContent();
-  
   tarayiciGecmisYaz();
 }
+function mxAdimGit(adim){
+  const q = mxAktifTeklif(); if(!q) return;
+  if(adim === 'detay'){ teklifStep = 'view'; renderContent(); return; }
+  mxDurum.adim = adim; mxDurum.menu = null; renderContent();
+}
+function mxKaydetDurum(){
+  if(typeof LIVE === 'undefined' || !LIVE.booted) return { cls:'nötr', metin:'Otomatik kayıt', disabled:true };
+  if(LIVE.conflict) return { cls:'hata', metin:'Çakışma', disabled:true };
+  if(LIVE.saving) return { cls:'kaydediliyor', metin:'Kaydediliyor…', disabled:true };
+  let degisti = false;
+  try{ degisti = JSON.stringify(collectState()) !== LIVE.lastSaved; }catch(e){}
+  if(degisti) return { cls:'aktif', metin:'Kaydet', disabled:false };
+  return { cls:'kaydedildi', metin:'Kaydedildi ✓', disabled:true };
+}
+function mxKaydetYenile(){
+  const b = document.getElementById('mxKaydetBtn'); if(!b) return;
+  const d = mxKaydetDurum();
+  b.textContent = (d.cls === 'aktif' ? '▣ ' : '') + d.metin; b.disabled = d.disabled; b.className = 'primary mx-kaydet ' + d.cls;
+}
+function mxKaydet(){ if(typeof liveSave === 'function') liveSave(); mxKaydetYenile(); }
+window.addEventListener('beforeunload', e => {
+  try{
+    if(typeof LIVE !== 'undefined' && LIVE.booted && !LIVE.conflict && JSON.stringify(collectState()) !== LIVE.lastSaved){ e.preventDefault(); e.returnValue = ''; }
+  }catch(err){}
+});
+
 function maliyetView(id){
   const q = QUOTES.find(x => x.id === id);
   if(!q) return teklifListView();
-  const m = ensureMaliyet(q);
-  const c = CUSTOMERS.find(x => x.id === q.customerId);
-  const rows = m.items.map((r, i) => `
-    <div class="mx-row">
-      <input value="${r.ad || ''}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mxGuncelle(${i},'ad',this.value)">
-      <input inputmode="decimal" value="${virgulYaz(r.miktar ?? 1)}" oninput="mxGuncelle(${i},'miktar',this.value)">
-      <input inputmode="decimal" value="${virgulYaz(r.fiyat ?? 0)}" oninput="mxGuncelle(${i},'fiyat',this.value)">
-      <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl((Number(r.miktar)||1)*(Number(r.fiyat)||0))}">
-      <button class="li-remove" onclick="mxSatirSil(${i})">✕</button>
-      <div class="mx-olcu">📐
-        <span class="mx-bagli" id="mxMz_${i}">${mxBagliHtml(r, i)}</span>
-        <input inputmode="decimal" placeholder="En (cm)" value="${r.en ? virgulYaz(r.en) : ''}" oninput="mxOlcu(${i},'en',this.value)">
-        ×
-        <input inputmode="decimal" placeholder="Boy (cm)" value="${r.boy ? virgulYaz(r.boy) : ''}" oninput="mxOlcu(${i},'boy',this.value)">
-        <span class="m2sonuc" id="mxM2_${i}">${mxOlcuMetni(r)}</span>
-      </div>
-      <input class="mx-aciklama" value="${(r.aciklama || '').replace(/"/g,'&quot;')}"
-        placeholder="Açıklama — ör. X firmasından alındı, özel iskontolu fiyattır"
-        oninput="mxGuncelle(${i},'aciklama',this.value)">
-    </div>`).join('');
-  const solBlok = maliyetTab === 'fiyatlar' ? `
-      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
-        <div class="mz-head"><span>Malzeme</span><span>Birim</span><span>Fiyat</span><span>Döviz</span><span style="text-align:right;">Güncel ₺</span><span></span></div>
-        ${MALZEME_FIYATLARI.map((mz, i) => `
-        <div class="mz-row">
-          <input value="${notEsc(mz.ad)}" oninput="mzGuncelle(${i},'ad',this.value)">
-          <select onchange="mzGuncelle(${i},'birim',this.value)">
-            ${['m²','mt','adet'].map(b => `<option ${mz.birim === b ? 'selected' : ''}>${b}</option>`).join('')}
-          </select>
-          <input inputmode="decimal" value="${mz.fiyat ? virgulYaz(mz.fiyat) : ''}" placeholder="0" oninput="mzGuncelle(${i},'fiyat',this.value)">
-          <select onchange="mzGuncelle(${i},'para',this.value)">
-            ${['TL','USD','EUR'].map(pb => `<option ${mz.para === pb ? 'selected' : ''}>${pb}</option>`).join('')}
-          </select>
-          <span class="mz-tl" id="mzTl${i}">${malzemeTL(mz) ? tl(malzemeTL(mz)) + '/' + mz.birim : '—'}</span>
-          <button class="li-remove" onclick="mzSil(${i})">✕</button>
-        </div>`).join('')}
-        <button class="add-line-btn" onclick="mzEkle()">+ Malzeme Ekle</button>
-        <div class="hint" style="margin:10px 0 0;">Dövizli fiyatlar üstteki günlük satış kuruyla ₺'ye çevrilir ve maliyet satırlarına bu ₺ değeri yazılır.
-        Buradaki fiyatlar tüm tekliflerde ortak kullanılır.</div>
-      </div>` : `
-      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
-        <div class="mx-head"><span>Kalem</span><span>Miktar</span><span>Birim Maliyet</span><span style="text-align:right;">Tutar</span><span></span></div>
-        ${rows}
-        <button class="add-line-btn" onclick="mxSatirEkle('')">+ Satır Ekle</button>
-        <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
-        <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mxSatirEkle('${a}')">${a}</button>`).join('')}</div>
-        <div class="hint" style="margin:10px 0 0;">📐 Kalem adına <b>listeden malzeme</b> seçip <b>En × Boy (cm)</b> girildiğinde m² ve birim maliyet otomatik hesaplanır.</div>
-        <datalist id="mxMalzemeListesi">
-          ${MALZEME_FIYATLARI.filter(mz => mz.ad).map(mz => `<option value="${notEsc(mz.ad)}">${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim}</option>`).join('')}
-        </datalist>
-      </div>`;
+  if(typeof finansGorebilir === 'function' && !finansGorebilir()) return `<div class="empty-state">Maliyet bilgileri için yetkiniz yok.</div>`;
+  ensureMaliyet(q);
+  const kur = mxKur(q);
+  const kaydet = mxKaydetDurum();
+  const yukleniyor = (typeof LIVE !== 'undefined' && !LIVE.booted && typeof liveBoot === 'function');
+  const adimlar = [['detay','Teklif Detayı'],['maliyetler','Maliyetler'],['fiyatlar','Tedarikçi Fiyatları'],['karlilik','Kârlılık & Onay']];
+  const govde = yukleniyor ? mxSkeletonHtml() :
+    mxDurum.adim === 'fiyatlar' ? mxFiyatListesiHtml(q) :
+    mxDurum.adim === 'karlilik' ? mxKarlilikSayfaHtml(q) :
+    `<div class="mx-yerlesim">
+       ${mxTabloKartHtml(q)}
+       ${mxPanelHtml(q)}
+     </div>`;
   return `
-    <div class="page-head">
-      <div style="display:flex; gap:12px; align-items:center;">
-        <button class="back-btn" onclick="teklifStep='view'; renderContent();">←</button>
-        <div><div class="page-title">Maliyet Hesabı</div>
-        <div class="page-sub">${q.no} · ${teklifMusteriAdi(q)} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
+    <div class="page-head mx-bas">
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <button class="back-btn" aria-label="Teklife dön" onclick="teklifStep='view'; renderContent();">←</button>
+        <div>
+          <div class="page-title" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">Teklif Maliyetleri
+            <span class="mx-rozet" tabindex="0" data-tip="Bu maliyet bilgileri müşteriye gönderilen teklif belgesinde görünmez.">ⓘ İç kullanım</span></div>
+          <div class="page-sub">${notEsc(q.no)} · ${notEsc(teklifMusteriAdi(q))}</div>
+        </div>
+      </div>
+      <div class="action-row mx-bas-aksiyon">
+        <button class="mx-kur-chip" onclick="mxKurModal()" aria-label="Kur ayarları" title="${notEsc(kur.kaynak || '')}${kur.tarih ? ' · ' + notEsc(kur.tarih) : ''}">
+          ${q.maliyet.kurSabit ? '📌 ' : ''}Kur: USD ${kur.usd ? mxSayi(kur.usd, 4) : '—'} · EUR ${kur.eur ? mxSayi(kur.eur, 4) : '—'}</button>
+        <button class="ghost" onclick="mxGecmisDrawer()">↶ Geçmiş</button>
+        <button id="mxKaydetBtn" class="primary mx-kaydet ${kaydet.cls}" ${kaydet.disabled ? 'disabled' : ''} onclick="mxKaydet()">${kaydet.cls === 'aktif' ? '▣ ' : ''}${kaydet.metin}</button>
       </div>
     </div>
-    <div class="kur-bar">
-      💱 <b>Günlük Kur</b>
-      <label>$ Satış <input inputmode="decimal" value="${KURLAR.usd ? virgulYaz(KURLAR.usd) : ''}" placeholder="0" onchange="kurElleDegistir('usd', this.value)"></label>
-      <label>€ Satış <input inputmode="decimal" value="${KURLAR.eur ? virgulYaz(KURLAR.eur) : ''}" placeholder="0" onchange="kurElleDegistir('eur', this.value)"></label>
-      <button class="btn" style="flex:0 0 auto;height:28px;font-size:11.5px;" onclick="kurGetir(true)">🔄 Güncelle</button>
-      <span class="kur-kaynak">${KURLAR.kaynak ? notEsc(KURLAR.kaynak) + (KURLAR.tarih ? ' · ' + notEsc(KURLAR.tarih) : '') : 'Kur henüz alınmadı — Güncelle deyin ya da elle girin.'}</span>
-    </div>
-    <div class="hp-mod" style="margin-bottom:12px;display:inline-flex;">
-      <button class="${maliyetTab === 'kalemler' ? 'on' : ''}" onclick="maliyetTab='kalemler'; renderContent();">Maliyet Kalemleri</button>
-      <button class="${maliyetTab === 'fiyatlar' ? 'on' : ''}" onclick="maliyetTab='fiyatlar'; renderContent();">Tedarikçi Fiyatları</button>
-    </div>
-    <div class="body-two" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
-      ${solBlok}
-      <div class="mx-ozet" style="flex:1; min-width:260px;">
-        <h5 style="font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-3);margin:0 0 10px;">Özet</h5>
-        <div class="t-row"><span>Toplam Maliyet:</span><span id="mxToplam">${tl(maliyetToplam(q))}</span></div>
-        <div class="t-row"><span>Teklif Tutarı (KDV hariç):</span><span>${tl(quoteSub(q))}</span></div>
-        <div class="t-row final"><span>Öngörülen Kâr:</span><span id="mxKar" style="color:${quoteSub(q)-maliyetToplam(q) >= 0 ? 'var(--ok)' : 'var(--risk)'};">${tl(quoteSub(q)-maliyetToplam(q))}</span></div>
-        <div class="t-row"><span>Kâr Marjı:</span><span id="mxMarj">${quoteSub(q) > 0 ? '%' + Math.round((quoteSub(q)-maliyetToplam(q)) / quoteSub(q) * 100) : '—'}</span></div>
-        <div class="hint" style="margin:12px 0 0;">Kâr, teklifin KDV hariç toplamından maliyet düşülerek hesaplanır.</div>
-      </div>
-    </div>
-  `;
+    <nav class="mx-adimlar" aria-label="Teklif adımları">
+      ${adimlar.map(([k, ad], i) => `<button class="mx-adim ${mxDurum.adim === k ? 'aktif' : ''}" ${mxDurum.adim === k ? 'aria-current="step"' : ''} onclick="mxAdimGit('${k}')"><span class="no">${i + 1}</span>${ad}</button>`).join('')}
+    </nav>
+    ${govde}`;
 }
-function mxAktifTeklif(){ return QUOTES.find(x => x.id === teklifViewId); }
-function mxOzetGuncelle(){
+function mxSkeletonHtml(){
+  const sat = '<div class="mx-skel-satir"><i style="width:34%"></i><i style="width:18%"></i><i style="width:8%"></i><i style="width:12%"></i><i style="width:12%"></i></div>';
+  return `<div class="mx-yerlesim"><section class="panel"><div class="mx-skel-bas"></div>${sat.repeat(6)}</section><aside class="panel mx-panel"><div class="mx-skel-bas"></div>${'<div class="mx-skel-satir"><i style="width:45%"></i><i style="width:30%"></i></div>'.repeat(5)}</aside></div>`;
+}
+
+// ---- Sol kart: toolbar + gruplu tablo ----
+function mxGorunurKalemler(q){
+  const kur = mxKur(q);
+  const ara = mxDurum.ara.trim().toLowerCase();
+  return ensureMaliyet(q).items.filter(r => r.aktif !== false).filter(r => {
+    if(mxDurum.grup && r.grup !== mxDurum.grup) return false;
+    if(mxDurum.sadeceSorunlu && !mxSatirSorunlari(r, kur).length) return false;
+    if(!ara) return true;
+    return [r.ad, r.aciklama, r.not, r.tedarikciAd, r.kod].some(v => String(v || '').toLowerCase().includes(ara));
+  }).sort((a, b) => (a.sira || 0) - (b.sira || 0));
+}
+function mxTabloKartHtml(q){
+  const kur = mxKur(q);
+  const tum = ensureMaliyet(q).items.filter(r => r.aktif !== false);
+  const gorunur = mxGorunurKalemler(q);
+  const sorun = mxSorunOzeti(q);
+  const gruplar = mxGruplar(q).filter(g => gorunur.some(r => r.grup === g.id));
+  const bos = !tum.length;
+  return `
+    <section class="panel mx-kart">
+      <div class="mx-toolbar">
+        <label class="sr-only" for="mxAra">Maliyet kalemi ara</label>
+        <input id="mxAra" class="tb-field" placeholder="⌕  Maliyet kalemi ara..." value="${notEsc(mxDurum.ara)}" oninput="mxAraYaz(this.value)">
+        <label class="sr-only" for="mxGrupFiltre">Grup filtresi</label>
+        <select id="mxGrupFiltre" class="tb-filter" onchange="mxDurum.grup=this.value; renderContent();">
+          <option value="">Tüm gruplar</option>
+          ${mxGruplar(q).map(g => `<option value="${g.id}" ${mxDurum.grup === g.id ? 'selected' : ''}>${notEsc(g.ad)}</option>`).join('')}
+        </select>
+        <button class="ghost" onclick="mxSablonModal()">▧ Şablondan Ekle</button>
+        <button class="primary" onclick="mxKalemModal()">＋ Yeni Maliyet</button>
+      </div>
+      ${bos ? `
+      <div class="mx-bos">
+        <div class="ikon">🧮</div>
+        <h3>Henüz maliyet kalemi eklenmedi</h3>
+        <p>Teklifin kârlılığını hesaplamak için ilk maliyet kalemini ekleyin veya kayıtlı bir şablon kullanın.</p>
+        <div class="aksiyon"><button class="primary" onclick="mxKalemModal()">＋ İlk Maliyeti Ekle</button><button class="ghost" onclick="mxSablonModal()">▧ Şablondan Ekle</button></div>
+      </div>` : `
+      <div class="mx-tablo" role="table" aria-label="Maliyet kalemleri">
+        <div class="mx-kolonlar" role="row"><span></span><span>Kalem</span><span>Tedarikçi</span><span>Miktar</span><span>Birim</span><span>Döviz</span><span class="sag">Birim Maliyet</span><span class="sag">Toplam</span><span></span></div>
+        ${gruplar.length ? gruplar.map(g => mxGrupHtml(q, g, gorunur.filter(r => r.grup === g.id), kur)).join('')
+          : `<div class="empty-state">${mxDurum.sadeceSorunlu ? 'Uyarı gerektiren kalem yok.' : 'Aramaya uyan kalem bulunamadı.'} <a href="#" onclick="mxDurum.ara=''; mxDurum.grup=''; mxDurum.sadeceSorunlu=false; renderContent(); return false;">Filtreleri temizle</a></div>`}
+        <button class="mx-ekle-cizgi" onclick="mxKalemModal()">＋ Maliyet kalemi ekle</button>
+        <button class="primary mx-mobil-ekle" onclick="mxKalemModal()">＋ Maliyet Ekle</button>
+        ${mxDurum.sadeceSorunlu ? `<div class="mx-uyari bilgi"><b>⚑</b><span>Yalnızca uyarı gerektiren kalemler gösteriliyor.</span><button onclick="mxDurum.sadeceSorunlu=false; renderContent();">Tümünü göster</button></div>` :
+          sorun.eski.length ? `<div class="mx-uyari"><b>⚠</b><span><b>${sorun.eski.length} kalemde tedarikçi fiyatı ${MALIYET_AYAR.eskimeGun} günden eski, tarihsiz veya geçersiz</b><br><small>Güncel fiyatlar ile maliyet hesaplamanızı kontrol etmenizi öneririz.</small></span><button onclick="mxDurum.sadeceSorunlu=true; renderContent();">Fiyatları incele →</button></div>` :
+          sorun.diger.length ? `<div class="mx-uyari"><b>⚠</b><span><b>${sorun.diger.length} kalemde kontrol gereken bilgi var</b><br><small>${[...new Set(sorun.diger.flatMap(r => mxSatirSorunlari(r, kur).map(s => s.metin)))].slice(0, 3).join(' · ')}</small></span><button onclick="mxDurum.sadeceSorunlu=true; renderContent();">Kalemleri incele →</button></div>` : ''}
+      </div>`}
+    </section>`;
+}
+function mxGrupHtml(q, g, satirlar, kur){
+  const kapali = !!mxDurum.kapali[g.id];
+  const ara = kurus(satirlar.reduce((s, r) => s + mxSatirToplam(r, kur), 0));
+  return `
+    <div class="mx-grup ${kapali ? 'kapali' : ''}" data-grup="${g.id}" ondragover="mxSurukleUzerinde(event)" ondrop="mxBirakGrup(event,'${g.id}')">
+      <div class="mx-grup-bas" role="row">
+        <button class="mx-chev" aria-expanded="${!kapali}" aria-label="${kapali ? 'Grubu aç' : 'Grubu kapat'}" onclick="mxDurum.kapali['${g.id}']=!mxDurum.kapali['${g.id}']; renderContent();">${kapali ? '›' : '⌄'}</button>
+        <span class="mx-grup-ikon" style="color:${g.renk};">${g.ikon}</span>
+        <span class="mx-grup-ad">${notEsc(g.ad).toLocaleUpperCase('tr-TR')}</span>
+        <span class="mx-grup-adet">${satirlar.length} kalem</span>
+        <span class="mx-grup-toplam qd-para" id="mxGrupToplam_${g.id}">${mxPara(ara)}</span>
+        <div class="mx-menu-kap">
+          <button class="mx-uc" aria-label="Grup işlemleri" aria-haspopup="menu" onclick="mxMenuAc(event,'grup:${g.id}')">⋮</button>
+          ${mxDurum.menu === 'grup:' + g.id ? `<div class="mx-menu" role="menu">
+            <button role="menuitem" onclick="mxMenuKapat(); mxKalemModal(null,'${g.id}')">＋ Yeni kalem ekle</button>
+            <button role="menuitem" onclick="mxMenuKapat(); mxGrupAdlandir('${g.id}')">✎ Grubu yeniden adlandır</button>
+            <button role="menuitem" onclick="mxMenuKapat(); mxGrupCogalt('${g.id}')">⧉ Grubu çoğalt</button>
+            <button role="menuitem" class="tehlike" onclick="mxMenuKapat(); mxGrupSil('${g.id}')">🗑 Grubu sil</button>
+          </div>` : ''}
+        </div>
+      </div>
+      ${kapali ? '' : satirlar.map(r => mxSatirHtml(q, r, kur)).join('')}
+    </div>`;
+}
+function mxAltBilgi(r){
+  const p = [];
+  if(r.hesapTuru === 'en_boy' || r.hesapTuru === 'en_boy_adet') p.push(`${mxSayi(r.en)} × ${mxSayi(r.boy)} cm${r.hesapTuru === 'en_boy_adet' ? ' × ' + mxSayi(r.adet) + ' ad' : ''} · ${mxSayi(mxNetMiktar(r), 2)} m²${r.fire ? ' · fire %' + mxSayi(r.fire) + ' → ' + mxSayi(mxMaliyetMiktar(r), 2) + ' m²' : ''}`);
+  else if(r.hesapTuru === 'uzunluk') p.push(`${mxSayi(r.boy)} cm${Number(r.adet) > 1 ? ' × ' + mxSayi(r.adet) + ' ad' : ''} · ${mxSayi(mxNetMiktar(r), 2)} mt${r.fire ? ' · fire %' + mxSayi(r.fire) : ''}`);
+  if(r.kod) p.push(notEsc(r.kod));
+  if(r.aciklama) p.push(notEsc(r.aciklama));
+  if(r.not) p.push('📝 ' + notEsc(r.not));
+  return p.join(' · ');
+}
+function mxSatirHtml(q, r, kur){
+  const durum = mxFiyatDurumu(r, kur);
+  const sorunlar = mxSatirSorunlari(r, kur);
+  const fiyatSayisi = r.ad ? MALZEME_FIYATLARI.filter(mz => mxUrunEslesir(mz, r)).length : 0;
+  const toplam = mxSatirToplam(r, kur);
+  const kurYok = r.para !== 'TL' && !mxKurDegeri(r.para, kur);
+  const alt = mxAltBilgi(r);
+  const olculu = r.hesapTuru !== 'dogrudan' && r.hesapTuru !== 'saat' && r.hesapTuru !== 'goturu';
+  return `
+    <div class="mx-satir ${sorunlar.length ? 'sorunlu' : ''}" role="row" data-id="${r.id}" draggable="true" ondragstart="mxSurukleBasla(event,'${r.id}')" ondragend="mxSurukleBitti()" ondragover="mxSurukleUzerinde(event)" ondrop="mxBirakSatir(event,'${r.id}')">
+      <span class="mx-tut" title="Sürükleyerek taşı" aria-hidden="true">⋮⋮</span>
+      <div class="mx-kalem">
+        <strong>${notEsc(r.ad || '—')}</strong>
+        ${alt ? `<div class="alt">${alt}</div>` : ''}
+        ${sorunlar.length ? `<div class="alt sorun" title="${notEsc(sorunlar.map(s => s.metin).join(' · '))}">⚠ ${notEsc(sorunlar[0].metin)}${sorunlar.length > 1 ? ` +${sorunlar.length - 1}` : ''}</div>` : ''}
+      </div>
+      <div class="mx-ted">
+        <button class="mx-ted-chip" onclick="mxFiyatDrawer('${r.id}')" title="${notEsc(durum.metin)}" aria-label="Tedarikçi: ${notEsc(r.tedarikciAd || 'seçilmedi')} — ${notEsc(durum.metin)}">
+          <i class="mx-nokta ${durum.renk}"></i><span>${r.tedarikciAd ? notEsc(r.tedarikciAd) : 'Tedarikçi seç'}</span></button>
+        ${fiyatSayisi ? `<a href="#" class="mx-fiyat-sayi" onclick="mxFiyatDrawer('${r.id}'); return false;">${fiyatSayisi} fiyat</a>` : (r.manuel && r.fiyatKaydiId ? `<span class="mx-manuel" title="Tedarikçi fiyatı elle değiştirildi">Manuel fiyat</span>` : '')}
+      </div>
+      <div class="mx-miktar">
+        ${olculu ? `<span class="mx-hesapli qd-para" title="Ölçüden hesaplandı">${mxSayi(mxMaliyetMiktar(r), 2)}</span>`
+          : `<label class="sr-only" for="mxMik_${r.id}">Miktar</label><input id="mxMik_${r.id}" class="mx-inp qd-para" inputmode="decimal" value="${virgulYaz(r.miktar)}" data-orj="${virgulYaz(r.miktar)}" onkeydown="mxTusa(event)" onchange="mxAlanDegis('${r.id}','miktar',this.value)">`}
+      </div>
+      <div class="mx-birim"><label class="sr-only" for="mxBir_${r.id}">Birim</label>
+        <select id="mxBir_${r.id}" class="mx-inp" onkeydown="mxTusa(event)" onchange="mxAlanDegis('${r.id}','birim',this.value)">${MX_BIRIMLER.map(b => `<option ${r.birim === b ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
+      <div class="mx-doviz"><label class="sr-only" for="mxPara_${r.id}">Döviz</label>
+        <select id="mxPara_${r.id}" class="mx-inp" onkeydown="mxTusa(event)" onchange="mxAlanDegis('${r.id}','para',this.value)">${MX_PARALAR.map(p => `<option value="${p}" ${r.para === p ? 'selected' : ''}>${p === 'TL' ? 'TRY' : p}</option>`).join('')}</select></div>
+      <div class="mx-bfiyat">
+        <label class="sr-only" for="mxFiy_${r.id}">Birim maliyet</label>
+        <div class="mx-fiyat-kap"><span class="sim">${paraSimge(r.para)}</span><input id="mxFiy_${r.id}" class="mx-inp qd-para sag" inputmode="decimal" value="${virgulYaz(kurus(r.fiyatOrj))}" data-orj="${virgulYaz(kurus(r.fiyatOrj))}" onkeydown="mxTusa(event)" onchange="mxAlanDegis('${r.id}','fiyatOrj',this.value)"></div>
+        ${r.para !== 'TL' ? `<div class="alt sag qd-para" id="mxTL_${r.id}">${kurYok ? '<span class="kirmizi">kur yok</span>' : mxPara(kurus(r.fiyatOrj * mxKurDegeri(r.para, kur)))}</div>` : ''}
+      </div>
+      <div class="mx-toplam qd-para" id="mxTop_${r.id}">${kurYok ? '<span class="kirmizi">—</span>' : mxPara(toplam)}</div>
+      <div class="mx-islem mx-menu-kap">
+        <button class="mx-uc" aria-label="Kopyala" title="Kopyala" onclick="mxKopyala('${r.id}')">⧉</button>
+        <button class="mx-uc" aria-label="Satır işlemleri" aria-haspopup="menu" onclick="mxMenuAc(event,'satir:${r.id}')">⋮</button>
+        ${mxDurum.menu === 'satir:' + r.id ? `<div class="mx-menu" role="menu">
+          <button role="menuitem" onclick="mxMenuKapat(); mxKalemModal('${r.id}')">✎ Düzenle</button>
+          <button role="menuitem" onclick="mxMenuKapat(); mxKopyala('${r.id}')">⧉ Kopyala</button>
+          <div class="mx-menu-alt"><span>Başka gruba taşı</span>${mxGruplar(q).filter(g => g.id !== r.grup).map(g => `<button role="menuitem" onclick="mxMenuKapat(); mxGrubaTasi('${r.id}','${g.id}')">→ ${notEsc(g.ad)}</button>`).join('')}</div>
+          <button role="menuitem" onclick="mxMenuKapat(); mxSiraTasi('${r.id}',-1)">↑ Yukarı taşı</button>
+          <button role="menuitem" onclick="mxMenuKapat(); mxSiraTasi('${r.id}',1)">↓ Aşağı taşı</button>
+          <button role="menuitem" onclick="mxMenuKapat(); mxNotModal('${r.id}')">📝 Not ekle</button>
+          <button role="menuitem" onclick="mxMenuKapat(); mxSablonaKaydet('${r.id}')">▧ Şablona kaydet</button>
+          <button role="menuitem" class="tehlike" onclick="mxMenuKapat(); mxSilOnay('${r.id}')">🗑 Sil</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+function mxUrunEslesir(mz, r){
+  const a = String(mz.ad || '').trim().toLowerCase(), b = String(r.ad || '').trim().toLowerCase();
+  if(!a || !b) return false;
+  if(mz.id === r.fiyatKaydiId) return true;
+  return a === b || a.includes(b) || b.includes(a) || b.split(/\s+/).filter(w => w.length > 3).some(w => a.includes(w));
+}
+let mxAraZaman = null;
+function mxAraYaz(v){ mxDurum.ara = v; clearTimeout(mxAraZaman); mxAraZaman = setTimeout(() => { renderContent(); const i = document.getElementById('mxAra'); if(i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 220); }
+function mxMenuAc(ev, key){ ev.stopPropagation(); mxDurum.menu = mxDurum.menu === key ? null : key; renderContent(); const m = document.querySelector('.mx-menu button'); if(m) m.focus(); }
+function mxMenuKapat(){ mxDurum.menu = null; }
+document.addEventListener('click', e => { if(mxDurum.menu && !e.target.closest('.mx-menu-kap')){ mxDurum.menu = null; if(currentPage === 'teklifler' && teklifStep === 'maliyet') renderContent(); } });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    if(mxDurum.menu){ mxDurum.menu = null; if(currentPage === 'teklifler' && teklifStep === 'maliyet') renderContent(); }
+    const d = document.getElementById('sideDrawer'); if(d && d.classList.contains('show') && d.querySelector('.mx-drawer')) closeDrawer();
+  }
+});
+
+// ---- Satır içi düzenleme ----
+function mxTusa(ev){
+  if(ev.key === 'Enter'){ ev.preventDefault(); ev.target.blur(); }
+  if(ev.key === 'Escape'){ if(ev.target.dataset.orj !== undefined) ev.target.value = ev.target.dataset.orj; ev.target.blur(); ev.stopPropagation(); }
+}
+function mxKalemBul(q, id){ return ensureMaliyet(q).items.find(x => x.id === id); }
+function mxAlanDegis(id, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
-  const maliyet = maliyetToplam(q), satis = quoteSub(q), kar = satis - maliyet;
-  const t = document.getElementById('mxToplam'); if(t) t.textContent = tl(maliyet);
-  const k = document.getElementById('mxKar');
-  if(k){ k.textContent = tl(kar); k.style.color = kar >= 0 ? 'var(--ok)' : 'var(--risk)'; }
-  const mrj = document.getElementById('mxMarj'); if(mrj) mrj.textContent = satis > 0 ? '%' + Math.round(kar / satis * 100) : '—';
+  const r = mxKalemBul(q, id); if(!r) return;
+  const kur = mxKur(q);
+  const eskiToplam = mxSatirToplam(r, kur);
+  if(alan === 'miktar'){
+    const v = virgulSayi(deger);
+    if(!(v > 0)){ showToast('Miktar sıfır veya negatif olamaz.'); mxSatirYenile(id); return; }
+    if(v !== Number(r.miktar)) mxGecmisYaz(q, 'miktar', r.ad, mxSayi(r.miktar), mxSayi(v));
+    r.miktar = v;
+  } else if(alan === 'fiyatOrj'){
+    const v = virgulSayi(deger);
+    if(v < 0){ showToast('Negatif fiyat girilemez.'); mxSatirYenile(id); return; }
+    if(kurus(v) !== kurus(r.fiyatOrj)){
+      mxGecmisYaz(q, 'fiyat', r.ad, mxPara(r.fiyatOrj, r.para), mxPara(v, r.para));
+      if(r.fiyatKaydiId) r.manuel = true;
+      r.fiyatOrj = v;
+    }
+  } else if(alan === 'para'){
+    if(deger !== r.para){ mxGecmisYaz(q, 'fiyat', r.ad, `${mxPara(r.fiyatOrj, r.para)}`, `${mxPara(r.fiyatOrj, deger)}`); r.para = deger; if(r.fiyatKaydiId) r.manuel = true; }
+    if(deger !== 'TL' && !mxKurDegeri(deger, kur)) showToast(`${deger} kuru yok — Kur alanından girin veya TCMB'den getirin.`);
+  } else if(alan === 'birim'){
+    r.birim = deger;
+  } else { r[alan] = deger; }
+  mxSatirHesapla(r, kur);
+  const yeniToplam = mxSatirToplam(r, kur);
+  if(alan === 'para' || (r.hesapTuru !== 'dogrudan' && alan === 'miktar')) { renderContent(); return; }
+  mxSatirYenile(id);
+  if(eskiToplam !== yeniToplam) mxPanelYenile();
   if(typeof liveMarkDirty === 'function') liveMarkDirty();
 }
-function mxGuncelle(i, alan, deger){
+function mxSatirYenile(id){
   const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r[alan] = (alan === 'ad' || alan === 'aciklama') ? deger : (deger === '' ? '' : virgulSayi(deger));
-  if(alan === 'ad') mxAdEslestir(i);
-  const tut = document.getElementById('mxTutar' + i);
-  if(tut) tut.value = tl((Number(r.miktar)||1) * (Number(r.fiyat)||0));
-  mxOzetGuncelle();
+  const r = mxKalemBul(q, id); if(!r) return;
+  const kur = mxKur(q);
+  const top = document.getElementById('mxTop_' + id); if(top) top.innerHTML = (r.para !== 'TL' && !mxKurDegeri(r.para, kur)) ? '<span class="kirmizi">—</span>' : mxPara(mxSatirToplam(r, kur));
+  const tlEl = document.getElementById('mxTL_' + id); if(tlEl) tlEl.innerHTML = mxKurDegeri(r.para, kur) ? mxPara(kurus(r.fiyatOrj * mxKurDegeri(r.para, kur))) : '<span class="kirmizi">kur yok</span>';
+  const mik = document.getElementById('mxMik_' + id); if(mik && document.activeElement !== mik){ mik.value = virgulYaz(r.miktar); mik.dataset.orj = mik.value; }
+  const fiy = document.getElementById('mxFiy_' + id); if(fiy && document.activeElement !== fiy){ fiy.value = virgulYaz(kurus(r.fiyatOrj)); fiy.dataset.orj = fiy.value; }
+  const g = document.getElementById('mxGrupToplam_' + r.grup);
+  if(g) g.textContent = mxPara(kurus(ensureMaliyet(q).items.filter(x => x.aktif !== false && x.grup === r.grup).reduce((s, x) => s + mxSatirToplam(x, kur), 0)));
 }
-// Kalem adı bir tedarikçi malzemesiyle birebir eşleşirse otomatik bağlanır
-function mxAdEslestir(i){
-  const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r) return;
-  const ad = String(r.ad || '').trim().toLowerCase();
-  if(!ad){ r.malzemeId = null; mxSatirTazele(i); return; }
-  const mz = MALZEME_FIYATLARI.find(x => String(x.ad || '').trim().toLowerCase() === ad);
-  if(mz && r.malzemeId !== mz.id){
-    r.malzemeId = mz.id;
-    mxHesapla(i);
-    mxSatirTazele(i);
-  }
-}
-function mxBaglantiKaldir(i){
-  const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r.malzemeId = null;
-  mxSatirTazele(i);
-}
-function mxBagliHtml(r, i){
-  const mz = r.malzemeId ? MALZEME_FIYATLARI.find(x => x.id === r.malzemeId) : null;
-  if(!mz) return '<span style="color:var(--ink-3);">serbest kalem</span>';
-  return `🔗 ${notEsc(mz.ad)} · ${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim} → ${tl(malzemeTL(mz))}
-    <span class="mini-islem sil" title="Malzeme bağlantısını kaldır" onclick="mxBaglantiKaldir(${i})">✕</span>`;
-}
-function mxSatirEkle(ad){
-  const q = mxAktifTeklif(); if(!q) return;
+
+// ---- Sürükle-bırak ----
+function mxSurukleBasla(ev, id){ mxDurum.surukle = id; ev.dataTransfer.effectAllowed = 'move'; try{ ev.dataTransfer.setData('text/plain', id); }catch(e){} ev.currentTarget.classList.add('surukleniyor'); }
+function mxSurukleBitti(){ mxDurum.surukle = null; document.querySelectorAll('.surukleniyor,.hedef').forEach(e => e.classList.remove('surukleniyor', 'hedef')); }
+function mxSurukleUzerinde(ev){ if(!mxDurum.surukle) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; }
+function mxSiraYenidenNumarala(q){ ensureMaliyet(q).items.filter(r => r.aktif !== false).sort((a, b) => (a.sira || 0) - (b.sira || 0)).forEach((r, i) => r.sira = i + 1); }
+function mxBirakSatir(ev, hedefId){
+  ev.preventDefault(); ev.stopPropagation();
+  const q = mxAktifTeklif(); const kaynakId = mxDurum.surukle; if(!q || !kaynakId || kaynakId === hedefId) return;
   const items = ensureMaliyet(q).items;
-  items.push({ ad: ad || '', miktar: 1, fiyat: 0 });
-  if(ad){
-    const i = items.length - 1;
-    const mz = MALZEME_FIYATLARI.find(x => String(x.ad || '').trim().toLowerCase() === String(ad).trim().toLowerCase());
-    if(mz){ items[i].malzemeId = mz.id; mxHesapla(i); }
-  }
-  renderContent();
-  const inputs = document.querySelectorAll('.mx-row input:first-child');
-  const son = inputs[inputs.length - 1]; if(son && !ad) son.focus();
-}
-function mxSatirSil(i){
-  const q = mxAktifTeklif(); if(!q) return;
-  ensureMaliyet(q).items.splice(i, 1);
+  const k = items.find(x => x.id === kaynakId), h = items.find(x => x.id === hedefId); if(!k || !h) return;
+  if(k.grup !== h.grup) mxGecmisYaz(q, 'tasima', k.ad, mxGrupBul(q, k.grup).ad, mxGrupBul(q, h.grup).ad);
+  k.grup = h.grup;
+  k.sira = (h.sira || 0) - 0.5;
+  mxSiraYenidenNumarala(q); mxDurum.surukle = null;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
   renderContent();
 }
-function mxOlcuMetni(r){
-  const mz = r.malzemeId ? MALZEME_FIYATLARI.find(x => x.id === r.malzemeId) : null;
-  if(!mz) return '';
-  if(mz.birim === 'm²'){
-    const m2 = (Number(r.en) || 0) * (Number(r.boy) || 0) / 10000;
-    return m2 ? '= ' + m2.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' m²' : 'En × Boy girin';
-  }
-  if(mz.birim === 'mt'){
-    const mt = (Number(r.boy) || 0) / 100;
-    return mt ? '= ' + mt.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' mt (Boy)' : 'Boy girin';
-  }
-  return 'adet: miktarı elle girin';
+function mxBirakGrup(ev, grupId){
+  ev.preventDefault();
+  const q = mxAktifTeklif(); const kaynakId = mxDurum.surukle; if(!q || !kaynakId) return;
+  const k = mxKalemBul(q, kaynakId); if(!k) return;
+  if(k.grup !== grupId) mxGecmisYaz(q, 'tasima', k.ad, mxGrupBul(q, k.grup).ad, mxGrupBul(q, grupId).ad);
+  k.grup = grupId; k.sira = 9999;
+  mxSiraYenidenNumarala(q); mxDurum.surukle = null;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  renderContent();
 }
-// Seçili malzemeye göre miktar (m²/mt) ve birim maliyet (₺) otomatik yazılır
-function mxHesapla(i){
+function mxGrubaTasi(id, grupId){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  mxGecmisYaz(q, 'tasima', r.ad, mxGrupBul(q, r.grup).ad, mxGrupBul(q, grupId).ad);
+  r.grup = grupId; r.sira = 9999; mxSiraYenidenNumarala(q); renderContent();
+}
+function mxSiraTasi(id, yon){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  const grup = ensureMaliyet(q).items.filter(x => x.aktif !== false && x.grup === r.grup).sort((a, b) => a.sira - b.sira);
+  const i = grup.indexOf(r), j = i + yon; if(j < 0 || j >= grup.length) return;
+  const t = grup[j].sira; grup[j].sira = r.sira; r.sira = t;
+  mxSiraYenidenNumarala(q); if(typeof liveMarkDirty === 'function') liveMarkDirty(); renderContent();
+}
+
+// ---- Satır işlemleri ----
+function mxKopyala(id){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  const kopya = Object.assign({}, r, { id: benzersizId('mk'), sira: (r.sira || 0) + 0.5, ad: r.ad + ' (kopya)' });
+  ensureMaliyet(q).items.push(kopya); mxSiraYenidenNumarala(q);
+  mxGecmisYaz(q, 'kopya', r.ad, '', kopya.ad);
+  renderContent(); showToast('Kalem kopyalandı.');
+}
+function mxSilOnay(id){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Maliyet kalemi silinsin mi?</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <p style="margin:0 0 14px;color:var(--ink-2);"><b>${notEsc(r.ad)}</b> kalemi (${mxPara(mxSatirToplam(r, mxKur(q)))}) maliyet listesinden kaldırılacak. Kayıt geçmişte tutulur ve toplamlar yeniden hesaplanır.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;"><button class="ghost" onclick="closeModal()">Vazgeç</button><button class="primary tehlike" onclick="mxSil('${id}')">Sil</button></div>`;
+  showModal(); const b = document.querySelector('#modalBox .ghost'); if(b) b.focus();
+}
+function mxSil(id){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  r.aktif = false; r.silinme = Date.now();                    // yumuşak silme
+  mxGecmisYaz(q, 'silme', r.ad, mxPara(mxSatirToplam(Object.assign({}, r, { aktif:true }), mxKur(q))), '—');
+  closeModal(); renderContent(); showToast('Maliyet kalemi silindi.');
+}
+function mxNotModal(id){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Not ekle</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <div class="field"><label for="mxNotAlan">${notEsc(r.ad)}</label><textarea id="mxNotAlan" rows="3" placeholder="ör. Fiyat 3 ay geçerli, nakliye dahil">${notEsc(r.not || '')}</textarea></div>
+    <button class="modal-submit" onclick="mxNotKaydet('${id}')">Kaydet</button>`;
+  showModal(); document.getElementById('mxNotAlan').focus();
+}
+function mxNotKaydet(id){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  const v = document.getElementById('mxNotAlan').value.trim();
+  if(v !== (r.not || '')) mxGecmisYaz(q, 'not', r.ad, r.not || '—', v || '—');
+  r.not = v; closeModal(); renderContent();
+}
+function mxGrupAdlandir(grupId){
   const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r || !r.malzemeId) return;
-  const mz = MALZEME_FIYATLARI.find(x => x.id === r.malzemeId); if(!mz) return;
-  if(mz.birim === 'm²'){
-    const m2 = (Number(r.en) || 0) * (Number(r.boy) || 0) / 10000;
-    if(m2) r.miktar = Math.round(m2 * 100) / 100;
-  } else if(mz.birim === 'mt'){
-    const mt = (Number(r.boy) || 0) / 100;
-    if(mt) r.miktar = Math.round(mt * 100) / 100;
-  }
-  r.fiyat = Math.round(malzemeTL(mz) * 100) / 100;
-  if(!r.ad) r.ad = mz.ad;
-  if((mz.para === 'USD' || mz.para === 'EUR') && !KURLAR.usd) showToast('Kur girilmemiş — üstteki kur alanını doldurun.');
+  const g = mxGrupBul(q, grupId);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Grubu yeniden adlandır</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <div class="field"><label for="mxGrupAd">Grup adı</label><input id="mxGrupAd" value="${notEsc(g.ad)}"></div>
+    <button class="modal-submit" onclick="mxGrupAdKaydet('${grupId}')">Kaydet</button>`;
+  showModal(); document.getElementById('mxGrupAd').focus();
 }
-function mxSatirTazele(i){
+function mxGrupAdKaydet(grupId){
   const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r) return;
-  const satir = document.querySelectorAll('.mx-row')[i];
-  if(satir){
-    const girisler = satir.querySelectorAll('input');
-    if(document.activeElement !== girisler[0]) girisler[0].value = r.ad || '';
-    if(document.activeElement !== girisler[1]) girisler[1].value = virgulYaz(r.miktar ?? 1);
-    if(document.activeElement !== girisler[2]) girisler[2].value = virgulYaz(r.fiyat ?? 0);
-  }
-  const tut = document.getElementById('mxTutar' + i);
-  if(tut) tut.value = tl((Number(r.miktar) || 1) * (Number(r.fiyat) || 0));
-  const m2 = document.getElementById('mxM2_' + i);
-  if(m2) m2.textContent = mxOlcuMetni(r);
-  const bagli = document.getElementById('mxMz_' + i);
-  if(bagli) bagli.innerHTML = mxBagliHtml(r, i);
-  mxOzetGuncelle();
+  const ad = document.getElementById('mxGrupAd').value.trim(); if(!ad) return;
+  const m = ensureMaliyet(q);
+  const ek = m.gruplar.find(g => g.id === grupId);
+  if(ek) ek.ad = ad; else m.gruplar.push({ id: grupId, ad: ad, ustune: true });   // varsayılan grubu ad olarak geçersiz kılar
+  closeModal(); renderContent();
 }
-function mxOlcu(i, alan, deger){
+function mxGrupCogalt(grupId){
   const q = mxAktifTeklif(); if(!q) return;
-  const r = ensureMaliyet(q).items[i]; if(!r) return;
-  r[alan] = deger === '' ? '' : virgulSayi(deger);
-  mxHesapla(i);
-  mxSatirTazele(i);
+  const m = ensureMaliyet(q); const g = mxGrupBul(q, grupId);
+  const yeni = { id: benzersizId('mg'), ad: g.ad + ' (kopya)' };
+  m.gruplar.push(yeni);
+  m.items.filter(r => r.aktif !== false && r.grup === grupId).forEach(r => m.items.push(Object.assign({}, r, { id: benzersizId('mk'), grup: yeni.id })));
+  mxSiraYenidenNumarala(q); renderContent(); showToast('Grup çoğaltıldı.');
 }
-// ---- Tedarikçi fiyatları sekmesi ----
+function mxGrupSil(grupId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const m = ensureMaliyet(q);
+  const kalemler = m.items.filter(r => r.aktif !== false && r.grup === grupId);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Grup silinsin mi?</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <p style="margin:0 0 14px;color:var(--ink-2);"><b>${notEsc(mxGrupBul(q, grupId).ad)}</b> grubundaki ${kalemler.length} kalem silinecek (geçmişte tutulur).</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;"><button class="ghost" onclick="closeModal()">Vazgeç</button><button class="primary tehlike" onclick="mxGrupSilUygula('${grupId}')">Grubu sil</button></div>`;
+  showModal();
+}
+function mxGrupSilUygula(grupId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const m = ensureMaliyet(q);
+  m.items.filter(r => r.aktif !== false && r.grup === grupId).forEach(r => { r.aktif = false; r.silinme = Date.now(); mxGecmisYaz(q, 'silme', r.ad, '', 'grup silindi'); });
+  m.gruplar = m.gruplar.filter(g => g.id !== grupId);
+  closeModal(); renderContent();
+}
+
+// ---- Yeni / düzenle modalı ----
+const mxModal = { veri:null, duzenleId:null, odak:null };
+function mxKalemModal(id, grupId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = id ? mxKalemBul(q, id) : null;
+  mxModal.duzenleId = id || null;
+  mxModal.veri = r ? Object.assign({}, r) : { grup: grupId || mxDurum.grup || 'malzeme', ad:'', kod:'', aciklama:'', hesapTuru:'dogrudan', miktar:1, birim:'adet', en:'', boy:'', adet:1, fire:0,
+    tedarikciAd:'', fiyatKaydiId:'', para:'TL', fiyatOrj:'', kdvDahil:false, kdvOran:20, fiyatTarihi: mxBugunIso(), gecerlilik:'', not:'' };
+  mxKalemModalCiz();
+}
+function mxModalOku(){
+  const v = mxModal.veri; const g = id => { const e = document.getElementById(id); return e ? e.value : undefined; };
+  const al = (id, key, sayi) => { const x = g(id); if(x !== undefined) v[key] = sayi ? (x === '' ? '' : virgulSayi(x)) : x; };
+  al('mxfGrup','grup'); al('mxfAd','ad'); al('mxfKod','kod'); al('mxfAciklama','aciklama'); al('mxfTur','hesapTuru'); al('mxfMiktar','miktar',true); al('mxfBirim','birim');
+  al('mxfEn','en',true); al('mxfBoy','boy',true); al('mxfAdet','adet',true); al('mxfFire','fire',true); al('mxfTed','tedarikciAd'); al('mxfKayit','fiyatKaydiId'); al('mxfPara','para');
+  al('mxfFiyat','fiyatOrj',true); al('mxfKdvOran','kdvOran',true); al('mxfTarih','fiyatTarihi'); al('mxfGecerlilik','gecerlilik'); al('mxfNot','not');
+  const kdv = document.getElementById('mxfKdv'); if(kdv) v.kdvDahil = kdv.value === '1';
+  return v;
+}
+function mxKalemModalCiz(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const v = mxModal.veri;
+  const olcu = v.hesapTuru === 'en_boy' || v.hesapTuru === 'en_boy_adet', uzunluk = v.hesapTuru === 'uzunluk';
+  const kayitlar = MALZEME_FIYATLARI.filter(mz => !v.tedarikciAd || mz.tedarikci === v.tedarikciAd);
+  const secKayit = MALZEME_FIYATLARI.find(mz => mz.id === v.fiyatKaydiId);
+  const kdvNet = v.kdvDahil && Number(v.fiyatOrj) ? kurus(Number(v.fiyatOrj) / (1 + (Number(v.kdvOran) || 0) / 100)) : null;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>${mxModal.duzenleId ? 'Maliyeti Düzenle' : 'Yeni Maliyet'}</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <div class="mx-form">
+      <div class="field-row">
+        <div class="field"><label for="mxfGrup">Maliyet grubu</label><select id="mxfGrup" onchange="mxModalOku(); if(this.value==='__yeni') mxKalemModalCiz();">${mxGruplar(q).map(g => `<option value="${g.id}" ${v.grup === g.id ? 'selected' : ''}>${notEsc(g.ad)}</option>`).join('')}<option value="__yeni" ${v.grup === '__yeni' ? 'selected' : ''}>＋ Yeni grup…</option></select>
+          ${v.grup === '__yeni' ? `<input id="mxfYeniGrupAd" style="margin-top:6px;" placeholder="Yeni grup adı" value="${notEsc(v.yeniGrupAd || '')}" oninput="mxModal.veri.yeniGrupAd=this.value">` : ''}</div>
+        <div class="field"><label for="mxfTur">Hesaplama türü</label><select id="mxfTur" onchange="mxModalOku(); mxModal.odak='mxfTur'; mxKalemModalCiz();">${Object.keys(MX_HESAP).map(k => `<option value="${k}" ${v.hesapTuru === k ? 'selected' : ''}>${MX_HESAP[k]}</option>`).join('')}</select></div>
+      </div>
+      <div class="field"><label for="mxfAd">Maliyet kalemi adı</label><input id="mxfAd" list="mxfAdListesi" value="${notEsc(v.ad)}" placeholder="ör. Kompozit Panel 4 mm" oninput="mxModalOku()"><datalist id="mxfAdListesi">${[...new Set(HAZIR_MALIYET_KALEMLERI.concat(MALZEME_FIYATLARI.map(m => m.ad)))].filter(Boolean).map(a => `<option value="${notEsc(a)}">`).join('')}</datalist></div>
+      <div class="field-row">
+        <div class="field"><label for="mxfKod">Ürün/stok kodu</label><input id="mxfKod" value="${notEsc(v.kod || '')}" placeholder="isteğe bağlı" oninput="mxModalOku()"></div>
+        <div class="field"><label for="mxfAciklama">Açıklama</label><input id="mxfAciklama" value="${notEsc(v.aciklama || '')}" placeholder="isteğe bağlı" oninput="mxModalOku()"></div>
+      </div>
+      ${olcu ? `<div class="field-row">
+        <div class="field"><label for="mxfEn">En (cm)</label><input id="mxfEn" inputmode="decimal" value="${virgulYaz(v.en)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>
+        <div class="field"><label for="mxfBoy">Boy (cm)</label><input id="mxfBoy" inputmode="decimal" value="${virgulYaz(v.boy)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>
+        ${v.hesapTuru === 'en_boy_adet' ? `<div class="field"><label for="mxfAdet">Adet</label><input id="mxfAdet" inputmode="decimal" value="${virgulYaz(v.adet || 1)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>` : ''}
+        <div class="field"><label for="mxfFire">Fire (%)</label><input id="mxfFire" inputmode="decimal" value="${virgulYaz(v.fire || 0)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>
+      </div><div class="hint" id="mxfOlcuSonuc" style="margin:-4px 0 10px;color:var(--ok);font-weight:600;"></div>` : ''}
+      ${uzunluk ? `<div class="field-row">
+        <div class="field"><label for="mxfBoy">Uzunluk (cm)</label><input id="mxfBoy" inputmode="decimal" value="${virgulYaz(v.boy)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>
+        <div class="field"><label for="mxfAdet">Adet</label><input id="mxfAdet" inputmode="decimal" value="${virgulYaz(v.adet || 1)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>
+        <div class="field"><label for="mxfFire">Fire (%)</label><input id="mxfFire" inputmode="decimal" value="${virgulYaz(v.fire || 0)}" oninput="mxModalOku(); mxModalOlcuYaz();"></div>
+      </div><div class="hint" id="mxfOlcuSonuc" style="margin:-4px 0 10px;color:var(--ok);font-weight:600;"></div>` : ''}
+      <div class="field-row">
+        ${(v.hesapTuru === 'dogrudan' || v.hesapTuru === 'saat') ? `<div class="field"><label for="mxfMiktar">${v.hesapTuru === 'saat' ? 'Saat' : 'Miktar'}</label><input id="mxfMiktar" inputmode="decimal" value="${virgulYaz(v.miktar)}" oninput="mxModalOku()"></div>` : ''}
+        <div class="field"><label for="mxfBirim">Birim</label><select id="mxfBirim" onchange="mxModalOku()">${MX_BIRIMLER.map(b => `<option ${(olcu ? 'm²' : uzunluk ? 'mt' : v.hesapTuru === 'saat' ? 'saat' : v.hesapTuru === 'goturu' ? 'götürü' : v.birim) === b ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
+      </div>
+      <div class="mx-form-bolum">Tedarikçi ve fiyat</div>
+      <div class="field-row">
+        <div class="field"><label for="mxfTed">Tedarikçi</label><input id="mxfTed" list="mxfTedListesi" value="${notEsc(v.tedarikciAd || '')}" placeholder="Tedarikçi adı" oninput="mxModalOku(); mxModalKayitListesi();"><datalist id="mxfTedListesi">${mxTedarikciler().map(t => `<option value="${notEsc(t)}">`).join('')}</datalist></div>
+        <div class="field"><label for="mxfKayit">Fiyat kaydı</label><select id="mxfKayit" onchange="mxModalOku(); mxModalKayitSec();">
+          <option value="">— Manuel fiyat —</option>
+          ${kayitlar.map(mz => `<option value="${mz.id}" ${v.fiyatKaydiId === mz.id ? 'selected' : ''}>${notEsc(mz.ad)}${mz.tedarikci ? ' · ' + notEsc(mz.tedarikci) : ''} · ${mxPara(mz.fiyat, mz.para)}/${mz.birim}</option>`).join('')}</select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="mxfPara">Döviz</label><select id="mxfPara" onchange="mxModalOku()">${MX_PARALAR.map(p => `<option value="${p}" ${v.para === p ? 'selected' : ''}>${p === 'TL' ? 'TRY' : p}</option>`).join('')}</select></div>
+        <div class="field"><label for="mxfFiyat">Birim maliyet</label><input id="mxfFiyat" inputmode="decimal" value="${virgulYaz(v.fiyatOrj)}" placeholder="0,00" oninput="mxModalOku(); mxKdvNotu();"></div>
+        <div class="field"><label for="mxfKdv">Vergi</label><select id="mxfKdv" onchange="mxModalOku(); mxKdvNotu();"><option value="0" ${!v.kdvDahil ? 'selected' : ''}>KDV hariç</option><option value="1" ${v.kdvDahil ? 'selected' : ''}>KDV dâhil</option></select></div>
+        <div class="field" style="max-width:90px;"><label for="mxfKdvOran">KDV %</label><input id="mxfKdvOran" inputmode="decimal" value="${virgulYaz(v.kdvOran ?? 20)}" oninput="mxModalOku(); mxKdvNotu();"></div>
+      </div>
+      <div class="hint" id="mxfKdvNotu" style="margin:-4px 0 10px;">${kdvNet !== null ? `KDV dâhil ${mxPara(v.fiyatOrj, v.para)} → maliyete KDV hariç <b>${mxPara(kdvNet, v.para)}</b> yazılır.` : ''}</div>
+      <div class="field-row">
+        <div class="field"><label for="mxfTarih">Fiyat tarihi</label><input id="mxfTarih" type="date" value="${mxIsoTarih(v.fiyatTarihi)}" onchange="mxModalOku()"></div>
+        <div class="field"><label for="mxfGecerlilik">Geçerlilik tarihi</label><input id="mxfGecerlilik" type="date" value="${mxIsoTarih(v.gecerlilik)}" onchange="mxModalOku()"></div>
+      </div>
+      <div class="field"><label for="mxfNot">Not</label><input id="mxfNot" value="${notEsc(v.not || '')}" placeholder="isteğe bağlı" oninput="mxModalOku()"></div>
+      ${secKayit && secKayit.birim !== (olcu ? 'm²' : uzunluk ? 'mt' : v.birim) ? `<div class="mx-uyari" style="margin:0 0 12px;"><b>⚠</b><span>Seçilen fiyat kaydının birimi <b>${notEsc(secKayit.birim)}</b>, kalemin birimi <b>${notEsc(olcu ? 'm²' : uzunluk ? 'mt' : v.birim)}</b>. Birimler uyuşmuyor; fiyatı kontrol edin.</span></div>` : ''}
+      <div class="mx-form-aksiyon">
+        <button class="ghost" onclick="closeModal()">İptal</button>
+        ${mxModal.duzenleId ? '' : '<button class="ghost" onclick="mxKalemKaydet(true)">Kaydet ve Yeni Ekle</button>'}
+        <button class="primary" onclick="mxKalemKaydet(false)">${mxModal.duzenleId ? 'Kaydet' : 'Maliyeti Ekle'}</button>
+      </div>
+    </div>`;
+  showModal(); document.getElementById('modalBox').classList.add('wide');
+  mxModalOlcuYaz();
+  const ilk = document.getElementById('mxfAd'); if(ilk && !mxModal.duzenleId && !ilk.value) ilk.focus();
+  if(v.grup === '__yeni'){ const yg = document.getElementById('mxfYeniGrupAd'); if(yg) yg.focus(); }
+  if(mxModal.odak){ const o = document.getElementById(mxModal.odak); if(o) o.focus(); mxModal.odak = null; }
+}
+// Tedarikçi yazılırken yalnız fiyat kaydı listesi yenilenir (odak kaybolmaz)
+function mxModalKayitListesi(){
+  const v = mxModal.veri; const sec = document.getElementById('mxfKayit'); if(!sec) return;
+  const kayitlar = MALZEME_FIYATLARI.filter(mz => !v.tedarikciAd || mz.tedarikci === v.tedarikciAd || String(mz.tedarikci || '').toLowerCase().startsWith(String(v.tedarikciAd).toLowerCase()));
+  sec.innerHTML = '<option value="">— Manuel fiyat —</option>' + kayitlar.map(mz => `<option value="${mz.id}" ${v.fiyatKaydiId === mz.id ? 'selected' : ''}>${notEsc(mz.ad)}${mz.tedarikci ? ' · ' + notEsc(mz.tedarikci) : ''} · ${mxPara(mz.fiyat, mz.para)}/${mz.birim}</option>`).join('');
+}
+function mxModalOlcuYaz(){
+  const el = document.getElementById('mxfOlcuSonuc'); if(!el) return;
+  const v = mxModal.veri; const net = mxNetMiktar(v), fireli = mxFireliMiktar(net, v.fire);
+  const birim = v.hesapTuru === 'uzunluk' ? 'mt' : 'm²';
+  el.textContent = net ? `Net ${mxSayi(net, 2)} ${birim}${Number(v.fire) ? ` · fire %${mxSayi(v.fire)} ile maliyet miktarı ${mxSayi(fireli, 2)} ${birim}` : ''}` : (v.hesapTuru === 'uzunluk' ? 'Uzunluk girin' : 'En ve boy girin');
+}
+function mxKdvNotu(){
+  const el = document.getElementById('mxfKdvNotu'); if(!el) return; const v = mxModal.veri;
+  el.innerHTML = v.kdvDahil && Number(v.fiyatOrj) ? `KDV dâhil ${mxPara(v.fiyatOrj, v.para)} → maliyete KDV hariç <b>${mxPara(kurus(Number(v.fiyatOrj) / (1 + (Number(v.kdvOran) || 0) / 100)), v.para)}</b> yazılır.` : '';
+}
+function mxModalKayitSec(){
+  const v = mxModal.veri; const mz = MALZEME_FIYATLARI.find(x => x.id === v.fiyatKaydiId);
+  if(mz){ v.tedarikciAd = mz.tedarikci || v.tedarikciAd; v.para = mz.para; v.fiyatOrj = mz.fiyat; v.kdvDahil = !!mz.kdvDahil; v.kdvOran = mz.kdvOran ?? 20; v.fiyatTarihi = mz.tarih || ''; v.gecerlilik = mz.gecerlilik || ''; if(!v.ad) v.ad = mz.ad; if(v.hesapTuru === 'dogrudan') v.birim = mz.birim; }
+  mxKalemModalCiz();
+}
+function mxKalemKaydet(yeniAc){
+  const q = mxAktifTeklif(); if(!q) return;
+  const v = mxModalOku();
+  if(!v.ad || !String(v.ad).trim()){ showToast('Maliyet kalemi adı girin.'); document.getElementById('mxfAd').focus(); return; }
+  if(v.hesapTuru === 'dogrudan' || v.hesapTuru === 'saat'){ if(!(Number(v.miktar) > 0)){ showToast('Miktar sıfır veya negatif olamaz.'); return; } }
+  if(Number(v.fiyatOrj) < 0){ showToast('Negatif fiyat girilemez.'); return; }
+  if(v.grup === '__yeni'){
+    const ad = String(v.yeniGrupAd || '').trim();
+    if(!ad){ showToast('Yeni grup adı girin.'); const yg = document.getElementById('mxfYeniGrupAd'); if(yg) yg.focus(); return; }
+    const g = { id: benzersizId('mg'), ad }; ensureMaliyet(q).gruplar.push(g); v.grup = g.id;
+  }
+  if(v.hesapTuru === 'en_boy' || v.hesapTuru === 'en_boy_adet') v.birim = 'm²';
+  if(v.hesapTuru === 'uzunluk') v.birim = 'mt';
+  if(v.hesapTuru === 'saat') v.birim = 'saat';
+  if(v.hesapTuru === 'goturu'){ v.birim = 'götürü'; v.miktar = 1; }
+  let fiyat = Number(v.fiyatOrj) || 0;
+  if(v.kdvDahil){ fiyat = kurus(fiyat / (1 + (Number(v.kdvOran) || 0) / 100)); v.kdvDahil = false; }   // maliyete KDV hariç yazılır
+  const kayit = MALZEME_FIYATLARI.find(mz => mz.id === v.fiyatKaydiId);
+  const manuel = kayit ? (kurus(fiyat) !== kurus(kayit.kdvDahil ? kayit.fiyat / (1 + (kayit.kdvOran || 0) / 100) : kayit.fiyat) || v.para !== kayit.para) : !v.tedarikciAd ? true : false;
+  const m = ensureMaliyet(q);
+  const alanlar = { grup:v.grup, ad:String(v.ad).trim(), kod:v.kod || '', aciklama:v.aciklama || '', hesapTuru:v.hesapTuru, miktar:Number(v.miktar) || 1, birim:v.birim, en:v.en, boy:v.boy, adet:Number(v.adet) || 1, fire:Number(v.fire) || 0,
+    tedarikciAd:(v.tedarikciAd || '').trim(), tedarikciId: mxTedarikciIdBul((v.tedarikciAd || '').trim()), fiyatKaydiId:v.fiyatKaydiId || null, para:v.para, fiyatOrj:fiyat, fiyatTarihi:v.fiyatTarihi || '', gecerlilik:v.gecerlilik || '', not:v.not || '', manuel };
+  if(mxModal.duzenleId){
+    const r = mxKalemBul(q, mxModal.duzenleId); if(!r) return;
+    const degisim = [];
+    if(r.miktar !== alanlar.miktar && alanlar.hesapTuru === 'dogrudan') degisim.push(['miktar', mxSayi(r.miktar), mxSayi(alanlar.miktar)]);
+    if(kurus(r.fiyatOrj) !== kurus(alanlar.fiyatOrj) || r.para !== alanlar.para) degisim.push(['fiyat', mxPara(r.fiyatOrj, r.para), mxPara(alanlar.fiyatOrj, alanlar.para)]);
+    if((r.tedarikciAd || '') !== alanlar.tedarikciAd) degisim.push(['tedarikci', r.tedarikciAd || '—', alanlar.tedarikciAd || '—']);
+    if(!degisim.length) degisim.push(['duzenleme', '', '']);
+    degisim.forEach(([islem, e, y]) => mxGecmisYaz(q, islem, alanlar.ad, e, y));
+    Object.assign(r, alanlar);
+    mxSatirHesapla(r, mxKur(q));
+  } else {
+    const r = Object.assign({ id: benzersizId('mk'), aktif:true, sira: (m.items.length ? Math.max(...m.items.map(x => x.sira || 0)) : 0) + 1 }, alanlar);
+    mxSatirHesapla(r, mxKur(q));
+    m.items.push(r);
+    mxGecmisYaz(q, 'ekleme', r.ad, '', mxPara(mxSatirToplam(r, mxKur(q))));
+  }
+  if(alanlar.para !== 'TL' && !mxKurDegeri(alanlar.para, mxKur(q))) showToast(`${alanlar.para} kuru yok — Kur alanından girin veya TCMB'den getirin.`);
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  if(yeniAc){ renderContent(); mxKalemModal(null, alanlar.grup); showToast('Maliyet eklendi.'); }
+  else { closeModal(); renderContent(); showToast(mxModal.duzenleId ? 'Maliyet güncellendi.' : 'Maliyet eklendi.'); }
+}
+
+// ---- Şablonlar ----
+function mxSablonaKaydet(id){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  const kalem = Object.assign({}, r); delete kalem.id; delete kalem.sira; delete kalem.aktif; delete kalem.silinme; delete kalem.toplamTL;
+  MALIYET_SABLONLARI.push({ id: benzersizId('ms'), ad: r.ad, kalem });
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  showToast(`"${r.ad}" şablon olarak kaydedildi.`);
+}
+function mxSablonModal(){
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Şablondan ekle</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    ${MALIYET_SABLONLARI.length ? `<div class="mx-sablon-liste">${MALIYET_SABLONLARI.map(s => `
+      <label class="mx-sablon"><input type="checkbox" value="${s.id}"><span><b>${notEsc(s.ad)}</b><small>${notEsc(mxGrupBul(null, s.kalem.grup).ad)} · ${mxSayi(s.kalem.miktar)} ${notEsc(s.kalem.birim)} · ${mxPara(s.kalem.fiyatOrj, s.kalem.para)}${s.kalem.tedarikciAd ? ' · ' + notEsc(s.kalem.tedarikciAd) : ''}</small></span>
+        <button class="mx-uc" aria-label="Şablonu sil" title="Şablonu sil" onclick="event.preventDefault(); mxSablonSil('${s.id}')">🗑</button></label>`).join('')}</div>
+      <div class="mx-form-aksiyon"><button class="ghost" onclick="closeModal()">İptal</button><button class="primary" onclick="mxSablondanEkle()">Seçilenleri ekle</button></div>`
+      : `<div class="empty-state">Kayıtlı şablon yok. Bir maliyet satırının ⋮ menüsünden <b>Şablona kaydet</b> ile şablon oluşturabilirsiniz.</div>`}`;
+  showModal();
+}
+function mxSablonSil(id){ MALIYET_SABLONLARI = MALIYET_SABLONLARI.filter(s => s.id !== id); if(typeof liveMarkDirty === 'function') liveMarkDirty(); mxSablonModal(); }
+function mxSablondanEkle(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const secili = [...document.querySelectorAll('.mx-sablon input:checked')].map(i => i.value);
+  if(!secili.length){ showToast('Şablon seçin.'); return; }
+  const m = ensureMaliyet(q);
+  secili.forEach(id => { const s = MALIYET_SABLONLARI.find(x => x.id === id); if(!s) return;
+    const r = Object.assign({ id: benzersizId('mk'), aktif:true, sira: (m.items.length ? Math.max(...m.items.map(x => x.sira || 0)) : 0) + 1 }, JSON.parse(JSON.stringify(s.kalem)));
+    mxSatirHesapla(r, mxKur(q)); m.items.push(r); mxGecmisYaz(q, 'ekleme', r.ad, '', 'şablondan'); });
+  closeModal(); renderContent(); showToast(`${secili.length} kalem şablondan eklendi.`);
+}
+
+// ---- Tedarikçi fiyatları drawer'ı ----
+function mxFiyatDrawer(id, tumu){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, id); if(!r) return;
+  mxDurum.seciliFiyatKalem = id; if(tumu !== undefined) mxDurum.tumFiyatlar = !!tumu;
+  const kur = mxKur(q);
+  let liste = MALZEME_FIYATLARI.map(mxFiyatNormalle).filter(mz => mxDurum.tumFiyatlar || mxUrunEslesir(mz, r));
+  const tl = mz => mxKurDegeri(mz.para, kur) ? kurus((mz.kdvDahil ? mz.fiyat / (1 + (mz.kdvOran || 0) / 100) : mz.fiyat) * mxKurDegeri(mz.para, kur)) : null;
+  liste = liste.slice().sort((a, b) => ((tl(a) === null ? 1e15 : tl(a)) - (tl(b) === null ? 1e15 : tl(b))));
+  const durum = mz => { const sahte = { tedarikciAd: mz.tedarikci || 'x', fiyatKaydiId: mz.id, manuel:false, fiyatTarihi: mz.tarih, gecerlilik: mz.gecerlilik }; return mxFiyatDurumu(sahte, kur); };
+  document.getElementById('sideDrawer').innerHTML = `
+    <div class="mx-drawer">
+      <button class="drawer-close-x" aria-label="Kapat" onclick="closeDrawer()">✕</button>
+      <h2 class="drawer-title">Tedarikçi Fiyatları</h2>
+      <div class="page-sub" style="margin:0 0 12px;">${notEsc(r.ad)} · kalem birimi <b>${notEsc(r.birim)}</b>${r.tedarikciAd ? ` · seçili: ${notEsc(r.tedarikciAd)}` : ''}</div>
+      <div class="mx-drawer-arac"><label><input type="checkbox" ${mxDurum.tumFiyatlar ? 'checked' : ''} onchange="mxFiyatDrawer('${id}', this.checked)"> Tüm fiyat kayıtlarını göster</label><button class="ghost" onclick="mxYeniFiyatFormu('${id}')">＋ Yeni Tedarikçi Fiyatı</button></div>
+      <div id="mxYeniFiyatKap"></div>
+      ${liste.length ? `<div class="mx-fiyat-liste">${liste.map(mz => { const d = durum(mz); const t = tl(mz); const secili = r.fiyatKaydiId === mz.id && !r.manuel; const birimFark = mz.birim !== r.birim; return `
+        <div class="mx-fiyat-kart ${secili ? 'secili' : ''}">
+          <div class="ust"><i class="mx-nokta ${d.renk}"></i><b>${notEsc(mz.tedarikci || 'Tedarikçi belirtilmemiş')}</b>${mz.tercih ? '<span class="tag green">Tercih edilen</span>' : ''}${secili ? '<span class="tag orange">Kullanılıyor</span>' : ''}<span class="urun">${notEsc(mz.ad)}</span></div>
+          <div class="deger">
+            <div><small>Birim fiyat</small><b class="qd-para">${mxPara(mz.fiyat, mz.para)}${mz.kdvDahil ? ' <em>KDV dâhil</em>' : ''}</b></div>
+            <div><small>TL karşılığı (KDV hariç)</small><b class="qd-para">${t === null ? '<span class="kirmizi">kur yok</span>' : mxPara(t)}<em>/${notEsc(mz.birim)}</em></b></div>
+            <div><small>Fiyat tarihi</small><b>${mz.tarih ? formatDate(mxIsoTarih(mz.tarih)) : '<span class="kirmizi">yok</span>'}</b></div>
+            <div><small>Geçerlilik</small><b>${mz.gecerlilik ? formatDate(mxIsoTarih(mz.gecerlilik)) : '—'}</b></div>
+            <div><small>Teslim süresi</small><b>${mz.teslimGun ? mz.teslimGun + ' gün' : '—'}</b></div>
+            <div><small>Min. sipariş</small><b>${mz.minSiparis ? mxSayi(mz.minSiparis) + ' ' + notEsc(mz.birim) : '—'}</b></div>
+          </div>
+          <div class="alt"><span class="${d.renk === 'kirmizi' ? 'kirmizi' : d.renk === 'turuncu' ? 'turuncu' : ''}">${notEsc(d.metin)}</span>${mz.not ? ' · ' + notEsc(mz.not) : ''}${birimFark ? ` · <span class="turuncu">⚠ birim ${notEsc(mz.birim)} ≠ ${notEsc(r.birim)}</span>` : ''}</div>
+          <div class="aksiyon"><button class="${secili ? 'ghost' : 'primary'}" ${secili ? 'disabled' : ''} onclick="mxFiyatKullan('${id}','${mz.id}')">${secili ? 'Kullanılıyor' : 'Bu fiyatı kullan'}</button><button class="ghost" onclick="mxYeniFiyatFormu('${id}','${mz.id}')">Düzenle</button></div>
+        </div>`; }).join('')}</div>`
+        : `<div class="empty-state">Bu kalem için kayıtlı tedarikçi fiyatı yok. Yeni fiyat ekleyin veya "Tüm fiyat kayıtlarını göster" seçin.</div>`}
+    </div>`;
+  document.getElementById('sideDrawer').classList.add('genis');
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('sideDrawer').classList.add('show');
+  const ilk = document.querySelector('#sideDrawer .drawer-close-x'); if(ilk) ilk.focus();
+}
+function mxFiyatKullan(kalemId, fiyatId, onayli){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, kalemId); const mz = MALZEME_FIYATLARI.find(x => x.id === fiyatId); if(!r || !mz) return;
+  if(mz.birim !== r.birim && !onayli){
+    if(!confirm(`Fiyat kaydının birimi "${mz.birim}", kalemin birimi "${r.birim}". Yine de bu fiyat uygulansın mı? (Kalemin birimi ${mz.birim} olarak değiştirilecek)`)) return;
+    r.birim = mz.birim;
+  }
+  const kur = mxKur(q);
+  const net = mz.kdvDahil ? kurus(mz.fiyat / (1 + (mz.kdvOran || 0) / 100)) : Number(mz.fiyat) || 0;
+  mxGecmisYaz(q, 'tedarikci', r.ad, `${r.tedarikciAd || '—'} · ${mxPara(r.fiyatOrj, r.para)}`, `${mz.tedarikci || '—'} · ${mxPara(net, mz.para)}`);
+  r.tedarikciAd = mz.tedarikci || ''; r.tedarikciId = mz.tedarikciId || mxTedarikciIdBul(mz.tedarikci); r.fiyatKaydiId = mz.id; r.para = mz.para; r.fiyatOrj = net;
+  r.fiyatTarihi = mz.tarih || ''; r.gecerlilik = mz.gecerlilik || ''; r.manuel = false; r.malzemeId = mz.id;
+  mxSatirHesapla(r, kur);
+  if(mz.para !== 'TL' && !mxKurDegeri(mz.para, kur)) showToast(`${mz.para} kuru yok — Kur alanından girin.`);
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  closeDrawer(); renderContent(); showToast(`${mz.tedarikci || 'Tedarikçi'} fiyatı uygulandı${mz.kdvDahil ? ' (KDV hariç ' + mxPara(net, mz.para) + ')' : ''}.`);
+}
+function mxYeniFiyatFormu(kalemId, fiyatId){
+  const q = mxAktifTeklif(); const r = q && mxKalemBul(q, kalemId); if(!r) return;
+  const mz = fiyatId ? MALZEME_FIYATLARI.find(x => x.id === fiyatId) : null;
+  const v = mz || { ad: r.ad, tedarikci: r.tedarikciAd || '', birim: r.birim, fiyat:'', para: r.para || 'TL', kdvDahil:false, kdvOran:20, tarih: mxBugunIso(), gecerlilik:'', teslimGun:'', minSiparis:'', not:'' };
+  const kap = document.getElementById('mxYeniFiyatKap'); if(!kap) return;
+  kap.innerHTML = `
+    <div class="mx-yeni-fiyat">
+      <div class="mx-form-bolum">${mz ? 'Fiyat kaydını düzenle' : 'Yeni tedarikçi fiyatı'}</div>
+      <div class="field-row">
+        <div class="field"><label for="mzfTed">Tedarikçi</label><input id="mzfTed" list="mzfTedListesi" value="${notEsc(v.tedarikci)}"><datalist id="mzfTedListesi">${mxTedarikciler().map(t => `<option value="${notEsc(t)}">`).join('')}</datalist></div>
+        <div class="field"><label for="mzfAd">Ürün / hizmet</label><input id="mzfAd" value="${notEsc(v.ad)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="mzfFiyat">Birim fiyat</label><input id="mzfFiyat" inputmode="decimal" value="${virgulYaz(v.fiyat)}"></div>
+        <div class="field"><label for="mzfPara">Döviz</label><select id="mzfPara">${MX_PARALAR.map(p => `<option value="${p}" ${v.para === p ? 'selected' : ''}>${p === 'TL' ? 'TRY' : p}</option>`).join('')}</select></div>
+        <div class="field"><label for="mzfBirim">Birim</label><select id="mzfBirim">${MX_BIRIMLER.map(b => `<option ${v.birim === b ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="mzfKdv">KDV</label><select id="mzfKdv"><option value="0" ${!v.kdvDahil ? 'selected' : ''}>Hariç</option><option value="1" ${v.kdvDahil ? 'selected' : ''}>Dâhil</option></select></div>
+        <div class="field"><label for="mzfKdvOran">KDV %</label><input id="mzfKdvOran" inputmode="decimal" value="${virgulYaz(v.kdvOran ?? 20)}"></div>
+        <div class="field"><label for="mzfTarih">Fiyat tarihi</label><input id="mzfTarih" type="date" value="${mxIsoTarih(v.tarih)}"></div>
+        <div class="field"><label for="mzfGecerlilik">Geçerlilik</label><input id="mzfGecerlilik" type="date" value="${mxIsoTarih(v.gecerlilik)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="mzfTeslim">Teslim süresi (gün)</label><input id="mzfTeslim" inputmode="numeric" value="${v.teslimGun || ''}"></div>
+        <div class="field"><label for="mzfMin">Min. sipariş miktarı</label><input id="mzfMin" inputmode="decimal" value="${virgulYaz(v.minSiparis)}"></div>
+        <div class="field"><label for="mzfNot">Açıklama</label><input id="mzfNot" value="${notEsc(v.not || '')}"></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:10px;"><input type="checkbox" id="mzfTercih" ${v.tercih ? 'checked' : ''}> Tercih edilen tedarikçi</label>
+      <div class="mx-form-aksiyon"><button class="ghost" onclick="document.getElementById('mxYeniFiyatKap').innerHTML=''">İptal</button><button class="primary" onclick="mxFiyatKaydet('${kalemId}','${mz ? mz.id : ''}')">${mz ? 'Kaydet' : 'Fiyatı kaydet'}</button></div>
+    </div>`;
+  document.getElementById('mzfFiyat').focus();
+}
+function mxFiyatKaydet(kalemId, fiyatId){
+  const g = id => document.getElementById(id).value;
+  const fiyat = virgulSayi(g('mzfFiyat'));
+  if(!(fiyat > 0)){ showToast('Birim fiyat sıfırdan büyük olmalı.'); return; }
+  const veri = { ad: g('mzfAd').trim(), tedarikci: g('mzfTed').trim(), tedarikciId: mxTedarikciIdBul(g('mzfTed').trim()), fiyat, para: g('mzfPara'), birim: g('mzfBirim'), kdvDahil: g('mzfKdv') === '1', kdvOran: virgulSayi(g('mzfKdvOran')),
+    tarih: g('mzfTarih'), gecerlilik: g('mzfGecerlilik'), teslimGun: Number(g('mzfTeslim')) || 0, minSiparis: virgulSayi(g('mzfMin')), not: g('mzfNot').trim(), tercih: document.getElementById('mzfTercih').checked };
+  if(!veri.ad){ showToast('Ürün / hizmet adı girin.'); return; }
+  let mz = fiyatId ? MALZEME_FIYATLARI.find(x => x.id === fiyatId) : null;
+  if(mz) Object.assign(mz, veri); else { mz = Object.assign({ id: benzersizId('mz') }, veri); MALZEME_FIYATLARI.push(mz); }
+  mxKurlaYenile();
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  showToast(fiyatId ? 'Fiyat kaydı güncellendi.' : 'Tedarikçi fiyatı kaydedildi.');
+  mxFiyatDrawer(kalemId);
+}
+
+// ---- Adım 3: tedarikçi fiyat listesi (tam sayfa) ----
+function mxFiyatListesiHtml(q){
+  const kur = mxKur(q);
+  const liste = MALZEME_FIYATLARI.map(mxFiyatNormalle);
+  return `
+    <section class="panel">
+      <div class="panel-head"><div><h3>Tedarikçi Fiyat Listesi</h3><p>Tüm tekliflerde ortak kullanılır · dövizli fiyatlar ${q.maliyet.kurSabit ? 'bu teklif için sabitlenen' : 'güncel'} kurla ₺'ye çevrilir</p></div>
+        <button class="primary" style="margin-left:auto;" onclick="mzYeniSatir()">＋ Fiyat kaydı</button></div>
+      <div class="table-card" style="border:0;border-radius:0;">
+      <table class="data-table mx-fiyat-tablo">
+        <thead><tr><th>Ürün / hizmet</th><th>Tedarikçi</th><th>Birim</th><th class="sag">Fiyat</th><th>Döviz</th><th>KDV</th><th class="sag">₺ karşılığı</th><th>Tarih</th><th>Geçerlilik</th><th>Durum</th><th></th></tr></thead>
+        <tbody>${liste.length ? liste.map((mz, i) => { const d = mxFiyatDurumu({ tedarikciAd: mz.tedarikci || 'x', fiyatKaydiId: mz.id, manuel:false, fiyatTarihi: mz.tarih, gecerlilik: mz.gecerlilik }, kur); const tlv = mxKurDegeri(mz.para, kur) ? kurus((mz.kdvDahil ? mz.fiyat / (1 + (mz.kdvOran || 0) / 100) : mz.fiyat) * mxKurDegeri(mz.para, kur)) : null; return `
+          <tr>
+            <td><input class="mx-inp" aria-label="Ürün" value="${notEsc(mz.ad)}" onchange="mzGuncelle(${i},'ad',this.value)"></td>
+            <td><input class="mx-inp" aria-label="Tedarikçi" list="mzTedListe" value="${notEsc(mz.tedarikci || '')}" onchange="mzGuncelle(${i},'tedarikci',this.value)"></td>
+            <td><select class="mx-inp" aria-label="Birim" onchange="mzGuncelle(${i},'birim',this.value)">${MX_BIRIMLER.map(b => `<option ${mz.birim === b ? 'selected' : ''}>${b}</option>`).join('')}</select></td>
+            <td class="sag"><input class="mx-inp qd-para sag" aria-label="Fiyat" inputmode="decimal" value="${mz.fiyat ? virgulYaz(mz.fiyat) : ''}" onchange="mzGuncelle(${i},'fiyat',this.value)"></td>
+            <td><select class="mx-inp" aria-label="Döviz" onchange="mzGuncelle(${i},'para',this.value)">${MX_PARALAR.map(p => `<option value="${p}" ${mz.para === p ? 'selected' : ''}>${p === 'TL' ? 'TRY' : p}</option>`).join('')}</select></td>
+            <td><select class="mx-inp" aria-label="KDV" onchange="mzGuncelle(${i},'kdvDahil',this.value==='1')"><option value="0" ${!mz.kdvDahil ? 'selected' : ''}>Hariç</option><option value="1" ${mz.kdvDahil ? 'selected' : ''}>Dâhil %${mxSayi(mz.kdvOran)}</option></select></td>
+            <td class="sag qd-para" id="mzTl${i}">${tlv === null ? '<span class="kirmizi">kur yok</span>' : mxPara(tlv)}</td>
+            <td><input class="mx-inp" aria-label="Fiyat tarihi" type="date" value="${mxIsoTarih(mz.tarih)}" onchange="mzGuncelle(${i},'tarih',this.value)"></td>
+            <td><input class="mx-inp" aria-label="Geçerlilik" type="date" value="${mxIsoTarih(mz.gecerlilik)}" onchange="mzGuncelle(${i},'gecerlilik',this.value)"></td>
+            <td><span class="mx-durum-etiket"><i class="mx-nokta ${d.renk}"></i>${notEsc(d.metin)}</span></td>
+            <td><button class="mx-uc" aria-label="Sil" title="Sil" onclick="mzSil(${i})">🗑</button></td>
+          </tr>`; }).join('') : '<tr><td colspan="11" class="empty-state">Fiyat kaydı yok.</td></tr>'}</tbody>
+      </table></div>
+      <datalist id="mzTedListe">${mxTedarikciler().map(t => `<option value="${notEsc(t)}">`).join('')}</datalist>
+      <div class="hint" style="margin:12px 16px;">Fiyat tarihi ${MALIYET_AYAR.eskimeGun} günü geçen, tarihsiz ya da geçerliliği dolan kayıtlar maliyet satırlarında uyarı üretir.</div>
+    </section>`;
+}
 function mzGuncelle(i, alan, deger){
   const mz = MALZEME_FIYATLARI[i]; if(!mz) return;
-  mz[alan] = alan === 'fiyat' ? virgulSayi(deger) : deger;
+  mz[alan] = (alan === 'fiyat') ? virgulSayi(deger) : deger;
+  if(alan === 'tedarikci') mz.tedarikciId = mxTedarikciIdBul(deger);
   mxKurlaYenile();
-  if(alan === 'ad' || alan === 'fiyat'){
-    // yazarken ekran yenilenmez — sadece ₺ karşılığı tazelenir (odak kaybolmasın)
-    const h = document.getElementById('mzTl' + i);
-    if(h) h.textContent = malzemeTL(mz) ? tl(malzemeTL(mz)) + '/' + mz.birim : '—';
-  } else renderContent();
-}
-function mzEkle(){
-  MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: '', birim: 'm²', fiyat: 0, para: 'TL' });
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  if(alan === 'ad' || alan === 'tedarikci'){ return; }
   renderContent();
 }
+function mzYeniSatir(){ MALZEME_FIYATLARI.push(mxFiyatNormalle({ id: benzersizId('mz'), ad:'', tedarikci:'', birim:'adet', fiyat:0, para:'TL', tarih: mxBugunIso() })); renderContent(); }
+function mzEkle(){ mzYeniSatir(); }
 function mzSil(i){
   const mz = MALZEME_FIYATLARI[i]; if(!mz) return;
-  const kullanan = QUOTES.reduce((t, q) => t + (((q.maliyet && q.maliyet.items) || []).filter(r => r.malzemeId === mz.id).length), 0);
-  if(!confirm(`${mz.ad || 'Malzeme'} silinsin mi?` + (kullanan ? `\n${kullanan} maliyet satırı bu fiyata bağlı — satırlar kalır ama artık kurla güncellenmez.` : ''))) return;
+  const kullanan = QUOTES.reduce((t, q) => t + (((q.maliyet && q.maliyet.items) || []).filter(r => r.fiyatKaydiId === mz.id || r.malzemeId === mz.id).length), 0);
+  if(!confirm(`${mz.ad || 'Fiyat kaydı'} silinsin mi?` + (kullanan ? `\n${kullanan} maliyet satırı bu fiyata bağlı — satırlar kalır ama artık kurla güncellenmez ve "silinmiş tedarikçi fiyatı" olarak işaretlenir.` : ''))) return;
   MALZEME_FIYATLARI.splice(i, 1);
+  QUOTES.forEach(q => ((q.maliyet && q.maliyet.items) || []).forEach(r => { if(r.fiyatKaydiId === mz.id){ r.manuel = true; r.not = (r.not ? r.not + ' · ' : '') + 'Bağlı tedarikçi fiyatı silindi'; } }));
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
   renderContent();
+}
+
+// ---- Kur modalı ----
+function mxKurModal(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const sabit = q.maliyet.kurSabit; const kur = mxKur(q);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Döviz kuru</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <p style="margin:0 0 12px;color:var(--ink-2);font-size:12.5px;">${sabit ? `📌 Bu teklif için kur <b>sabitlendi</b> (${notEsc(sabit.tarih || '')}). Dövizli maliyetler bu kurla hesaplanır.` : `Güncel kur kullanılıyor${kur.kaynak ? ` · ${notEsc(kur.kaynak)}` : ''}${kur.tarih ? ` · ${notEsc(kur.tarih)}` : ''}.`}</p>
+    <div class="field-row">
+      <div class="field"><label for="mxKurUsd">USD satış</label><input id="mxKurUsd" inputmode="decimal" value="${kur.usd ? virgulYaz(kur.usd) : ''}" placeholder="0,0000"></div>
+      <div class="field"><label for="mxKurEur">EUR satış</label><input id="mxKurEur" inputmode="decimal" value="${kur.eur ? virgulYaz(kur.eur) : ''}" placeholder="0,0000"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Kur tarihi</label><input value="${notEsc(kur.tarih || '—')}" readonly></div>
+      <div class="field"><label>Kaynak</label><input value="${notEsc(kur.kaynak || '—')}" readonly></div>
+    </div>
+    <div class="mx-form-aksiyon" style="justify-content:flex-start;flex-wrap:wrap;">
+      <button class="ghost" onclick="mxKurTcmb()">🔄 TCMB kurunu getir</button>
+      <button class="ghost" onclick="mxKurElle()">Elle girilen kuru uygula</button>
+      ${sabit ? `<button class="ghost" onclick="mxKurSabitKaldir()">Güncel kura dön</button>` : `<button class="primary" onclick="mxKurSabitle()">📌 Bu teklif için kuru sabitle</button>`}
+    </div>`;
+  showModal(); document.getElementById('mxKurUsd').focus();
+}
+async function mxKurTcmb(){ await kurGetir(true); const q = mxAktifTeklif(); if(q && q.maliyet.kurSabit){ showToast('Kur sabit — güncel kura dönmek için "Güncel kura dön" seçin.'); } mxKurModal(); }
+function mxKurElle(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const usd = virgulSayi(document.getElementById('mxKurUsd').value), eur = virgulSayi(document.getElementById('mxKurEur').value);
+  const hedef = q.maliyet.kurSabit || KURLAR;
+  const eski = `USD ${mxSayi(hedef.usd, 4)} · EUR ${mxSayi(hedef.eur, 4)}`;
+  hedef.usd = usd; hedef.eur = eur; hedef.kaynak = 'Elle girildi'; hedef.tarih = new Date().toLocaleDateString('tr-TR');
+  mxGecmisYaz(q, 'kur', '', eski, `USD ${mxSayi(usd, 4)} · EUR ${mxSayi(eur, 4)}`);
+  mxKurlaYenile(); closeModal(); renderContent(); showToast('Kur güncellendi — dövizli maliyetler yeniden hesaplandı.');
+}
+function mxKurSabitle(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const usd = virgulSayi(document.getElementById('mxKurUsd').value) || KURLAR.usd, eur = virgulSayi(document.getElementById('mxKurEur').value) || KURLAR.eur;
+  q.maliyet.kurSabit = { usd, eur, tarih: new Date().toLocaleDateString('tr-TR'), kaynak: (KURLAR.kaynak || 'Elle') + ' (sabit)' };
+  mxGecmisYaz(q, 'kur', '', 'güncel kur', `sabit: USD ${mxSayi(usd, 4)} · EUR ${mxSayi(eur, 4)}`);
+  mxKurlaYenile(); closeModal(); renderContent(); showToast('Kur bu teklif için sabitlendi.');
+}
+function mxKurSabitKaldir(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const s = q.maliyet.kurSabit; q.maliyet.kurSabit = null;
+  mxGecmisYaz(q, 'kur', '', `sabit: USD ${mxSayi(s.usd, 4)} · EUR ${mxSayi(s.eur, 4)}`, `güncel: USD ${mxSayi(KURLAR.usd, 4)} · EUR ${mxSayi(KURLAR.eur, 4)}`);
+  mxKurlaYenile(); closeModal(); renderContent(); showToast('Güncel kura dönüldü — dövizli maliyetler yeniden hesaplandı.');
+}
+
+// ---- Kârlılık paneli ----
+function mxPanelHtml(q, tamGenislik){
+  const o = mxOzet(q); const m = q.maliyet;
+  const negatif = o.kar < 0;
+  const marjMetin = o.satis > 0 ? mxYuzde(o.marj) : '—';
+  const dovizNotu = (q.currency && q.currency !== 'TL') ? `<div class="hint" style="margin:6px 0 0;">Teklif ${q.currency} — ₺ karşılığı ${q.maliyet.kurSabit ? 'sabit' : 'güncel'} kurla.</div>` : '';
+  const sonHesap = m.gecmis && m.gecmis[0] ? new Date(m.gecmis[0].tarih).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+  return `
+    <aside class="panel mx-panel ${tamGenislik ? 'genis' : ''}" id="mxPanel">
+      <div class="mx-panel-bas"><h2>Kârlılık Özeti</h2><span class="mx-durum-rozet">✓ Hesaplandı</span>${sonHesap ? `<small>${sonHesap}</small>` : ''}</div>
+      <div class="mx-metrik"><span data-tip="Aktif maliyet kalemlerinin güncel kur üzerinden hesaplanan KDV hariç toplamıdır." tabindex="0">Toplam Maliyet ⓘ</span><b class="qd-para" id="mxpMaliyet">${mxPara(o.maliyet)}</b></div>
+      <div class="mx-metrik"><span>Teklif Tutarı (KDV hariç)</span><b class="qd-para" id="mxpSatis">${mxPara(o.satis)}</b></div>
+      ${dovizNotu}
+      <div class="mx-ayrac"></div>
+      <div class="mx-metrik ${negatif ? 'negatif' : 'pozitif'}"><strong>Brüt Kâr</strong><b class="qd-para" id="mxpKar">${mxPara(o.kar)}</b></div>
+      <div class="mx-marj-kutu ${negatif ? 'negatif' : ''}" id="mxpMarjKutu">
+        <span data-tip="Satış fiyatının yüzde kaçının brüt kâr olduğunu gösterir." tabindex="0">Kâr Marjı ⓘ</span>
+        <strong id="mxpMarj">${marjMetin}</strong>
+        ${negatif ? '<em>⚠ Teklif maliyetin altında</em>' : (o.satis <= 0 ? '<em>Teklif tutarı sıfır — marj hesaplanamaz</em>' : `<em>Kâr ekleme oranı (markup): ${mxYuzde(o.markup)}</em>`)}
+      </div>
+      <div class="mx-segment" role="tablist" aria-label="Hedef hesaplama yöntemi">
+        <button role="tab" aria-selected="${m.hedefMod !== 'markup'}" class="${m.hedefMod !== 'markup' ? 'aktif' : ''}" onclick="mxHedefMod('marj')">◎ Hedef Marj</button>
+        <button role="tab" aria-selected="${m.hedefMod === 'markup'}" class="${m.hedefMod === 'markup' ? 'aktif' : ''}" onclick="mxHedefMod('markup')">＋ Kâr Ekle</button>
+      </div>
+      <div class="mx-hedef">
+        <label for="mxHedefOran" data-tip="${m.hedefMod === 'markup' ? 'Toplam maliyetin üzerine eklenen yüzdelik oranı gösterir.' : 'Satış fiyatının yüzde kaçının brüt kâr olduğunu gösterir.'}" tabindex="0">${m.hedefMod === 'markup' ? 'Kâr Ekleme Oranı' : 'Hedef Marj'} ⓘ</label>
+        <div class="mx-hedef-giris"><input id="mxHedefOran" inputmode="decimal" value="${virgulYaz(m.hedefOran)}" data-orj="${virgulYaz(m.hedefOran)}" onkeydown="mxTusa(event)" onchange="mxHedefDegis(this.value)" aria-describedby="mxHedefAciklama"><span>%</span></div>
+      </div>
+      <input class="mx-slider" type="range" min="0" max="${m.hedefMod === 'markup' ? 200 : MALIYET_AYAR.hedefUst}" step="1" value="${Math.min(Number(m.hedefOran) || 0, m.hedefMod === 'markup' ? 200 : MALIYET_AYAR.hedefUst)}" aria-label="${m.hedefMod === 'markup' ? 'Kâr ekleme oranı' : 'Hedef marj'}" oninput="mxHedefKaydir(this.value)" onchange="mxHedefDegis(this.value)">
+      <div class="hint" id="mxHedefAciklama" style="margin:2px 0 8px;">${m.hedefMod === 'markup' ? 'Önerilen fiyat = toplam maliyet × (1 + oran / 100)' : 'Önerilen fiyat = toplam maliyet / (1 − hedef marj / 100)'}</div>
+      <div class="mx-oneri">
+        <small>Önerilen Teklif Fiyatı</small>
+        <div class="satir"><strong class="qd-para" id="mxpOneri">${o.oneri === null ? '—' : mxPara(o.oneri)}</strong><button class="primary" onclick="mxTeklifeUygulaModal()" ${o.oneri === null || o.maliyet <= 0 ? 'disabled' : ''}>Teklife Uygula</button></div>
+      </div>
+      <div class="mx-dagilim" id="mxpDagilim">${mxDagilimHtml(o)}</div>
+      <div class="mx-panel-not">ⓘ KDV ve stopaj kârlılık hesabına dâhil değildir.</div>
+    </aside>`;
+}
+function mxDagilimHtml(o){
+  if(!o.dagilim.length) return '<h3>Maliyet Dağılımı</h3><div class="hint" style="margin:0;">Maliyet kalemi eklendiğinde dağılım görünür.</div>';
+  return `<h3>Maliyet Dağılımı</h3><div class="mx-bar" role="img" aria-label="${o.dagilim.map(d => d.ad + ' ' + mxYuzde(d.yuzde)).join(', ')}">${o.dagilim.map(d => `<i style="width:${d.yuzde}%;background:${d.renk};" title="${notEsc(d.ad)} ${mxYuzde(d.yuzde)}"></i>`).join('')}</div>
+    <div class="mx-legend">${o.dagilim.map(d => `<span><i style="background:${d.renk};"></i>${notEsc(d.ad)}<b>${mxYuzde(d.yuzde)}</b></span>`).join('')}</div>`;
+}
+function mxPanelYenile(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const o = mxOzet(q);
+  const set = (id, v) => { const e = document.getElementById(id); if(e) e.innerHTML = v; };
+  set('mxpMaliyet', mxPara(o.maliyet)); set('mxpSatis', mxPara(o.satis)); set('mxpKar', mxPara(o.kar));
+  set('mxpMarj', o.satis > 0 ? mxYuzde(o.marj) : '—'); set('mxpOneri', o.oneri === null ? '—' : mxPara(o.oneri));
+  const kutu = document.getElementById('mxpMarjKutu'); if(kutu){ kutu.classList.toggle('negatif', o.kar < 0); const em = kutu.querySelector('em'); if(em) em.textContent = o.kar < 0 ? '⚠ Teklif maliyetin altında' : (o.satis <= 0 ? 'Teklif tutarı sıfır — marj hesaplanamaz' : `Kâr ekleme oranı (markup): ${mxYuzde(o.markup)}`); }
+  const karM = document.getElementById('mxpKar'); if(karM && karM.parentElement){ karM.parentElement.classList.toggle('negatif', o.kar < 0); karM.parentElement.classList.toggle('pozitif', o.kar >= 0); }
+  set('mxpDagilim', mxDagilimHtml(o));
+  mxKaydetYenile();
+}
+function mxHedefMod(mod){
+  const q = mxAktifTeklif(); if(!q) return;
+  q.maliyet.hedefMod = mod;
+  if(mod === 'marj' && Number(q.maliyet.hedefOran) >= 100) q.maliyet.hedefOran = MALIYET_AYAR.hedefUst;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  renderContent();
+}
+function mxHedefKaydir(v){ const i = document.getElementById('mxHedefOran'); if(i) i.value = v; const q = mxAktifTeklif(); if(q){ q.maliyet.hedefOran = Number(v); mxPanelYenile(); } }
+function mxHedefDegis(v){
+  const q = mxAktifTeklif(); if(!q) return;
+  let n = virgulSayi(v);
+  if(n < 0){ showToast('Oran 0\'dan küçük olamaz.'); n = 0; }
+  if(q.maliyet.hedefMod !== 'markup' && n >= 100){ showToast(`Hedef marj %100 veya üzeri olamaz — en fazla %${MALIYET_AYAR.hedefUst}.`); n = MALIYET_AYAR.hedefUst; }
+  if(n !== Number(q.maliyet.hedefOran)) mxGecmisYaz(q, 'hedef', q.maliyet.hedefMod === 'markup' ? 'kâr ekleme' : 'hedef marj', mxYuzde(q.maliyet.hedefOran), mxYuzde(n));
+  q.maliyet.hedefOran = n;
+  const i = document.getElementById('mxHedefOran'); if(i){ i.value = virgulYaz(n); i.dataset.orj = i.value; }
+  const s = document.querySelector('.mx-slider'); if(s) s.value = Math.min(n, Number(s.max));
+  mxPanelYenile();
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+}
+
+// ---- Önerilen fiyatı teklife uygula ----
+function mxTeklifeUygulaModal(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const o = mxOzet(q); if(o.oneri === null) return;
+  const kur = mxKur(q); const kod = q.currency || 'TL'; const kurD = mxKurDegeri(kod, kur);
+  const yeniTeklif = kod === 'TL' ? o.oneri : (kurD ? kurus(o.oneri / kurD) : null);
+  const eskiTeklif = kurus(quoteSub(q));
+  const kalemler = (q.items || []).filter(it => lineQty(it) > 0);
+  const fark = yeniTeklif === null ? null : kurus(yeniTeklif - eskiTeklif);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>Önerilen fiyatı teklife uygula</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    ${yeniTeklif === null ? `<div class="mx-uyari"><b>⚠</b><span>${kod} kuru bulunamadığı için ₺ öneri teklif dövizine çevrilemiyor. Kur girin.</span></div>` : `
+    <div class="mx-karsilastir">
+      <div><small>Mevcut teklif (KDV hariç)</small><b class="qd-para">${mxPara(eskiTeklif, kod)}</b></div>
+      <div class="ok">→</div>
+      <div><small>Yeni teklif (KDV hariç)</small><b class="qd-para">${mxPara(yeniTeklif, kod)}</b><em class="${fark >= 0 ? 'pozitif' : 'negatif'}">${fark >= 0 ? '+' : ''}${mxPara(fark, kod)}</em></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2);margin:0 0 10px;">${o.hedefMod === 'markup' ? `Kâr ekleme oranı %${mxSayi(o.hedefOran)}` : `Hedef marj %${mxSayi(o.hedefOran)}`} · toplam maliyet ${mxPara(o.maliyet)}${kod !== 'TL' ? ` · kur ${mxSayi(kurD, 4)}` : ''}</p>
+    ${Math.abs(fark) < 0.005 ? '<div class="mx-uyari bilgi"><b>ⓘ</b><span>Teklif tutarı zaten önerilen tutara eşit.</span></div>' : `
+    <div class="mx-dagitim">
+      <div class="mx-form-bolum">${kalemler.length > 1 ? 'Fark teklif kalemlerine nasıl dağıtılsın?' : 'Uygulama'}</div>
+      ${kalemler.length > 1 ? `
+      <label><input type="radio" name="mxDagit" value="oran" ${eskiTeklif > 0 ? 'checked' : 'disabled'}> Kalemlere mevcut satış tutarı oranında dağıt${eskiTeklif > 0 ? '' : ' <small>(mevcut tutar sıfır)</small>'}</label>
+      <label><input type="radio" name="mxDagit" value="kalem" ${eskiTeklif > 0 ? '' : 'checked'}> Tüm farkı seçilen kaleme uygula:
+        <select id="mxDagitKalem" class="mx-inp" style="margin-left:6px;">${kalemler.map((it, i) => `<option value="${q.items.indexOf(it)}">${notEsc(it.title || ('Kalem ' + (i + 1)))} · ${mxPara(lineNet(it), kod)}</option>`).join('')}</select></label>` :
+      `<label><input type="radio" name="mxDagit" value="kalem" checked> ${kalemler.length ? `"${notEsc(kalemler[0].title || 'Kalem')}" kaleminin birim fiyatı yeni tutara göre güncellensin` : 'Teklifte kalem yok — önce teklif kalemi ekleyin'}</label>`}
+      <label><input type="radio" name="mxDagit" value="yok"> Yalnızca öneriyi göster, teklif tutarını değiştirme</label>
+    </div>
+    <div class="mx-form-aksiyon"><button class="ghost" onclick="closeModal()">Vazgeç</button><button class="primary" ${kalemler.length ? '' : 'disabled'} onclick="mxTeklifeUygula()">Onayla ve uygula</button></div>`}`}`;
+  showModal();
+}
+function mxTeklifeUygula(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const o = mxOzet(q); if(o.oneri === null) return;
+  const kur = mxKur(q); const kod = q.currency || 'TL'; const kurD = mxKurDegeri(kod, kur); if(!kurD) return;
+  const hedef = kod === 'TL' ? o.oneri : kurus(o.oneri / kurD);
+  const sec = document.querySelector('input[name="mxDagit"]:checked'); const yontem = sec ? sec.value : 'yok';
+  if(yontem === 'yok'){ closeModal(); showToast('Teklif tutarı değiştirilmedi.'); return; }
+  const eski = kurus(quoteSub(q));
+  const items = q.items.filter(it => lineQty(it) > 0);
+  if(!items.length){ showToast('Teklifte kalem yok.'); return; }
+  if(yontem === 'oran' && eski > 0){
+    const k = hedef / eski;
+    items.forEach(it => it.price = kurus((Number(it.price) || 0) * k));
+  } else {
+    const idx = document.getElementById('mxDagitKalem') ? Number(document.getElementById('mxDagitKalem').value) : q.items.indexOf(items[0]);
+    const it = q.items[idx] || items[0];
+    const digerleri = kurus(quoteSub(q) - lineNet(it));
+    it.price = kurus((hedef - digerleri) / lineQty(it));
+  }
+  // kuruş artığını en büyük kaleme yaz (yuvarlama farkı)
+  const artik = kurus(hedef - quoteSub(q));
+  if(Math.abs(artik) >= 0.01){
+    const enBuyuk = items.slice().sort((a, b) => lineNet(b) - lineNet(a))[0];
+    enBuyuk.price = kurus((Number(enBuyuk.price) || 0) + artik / lineQty(enBuyuk));
+  }
+  mxGecmisYaz(q, 'uygulama', yontem === 'oran' ? 'oranla dağıtıldı' : 'tek kaleme uygulandı', mxPara(eski, kod), mxPara(kurus(quoteSub(q)), kod));
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  closeModal(); renderContent(); showToast(`Teklif tutarı güncellendi: ${mxPara(kurus(quoteSub(q)), kod)} (KDV hariç).`);
+}
+
+// ---- Adım 4: kârlılık & onay ----
+function mxKarlilikSayfaHtml(q){
+  const kur = mxKur(q); const sorun = mxSorunOzeti(q); const o = mxOzet(q);
+  const items = ensureMaliyet(q).items.filter(r => r.aktif !== false);
+  return `
+    <div class="mx-yerlesim ters">
+      <section class="panel">
+        <div class="panel-head"><div><h3>Kontrol listesi</h3><p>Onaydan önce gözden geçirin</p></div></div>
+        <div class="mx-kontrol">
+          <div class="${items.length ? 'ok' : 'hata'}">${items.length ? '✓' : '✕'} ${items.length} aktif maliyet kalemi</div>
+          <div class="${sorun.eski.length ? 'uyari' : 'ok'}">${sorun.eski.length ? '⚠' : '✓'} ${sorun.eski.length ? `${sorun.eski.length} kalemde eski/geçersiz tedarikçi fiyatı` : 'Tüm tedarikçi fiyatları güncel'}</div>
+          <div class="${sorun.diger.length ? 'uyari' : 'ok'}">${sorun.diger.length ? '⚠' : '✓'} ${sorun.diger.length ? `${sorun.diger.length} kalemde eksik bilgi (tedarikçi, kur, miktar, manuel fiyat)` : 'Kalem bilgileri tam'}</div>
+          <div class="${o.satis > 0 ? 'ok' : 'hata'}">${o.satis > 0 ? '✓' : '✕'} Teklif tutarı ${mxPara(o.satis)} (KDV hariç)</div>
+          <div class="${o.kar >= 0 ? 'ok' : 'hata'}">${o.kar >= 0 ? '✓' : '✕'} Brüt kâr ${mxPara(o.kar)} · marj ${o.satis > 0 ? mxYuzde(o.marj) : '—'}</div>
+          <div class="${q.maliyet.kurSabit ? 'ok' : 'bilgi'}">${q.maliyet.kurSabit ? '📌 Kur bu teklif için sabit' : 'ⓘ Güncel kur kullanılıyor — kur değişirse dövizli maliyetler değişir'}</div>
+        </div>
+        ${sorun.toplam ? `<div style="padding:0 16px 16px;"><button class="ghost" onclick="mxDurum.adim='maliyetler'; mxDurum.sadeceSorunlu=true; renderContent();">Sorunlu kalemleri incele →</button></div>` : ''}
+        <div class="panel-head" style="border-top:1px solid var(--line);"><div><h3>Maliyet özeti</h3><p>Gruplara göre</p></div></div>
+        <table class="data-table"><thead><tr><th>Grup</th><th class="sag">Kalem</th><th class="sag">Tutar</th><th class="sag">Pay</th></tr></thead>
+          <tbody>${o.dagilim.map(d => `<tr><td><i class="mx-nokta" style="background:${d.renk};"></i> ${notEsc(d.ad)}</td><td class="sag">${items.filter(r => r.grup === d.id).length}</td><td class="sag money qd-para">${mxPara(d.tutar)}</td><td class="sag qd-para">${mxYuzde(d.yuzde)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty-state">Maliyet yok.</td></tr>'}</tbody>
+          <tfoot><tr><td><b>Toplam</b></td><td class="sag">${items.length}</td><td class="sag money qd-para"><b>${mxPara(o.maliyet)}</b></td><td class="sag">%100</td></tr></tfoot></table>
+      </section>
+      ${mxPanelHtml(q)}
+    </div>`;
+}
+
+// ---- Geçmiş drawer'ı ----
+function mxGecmisDrawer(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const g = ensureMaliyet(q).gecmis;
+  document.getElementById('sideDrawer').innerHTML = `
+    <div class="mx-drawer">
+      <button class="drawer-close-x" aria-label="Kapat" onclick="closeDrawer()">✕</button>
+      <h2 class="drawer-title">Değişiklik Geçmişi</h2>
+      <div class="page-sub" style="margin:0 0 12px;">${notEsc(q.no)} · ${g.length} kayıt</div>
+      ${g.length ? `<table class="data-table mx-gecmis"><thead><tr><th>Tarih</th><th>Kullanıcı</th><th>İşlem</th><th>Kalem</th><th>Eski</th><th>Yeni</th></tr></thead>
+        <tbody>${g.map(h => `<tr><td class="qd-para">${new Date(h.tarih).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' })}</td><td>${notEsc(h.kim)}</td><td>${MX_ISLEM_AD[h.islem] || notEsc(h.islem)}</td><td>${notEsc(h.kalem)}</td><td class="qd-para">${notEsc(h.eski)}</td><td class="qd-para">${notEsc(h.yeni)}</td></tr>`).join('')}</tbody></table>`
+        : '<div class="empty-state">Henüz kayıt yok.</div>'}
+    </div>`;
+  document.getElementById('sideDrawer').classList.add('genis');
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('sideDrawer').classList.add('show');
 }
 
 // ---------------- MÜŞTERİYE GİDEN TEKLİF BELGESİ ----------------
@@ -11284,7 +12379,7 @@ function quoteViewPage(id){
             <button onclick="openQuoteEdit('${q.id}')" class="islem-item">✏️ Düzenle</button>
             <button onclick="duplicateQuote('${q.id}')" class="islem-item">📄 Kopyala</button>
             <button onclick="reviseQuote('${q.id}')" class="islem-item">📝 Revize Et</button>
-            <button onclick="hideIslemlerMenu(); openMaliyet('${q.id}')" class="islem-item">🧮 Maliyet</button>
+            ${finansGorebilir() ? `<button onclick="hideIslemlerMenu(); openMaliyet('${q.id}')" class="islem-item">🧮 Maliyet</button>` : ''}
             <button onclick="deleteQuote('${q.id}')" class="islem-item" style="color:var(--risk);">🗑️ Sil</button>
             <div style="border-top:1px solid var(--line);"></div>
             <button onclick="exportQuotePdf()" class="islem-item">⬇️ Pdf'ye aktar</button>
@@ -11315,7 +12410,7 @@ function quoteViewPage(id){
             ? `<button class="primary full" style="margin:0;" onclick="openJobFromQuote('${q.id}')">📋 İşe Git — ${(JOBS.find(j=>j.id===q.jobId)||{}).code || ''}</button>`
             : `<button class="primary full" style="margin:0;" onclick="changeQuoteStatus('${q.id}','Kabul Edildi')">✅ Kabul Et ve İş Aç</button>`}
           <button class="ghost" style="justify-content:center;" onclick="exportQuotePdf()">⬇ PDF Önizleme</button>
-          <button class="ghost" style="justify-content:center;" onclick="openMaliyet('${q.id}')">🧮 Maliyet Hesabı${(q.maliyet && q.maliyet.items && q.maliyet.items.length) ? ` — ${tl(maliyetToplam(q))}` : ''}</button>
+          ${finansGorebilir() ? `<button class="ghost" style="justify-content:center;" onclick="openMaliyet('${q.id}')">🧮 Maliyet Hesabı${(q.maliyet && q.maliyet.items && q.maliyet.items.filter(r => r.aktif !== false).length) ? ` — ${tl(maliyetToplam(q))}` : ''}</button>` : ''}
           <button class="ghost" style="justify-content:center;" onclick="showToast('Fırsatlar modülü henüz kurulmadı')">🔗 Fırsata Bağla</button>
           <button class="ghost" style="justify-content:center;" onclick="showToast('Siparişler modülü henüz kurulmadı')">🛒 Siparişe Dönüştür</button>
           <button class="ghost" style="justify-content:center;" onclick="showToast('Faturalandırma muhasebe programınızdan yapılır')">📤 Faturalandır</button>
@@ -12057,7 +13152,7 @@ function collectState(){
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
     KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, DIS_ALIM_HAREKET, BILDIRIMLER,
     CARI_HAREKETLER,
-    MALZEME_FIYATLARI, KURLAR,
+    MALZEME_FIYATLARI, KURLAR, MALIYET_SABLONLARI,
   };
 }
 function applyState(d){
@@ -12079,6 +13174,7 @@ function applyState(d){
   CARI_HAREKETLER = arr('CARI_HAREKETLER');
   MALZEME_FIYATLARI = Array.isArray(d.MALZEME_FIYATLARI) && d.MALZEME_FIYATLARI.length ? d.MALZEME_FIYATLARI : VARSAYILAN_MALZEMELER();
   KURLAR = (d.KURLAR && typeof d.KURLAR === 'object' && !Array.isArray(d.KURLAR)) ? d.KURLAR : { usd:0, eur:0, tarih:'', kaynak:'' };
+  MALIYET_SABLONLARI = arr('MALIYET_SABLONLARI');
   NOT_DEFTERI = (d.NOT_DEFTERI && typeof d.NOT_DEFTERI === 'object' && !Array.isArray(d.NOT_DEFTERI)) ? d.NOT_DEFTERI : {};
   window.__onarimYapildi = (typeof veriOnar === 'function') ? !!veriOnar() : false;   // çift kimlik + yetim kayıt onarımı
   if(d.AGENCY && typeof d.AGENCY === 'object'){
@@ -12097,6 +13193,7 @@ function liveSetStatus(cls, text){
   if(!el) return;
   el.className = 'preview-flag ' + cls;
   el.innerHTML = '●&nbsp;' + text;
+  if(typeof mxKaydetYenile === 'function') mxKaydetYenile();   // maliyet ekranındaki Kaydet düğmesi
 }
 function liveZaman(){ return new Date().toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' }); }
 
