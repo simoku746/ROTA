@@ -654,14 +654,15 @@ tr:last-child td{border-bottom:none;}
 .quote-doc-table th{background:var(--offer-surface); color:var(--offer-secondary); font-size:5.9pt; font-weight:800;
   letter-spacing:.04em; text-transform:uppercase; text-align:left; padding:6.5pt 5.6pt; border-bottom:1px solid var(--offer-border); border-right:1px solid var(--offer-border); line-height:1.2;}
 .quote-doc-table th:last-child,.quote-doc-table td:last-child{border-right:0;}
-.quote-doc-table td{padding:8pt 5.6pt; vertical-align:top; border-bottom:1px solid var(--offer-border); border-right:1px solid var(--offer-border); font-size:6.5pt; color:var(--offer-secondary); line-height:1.45;}
+.quote-doc-table td{padding:6.5pt 5.6pt; vertical-align:top; border-bottom:1px solid var(--offer-border); border-right:1px solid var(--offer-border); font-size:6.5pt; color:var(--offer-secondary); line-height:1.38;}
 .quote-doc-table>tbody>tr>td{border-bottom:1px solid var(--offer-border);}   /* genel "tr:last-child td{border-bottom:none}" kuralını (dış .qd-sayfa satırı) ezer */
 .quote-doc-table>tbody>tr:last-child>td{border-bottom:0;}
-.quote-doc-table tr{break-inside:avoid; page-break-inside:avoid;}
+.quote-doc-table tr.qd-kisa{break-inside:avoid; page-break-inside:avoid;}   /* kısa satırlar bölünmez; uzun açıklamalı satırlar sayfa sonunda bölünebilir (yarım boş sayfa kalmasın) */
+.quote-doc-table .qd-aciklama p{margin:0 0 3.2pt;} .quote-doc-table .qd-aciklama p:last-child{margin-bottom:0;}
 .quote-doc-table .qd-no{color:var(--offer-primary); font-size:7.2pt; font-weight:500;}
 .quote-doc-table .qd-urun{display:block; font-size:8.5pt; font-weight:800; color:var(--offer-primary); line-height:1.25;}
 .quote-doc-table .qd-alt{display:block; font-size:6.5pt; font-weight:500; color:var(--offer-secondary); margin-top:3pt;}
-.quote-doc-table .qd-aciklama{white-space:pre-wrap; font-weight:500;}
+.quote-doc-table .qd-aciklama{white-space:pre-wrap; font-weight:500; overflow-wrap:anywhere;}
 .quote-doc-table .qd-sayi{font-size:7.2pt; font-weight:700; color:var(--offer-primary); white-space:nowrap;}
 .quote-doc-table .qd-sayi .qd-alt{font-weight:500; white-space:nowrap;}
 
@@ -2366,7 +2367,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-12f';
+window.ROTA_SURUM = 'v2026-09-12h';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -10887,6 +10888,7 @@ function teklifEkleForm(){
               <select id="qCurrency" onchange="quoteCurrency=this.value; renderLineItems();">
                 ${Object.keys(CURRENCY_SYMBOLS).map(c=>`<option value="${c}" ${quoteCurrency===c?'selected':''}>${CURRENCY_SYMBOLS[c]} ${c}</option>`).join('')}
               </select></div>
+            <div class="field"><label>Geçerlilik tarihi</label><input type="date" id="qGecerlilik" value="${editing ? (editing.gecerlilik || '') : isoPlus(60)}"></div>
             <div class="field"><label>Etiketler</label><input id="qEtiket" placeholder="Etiket ekleyin"></div>
           </div>
           <div class="collapse-link" onclick="toggleTeklifCollapse('yetkili')">${teklifCollapse.yetkili ? '− Müşteri Yetkilisi' : '+ Müşteri Yetkilisi Ekle'}</div>
@@ -11333,6 +11335,8 @@ function submitQuote(){
   const girisMetni = document.getElementById('qGiris').value;
   const notlar = document.getElementById('qNotlar') ? document.getElementById('qNotlar').value : DEFAULT_NOTES;
   const kdvMode = document.getElementById('qKdvMode') ? document.getElementById('qKdvMode').value : 'Dahil';
+  const gecEl = document.getElementById('qGecerlilik');
+  const gecerlilik = gecEl && gecEl.value ? gecEl.value : (editingQuoteId ? ((QUOTES.find(x=>x.id===editingQuoteId)||{}).gecerlilik || '') : isoPlus(60));
   const kosullar = (quoteKosullar || []).map(r => ({ k: String(r.k || '').trim(), v: String(r.v || '').trim() })).filter(r => r.k);
   const items = quoteLineItems.filter(i=>i.title);
   items.forEach(it => { delete it._detayKapatildi; if(typeof it.detail === 'string') it.detail = it.detail.replace(/\s+$/,''); });
@@ -11348,7 +11352,7 @@ function submitQuote(){
   let targetId;
   if(editingQuoteId){
     const q = QUOTES.find(x=>x.id===editingQuoteId);
-    q.customerId = customerId; q.repName = repName; q.girisMetni = girisMetni; q.notlar = notlar; q.items = items; q.currency = quoteCurrency; q.kdvMode = kdvMode; q.kosullar = kosullar;
+    q.customerId = customerId; q.repName = repName; q.girisMetni = girisMetni; q.notlar = notlar; q.items = items; q.currency = quoteCurrency; q.kdvMode = kdvMode; q.kosullar = kosullar; q.gecerlilik = gecerlilik;
     q.musteriAdi = (CUSTOMERS.find(c => c.id === customerId) || {}).name || q.musteriAdi;
     targetId = q.id;
     showToast(`Teklif No: ${q.no} güncellendi.`);
@@ -11359,7 +11363,7 @@ function submitQuote(){
       date: new Date().toISOString().slice(0,10), // teklif tarihi her zaman bugün, otomatik
       status:'Taslak', girisMetni, notlar, items, kdvMode, kosullar,
       tur:'Satış Teklifi', sonuc:'Sonuçlandırılmamış', etiketler:[],
-      gecerlilik: isoPlus(60),
+      gecerlilik,
       musteriAdi: (CUSTOMERS.find(c => c.id === customerId) || {}).name || '',
     };
     QUOTES.push(q);
@@ -12754,10 +12758,14 @@ function teklifBelgesiHtml(q, c){
     </div>`;
   const satirlar = (q.items || []).map((it, i) => {
     const m = hasMeasure(it);
-    return `<tr>
+    const detay = String(it.detail || '').replace(/\r/g, '').replace(/[ \t]+$/gm, '').trim();
+    // Boş satırlar tam satır yüksekliği yerine küçük paragraf boşluğu olur (belge kısalır); tek satır sonları korunur.
+    const paragraflar = detay ? detay.split(/\n\s*\n+/).map(pp => `<p>${notEsc(pp)}</p>`).join('') : '';
+    const satirSayisi = detay ? detay.split('\n').filter(x => x.trim()).length : 1;   // dolu satır sayısı (boşluklar sayılmaz)
+    return `<tr class="${satirSayisi <= 8 ? 'qd-kisa' : 'qd-uzun'}">
       <td class="qd-no qd-num">${String(i + 1).padStart(2, '0')}</td>
       <td><span class="qd-urun">${notEsc(it.title || '')}</span>${m ? `<span class="qd-alt">${dimText(it)}</span>` : ''}</td>
-      <td class="qd-aciklama">${notEsc(it.detail || '')}</td>
+      <td class="qd-aciklama">${paragraflar}</td>
       <td class="qd-sag qd-sayi qd-para">${(Number(it.qty) || 0).toLocaleString('tr-TR')} Adet${m ? `<span class="qd-alt">${fmt2(lineQty(it))} ${unitShort(it)}</span>` : ''}</td>
       <td class="qd-sag qd-sayi qd-para">${teklifParaMetni(q, it.price)}${m ? `<span class="qd-alt">/ ${unitShort(it)}</span>` : ''}</td>
       <td class="qd-sag qd-sayi qd-para">${teklifParaMetni(q, lineNet(it))}</td>
