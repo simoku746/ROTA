@@ -2403,7 +2403,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14c';
+window.ROTA_SURUM = 'v2026-09-14d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -5048,7 +5048,7 @@ function cariDurumRaporuView(){
     <div class="list-page-head"><div><div class="page-title">Cari Hesap Durumu</div>
       <div class="page-sub">Tüm carilerin toplam borç, alacak ve bakiye dökümü.</div></div>
       ${rapYazdirDugmesi()}</div>
-    ${rapKpi([['Toplam borç', chTL(toplamBorc)], ['Toplam alacak', chTL(toplamAlacak)],
+    ${rapKpi([['Toplam Ciro', chTL(toplamBorc)], ['Toplam alacak', chTL(toplamAlacak)],
               ['Tahsil edilecek', chTL(bb), 'var(--ok)'], ['Ödenecek', chTL(ab), 'var(--risk)']])}
     ${rapFiltreBar(false)}
     <div class="rap-tablo rap-genis">
@@ -7663,7 +7663,6 @@ function cariListesiView(){
   const tahsilSayi = liste.filter(c => c.bakiyeK > 0).length;
   const odemeSayi = liste.filter(c => c.bakiyeK < 0).length;
   const tumSatirlar = cariTumSatirlar().filter(r => !r.iptal);
-  const toplamSatisK = tumSatirlar.filter(r => r.tip === 'satis-faturasi').reduce((t, r) => t + r.borcK, 0);
   const tahsilatSatirlari = tumSatirlar.filter(r => r.tip === 'tahsilat' || r.tip === 'cek-alinan');
   const toplamTahsilatK = tahsilatSatirlari.reduce((t, r) => t + r.alacakK, 0);
   const tahsilatAdet = tahsilatSatirlari.length;
@@ -7674,7 +7673,7 @@ function cariListesiView(){
       <div class="action-row">${chIslemMenuHtml('chListeMenu', '')}</div>
     </div>
     <div class="metric-grid compact">
-      <div class="metric"><div class="metric-top"><span>Toplam satış</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${chTL(toplamSatisK)}</strong><small>tahsil edilecek ${chTL(tahsilK)} · ${tahsilSayi} cari</small></div>
+      <div class="metric"><div class="metric-top"><span>Tahsil edilecek</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${chTL(tahsilK)}</strong><small>${tahsilSayi} cari</small></div>
       <div class="metric"><div class="metric-top"><span>Ödenecek</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${chTL(odemeK)}</strong><small>${odemeSayi} cari</small></div>
       <div class="metric"><div class="metric-top"><span>Toplam tahsilat</span><span class="metric-icon">◎</span></div><strong>${chTL(toplamTahsilatK)}</strong><small>${tahsilatAdet} tahsilat kaydı</small></div>
       <div class="metric"><div class="metric-top"><span>Cari sayısı</span><span class="metric-icon blue">${NAV_SVG.users}</span></div><strong>${liste.length}</strong><small>${iptalSayi ? iptalSayi + ' iptal kayıt saklı' : 'aktif görünüm'}</small></div>
