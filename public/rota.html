@@ -1651,7 +1651,9 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
 .metric strong{display:block;font-family:var(--font-display);font-size:25px;font-weight:800;color:var(--ink);margin:7px 0 4px;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .metric small{color:var(--ink-3);font-size:12px;display:block;}
 .metric small.trend{color:var(--ok);font-weight:700;} .metric small.risk{color:var(--risk);font-weight:700;}
-.metric.clickable{cursor:pointer;} .metric.clickable:hover{border-color:var(--line-strong);box-shadow:var(--shadow-sm);}
+.metric.clickable{cursor:pointer;} .metric.clickable:hover{border-color:var(--signal);box-shadow:var(--shadow-sm);}
+/* (2026-09-14q) Tıklanan metrik kartı, listeyi süzdüğünü göstersin */
+.metric.secili{border-color:var(--signal);box-shadow:0 0 0 2px var(--signal-soft);}
 .metric-grid.compact .metric{min-height:98px;}
 /* Eski KPI sınıfları aynı dile */
 .rap-kpi{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:16px;}
@@ -1812,6 +1814,16 @@ tbody tr:hover{background:var(--surface-muted);}
 .kbr-chart .chart{height:180px;justify-content:flex-start;gap:22px;} .kbr-chart .bar-group{flex:0 1 96px;max-width:96px;}
 .bar.orange{background:var(--signal);} .bar.green{background:var(--ok);} .bar.red{background:var(--risk);} .bar.navy{background:var(--navy-950);}
 .bar-label{position:absolute;bottom:-25px;width:100%;text-align:center;font-size:10px;color:var(--ink-2);}
+/* (2026-09-14q) Nakit akışı sütunları tıklanabilir: üzerine gelince tutar balonu çıkar, o ayın kayıtlarına gider.
+   Kullanıcı bildirimi: "kırmızı yeşil sütunlar çalışmıyor - üstüne geldiğinde en azından ne olduğu belli olsun". */
+.chart .bar[onclick]{cursor:pointer;transition:filter .12s ease,transform .12s ease;}
+.chart .bar[onclick]:hover{filter:brightness(1.12);transform:scaleX(1.06);}
+.bar-tip{position:absolute;top:-24px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  background:var(--navy-950);color:#fff;font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  padding:3px 7px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:3;}
+.chart .bar{position:relative;}
+.chart .bar[onclick]:hover .bar-tip{opacity:1;}
+.bar-group.bos .bar{opacity:.45;}
 .chart-legend{display:flex;gap:16px;margin-left:auto;font-size:11.5px;color:var(--ink-2);flex-wrap:wrap;}
 .chart-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
 .chart-legend-wrap{padding:0 22px 30px;}
@@ -2540,7 +2552,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14o';
+window.ROTA_SURUM = 'v2026-09-14q';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -6150,6 +6162,35 @@ function faturaListesi(){
   out.sort((a, b) => chTarihSira(b.tarih).localeCompare(chTarihSira(a.tarih)));
   return out;
 }
+// (2026-09-14q) Fatura silme — YALNIZ YÖNETİCİ. Kullanıcı isteği: "faturaları sadece yönetici silebilsin".
+// Faturalar bağımsız kayıt değil, TÜRETİLMİŞ listedir; bu yüzden "silme" her tür için farklı anlama gelir:
+//  • Satış faturası: kaynağı Faturalandı durumundaki TEKLİF. Teklif "Kabul Edildi"e geri alınır — fatura listeden
+//    çıkar ama teklif, işi ve cari satış hareketi KORUNUR (yanlışlıkla faturalandırma bu şekilde geri alınır).
+//  • Alış faturası: kaynağı cariye bağlı GİDER kaydı. Gider silinir ve hesap bakiyesi geri alınır.
+function yoneticiMi(){ return CURRENT_ROLE === 'YONETICI'; }
+function faturaSil(tur, id, ad, tutarK){
+  if(!yoneticiMi()){ showToast('Fatura silme yetkisi yalnızca yöneticide.'); return; }
+  if(tur === 'satis'){
+    const q = QUOTES.find(x => x.id === id);
+    if(!q){ showToast('Teklif bulunamadı.'); return; }
+    if(!confirm(`${ad} — ${chTL(tutarK)}\n\nSATIŞ FATURASI GERİ ALINACAK.\n`
+      + `• Teklif "Kabul Edildi" durumuna döner ve Faturalar listesinden çıkar.\n`
+      + `• Teklif, bağlı iş ve cari hareketi SİLİNMEZ.\n\nDevam edilsin mi?`)) return;
+    q.status = 'Kabul Edildi';
+    renderContent();
+    showToast('Fatura geri alındı — teklif "Kabul Edildi" durumunda.');
+  } else {
+    const g = (GIDERLER || []).find(x => x.id === id);
+    if(!g){ showToast('Gider kaydı bulunamadı.'); return; }
+    if(!confirm(`${ad} — ${chTL(tutarK)}\n\nALIŞ FATURASI SİLİNECEK.\n`
+      + `• Bu faturanın kaynağı olan gider kaydı da silinir.\n`
+      + `• Hesap bakiyesi geri alınır. Bu işlem geri alınamaz.\n\nDevam edilsin mi?`)) return;
+    hesapBakiyeDeltaUygula(g.hesap, giderNakitEtkisi(g));
+    GIDERLER = GIDERLER.filter(x => x.id !== id);
+    renderContent();
+    showToast('Alış faturası ve gider kaydı silindi.');
+  }
+}
 function faturaVadeMetni(vade){
   if(!vade) return 'Vade tarihi yok';
   const bugunIso = chTarihSira(new Date().toLocaleDateString('tr-TR'));
@@ -6169,17 +6210,22 @@ function faturaAlisAc(gid){
   if(!gid) return;
   openGiderDuzenle(gid);
 }
+let faturaAra = '';
+function faturaAraYaz(v){ faturaAra = v; renderContent(); }
 function faturalarView(){
-  const liste = faturaListesi();
-  const toplamTutarK = liste.reduce((s, f) => s + f.tutarK, 0);
-  const toplamKalanK = liste.reduce((s, f) => s + f.kalanK, 0);
+  let liste = faturaListesi();
+  const s = trKucuk(faturaAra).trim();
+  if(s) liste = liste.filter(f => trKucuk([f.client, f.tur, f.no, f.tarih].filter(Boolean).join(' ')).includes(s));
+  const toplamTutarK = liste.reduce((s2, f) => s2 + f.tutarK, 0);
+  const toplamKalanK = liste.reduce((s2, f) => s2 + f.kalanK, 0);
   return `
     <div class="list-page-head"><div><div class="page-title">Faturalar</div>
       <div class="page-sub">Teklifi "Faturalandı" durumuna aldığınızda ve cariye bağlı bir gider girdiğinizde burada otomatik listelenir.</div></div></div>
     <div class="ledger-wrap">
       <div class="ledger-main">
-        <div class="ledger-search">🔍 Ara</div>
-        ${liste.length ? '' : '<div class="empty-state">Henüz fatura yok. Bir teklifi "Faturalandı" durumuna aldığınızda burada görünür.</div>'}
+        <input class="ledger-search" style="width:100%;" placeholder="🔍 Cari, fatura no, tür veya tarih ara"
+          value="${notEsc(faturaAra)}" oninput="faturaAraYaz(this.value)">
+        ${liste.length ? '' : `<div class="empty-state">${faturaAra ? 'Bu aramaya uyan fatura yok.' : 'Henüz fatura yok. Bir teklifi "Faturalandı" durumuna aldığınızda burada görünür.'}</div>`}
         ${liste.map(f => `
           <div class="ledger-row" style="cursor:pointer;" onclick="${f.quoteId ? `faturaSatisAc('${f.quoteId}')` : `faturaAlisAc('${f.giderId}')`}">
             <div>
@@ -6187,7 +6233,13 @@ function faturalarView(){
               <div class="ledger-sub">${f.tur}${f.no ? ' · No: ' + notEsc(f.no) : ''} · Tarih: ${chTarihTR(f.tarih)}</div>
               <div class="ledger-meta">📅 ${faturaVadeMetni(f.vade)}</div>
             </div>
-            <div class="ledger-amount">${chTL(f.tutarK)}<span class="kalan">Kalan: ${chTL(f.kalanK)}</span></div>
+            <div style="text-align:right;">
+              <div class="ledger-amount">${chTL(f.tutarK)}<span class="kalan">Kalan: ${chTL(f.kalanK)}</span></div>
+              ${yoneticiMi() ? `<div class="satir-islem">
+                <span class="sil" title="${f.quoteId ? 'Faturayı geri al — teklif Kabul Edildi durumuna döner' : 'Alış faturasını ve gider kaydını sil'}"
+                  onclick="event.stopPropagation(); faturaSil('${f.quoteId ? 'satis' : 'alis'}','${f.quoteId || f.giderId}','${String(f.client || 'Cari seçilmedi').replace(/'/g, "\\'")}',${f.tutarK})">✕ Sil</span>
+              </div>` : ''}
+            </div>
           </div>
         `).join('')}
         <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} kayıt · ${chTL(toplamTutarK)} · Kalan ${chTL(toplamKalanK)}</span></div>
@@ -6261,8 +6313,36 @@ function tahsilatBaslat(customerId){
   renderContent();
   tarayiciGecmisYaz();
 }
+// (2026-09-14q) Gelirler/Giderler listesi: metin araması + dönem (ay) filtresi.
+// Arama kutusu daha önce yalnızca görseldi (çalışmıyordu); artık gerçekten süzüyor.
+// Dönem filtresi, Finans ekranındaki "Bu ay tahsilat/ödeme" kartlarından ve nakit akışı grafiğinden kuruluyor.
+let gelirAra = '', gelirAy = '';
+let giderAra = '', giderAy = '';
+function gelirAraYaz(v){ gelirAra = v; renderContent(); }
+function giderAraYaz(v){ giderAra = v; renderContent(); }
+function gelirAyTemizle(){ gelirAy = ''; renderContent(); }
+function giderAyTemizle(){ giderAy = ''; renderContent(); }
+function kayitAySuz(liste, ayKey){
+  if(!ayKey) return liste;
+  return liste.filter(x => { const ms = kayitTarihMs(x); return ms && finAyAnahtar(ms) === ayKey; });
+}
+function kayitMetinSuz(liste, q, alanlar){
+  const s = trKucuk(q).trim();
+  if(!s) return liste;
+  return liste.filter(x => alanlar.map(a => trKucuk(x[a] || '')).join(' ').includes(s));
+}
+// Aktif filtreyi gösteren şerit — kullanıcı hangi süzgecin açık olduğunu görsün ve tek tıkla kaldırabilsin
+function filtreSeridiHtml(ayKey, adet, toplamMetin, temizleFn){
+  if(!ayKey) return '';
+  return `<div class="note" style="margin:14px 14px 0 14px;display:flex;align-items:center;gap:10px;">
+    <span><b>${finAyEtiket(ayKey)}</b> dönemi gösteriliyor — ${adet} kayıt${toplamMetin ? ' · ' + toplamMetin : ''}</span>
+    <button class="btn" style="flex:0 0 auto;height:30px;margin-left:auto;" onclick="${temizleFn}()">✕ Filtreyi kaldır</button>
+  </div>`;
+}
 function gelirlerView(){
   if(gelirStep === 'form') return tahsilatEkleForm();
+  const liste = kayitMetinSuz(kayitAySuz(GELIRLER, gelirAy), gelirAra, ['client', 'hesap', 'tur', 'tarih']);
+  const toplam = liste.reduce((s, g) => s + (Number(g.tutar) || 0), 0);
   return `
     <div class="list-page-head"><div class="page-title">Gelirler</div>
       <div class="new-menu-wrap">
@@ -6271,9 +6351,12 @@ function gelirlerView(){
           <button onclick="gelirStep='form'; renderContent();">Tahsilat Ekle</button>
         </div>
       </div></div>
+    ${filtreSeridiHtml(gelirAy, liste.length, tl(toplam), 'gelirAyTemizle')}
     <div class="ledger-main">
-      <div class="ledger-search" style="margin:14px 14px 0 14px;">🔍 Ara</div>
-      ${GELIRLER.map(g => `
+      <input class="ledger-search" style="margin:14px 14px 0 14px;width:calc(100% - 28px);" placeholder="🔍 Cari, hesap, tür veya tarih ara"
+        value="${notEsc(gelirAra)}" oninput="gelirAraYaz(this.value)">
+      ${liste.length ? '' : `<div class="empty-state">${gelirAra || gelirAy ? 'Bu filtreye uyan tahsilat kaydı yok.' : 'Henüz tahsilat kaydı yok.'}</div>`}
+      ${liste.map(g => `
         <div class="ledger-row">
           <div>
             <div class="ledger-title">${g.client} 🔗</div>
@@ -6289,7 +6372,7 @@ function gelirlerView(){
           </div>
         </div>
       `).join('')}
-      <div class="ledger-footer"><span>🔻 Toplam: ${GELIRLER.length} kayıt</span></div>
+      <div class="ledger-footer"><span>🔻 Toplam: ${liste.length} kayıt · ${tl(toplam)}${liste.length !== GELIRLER.length ? ` (tümü: ${GELIRLER.length})` : ''}</span></div>
     </div>
   `;
 }
@@ -6395,6 +6478,8 @@ function openGiderForm(tur){ giderFormTur = tur; giderStep = 'form'; renderConte
 
 function giderlerView(){
   if(giderStep === 'form') return giderEkleForm();
+  const gdListe = kayitMetinSuz(kayitAySuz(GIDERLER, giderAy), giderAra, ['client', 'hesap', 'tur', 'tarih']);
+  const gdToplam = gdListe.reduce((s, g) => s + (Number(g.tutar) || 0), 0);
   return `
     <div class="list-page-head"><div class="page-title">Giderler</div>
       <div class="new-menu-wrap">
@@ -6403,9 +6488,12 @@ function giderlerView(){
           ${Object.keys(GIDER_FORMLARI).map(k => `<button onclick="openGiderForm('${k}')">${GIDER_FORMLARI[k].label}</button>`).join('')}
         </div>
       </div></div>
+    ${filtreSeridiHtml(giderAy, gdListe.length, tl(gdToplam), 'giderAyTemizle')}
     <div class="ledger-main">
-      <div class="ledger-search" style="margin:14px 14px 0 14px;">🔍 Ara</div>
-      ${GIDERLER.map(g => `
+      <input class="ledger-search" style="margin:14px 14px 0 14px;width:calc(100% - 28px);" placeholder="🔍 Cari, hesap, tür veya tarih ara"
+        value="${notEsc(giderAra)}" oninput="giderAraYaz(this.value)">
+      ${gdListe.length ? '' : `<div class="empty-state">${giderAra || giderAy ? 'Bu filtreye uyan gider kaydı yok.' : 'Henüz gider kaydı yok.'}</div>`}
+      ${gdListe.map(g => `
         <div class="ledger-row">
           <div>
             <div class="ledger-title">${g.client || g.hesap}</div>
@@ -6424,7 +6512,7 @@ function giderlerView(){
           </div>
         </div>
       `).join('')}
-      <div class="ledger-footer"><span>🔻 Toplam: ${GIDERLER.length} kayıt</span></div>
+      <div class="ledger-footer"><span>🔻 Toplam: ${gdListe.length} kayıt · ${tl(gdToplam)}${gdListe.length !== GIDERLER.length ? ` (tümü: ${GIDERLER.length})` : ''}</span></div>
     </div>
   `;
 }
@@ -7818,6 +7906,9 @@ let cariSecili = null;                 // seçili cari anahtarı (customerId ya 
 let chListeTip = '';               // Cari listesi tipi: '' | 'musteri' | 'tedarikci'
 let chListeSira = 'tahsil';        // Cari listesi siralamasi: tahsil | odeme | buyuk | ad
 let chListeSadeceBakiyeli = false; // Bakiyesi sifir olanlari gizle
+// (2026-09-14q) Bakiye yönü süzgeci: '' tümü | 'alacak' yalnız tahsil edilecekler | 'borc' yalnız ödenecekler.
+// "Tahsil edilecek" / "Ödenecek" metrik kartlarından tıklanınca kurulur.
+let chListeBakiyeYon = '';
 let chFiltre = { ara: '', tur: '', yon: '', bas: '', bit: '' };
 let chYeniUstte = false;
 let chIptalGoster = false;
@@ -8027,7 +8118,13 @@ function cariListesiView(){
       return chListeTip === 'tedarikci' ? ted : !ted;
     });
   }
+  // (2026-09-14q) Metrik kartları, aşağıdaki bakiye süzgeçlerinden ETKİLENMEMELİ: "Tahsil edilecek" kartına
+  // tıklanıp liste alacaklılara süzüldüğünde "Ödenecek" kartının 0 görünmesi yanıltıcı olurdu. Kart rakamları
+  // bu yüzden yalnız tür (müşteri/tedarikçi) süzgeci uygulanmış listeden hesaplanıyor.
+  const metrikListe = liste;
   if(chListeSadeceBakiyeli) liste = liste.filter(c => c.bakiyeK);
+  if(chListeBakiyeYon === 'alacak') liste = liste.filter(c => c.bakiyeK > 0);
+  else if(chListeBakiyeYon === 'borc') liste = liste.filter(c => c.bakiyeK < 0);
   const sira = {
     tahsil: (a, b) => b.bakiyeK - a.bakiyeK,
     odeme:  (a, b) => a.bakiyeK - b.bakiyeK,
@@ -8036,10 +8133,10 @@ function cariListesiView(){
   }[chListeSira] || ((a, b) => a.ad.localeCompare(b.ad, 'tr'));
   liste = [...liste].sort(sira);
   const iptalSayi = (CARI_HAREKETLER || []).filter(h => h.iptal).length;
-  const tahsilK = liste.reduce((t, c) => t + (c.bakiyeK > 0 ? c.bakiyeK : 0), 0);
-  const odemeK  = liste.reduce((t, c) => t + (c.bakiyeK < 0 ? -c.bakiyeK : 0), 0);
-  const tahsilSayi = liste.filter(c => c.bakiyeK > 0).length;
-  const odemeSayi = liste.filter(c => c.bakiyeK < 0).length;
+  const tahsilK = metrikListe.reduce((t, c) => t + (c.bakiyeK > 0 ? c.bakiyeK : 0), 0);
+  const odemeK  = metrikListe.reduce((t, c) => t + (c.bakiyeK < 0 ? -c.bakiyeK : 0), 0);
+  const tahsilSayi = metrikListe.filter(c => c.bakiyeK > 0).length;
+  const odemeSayi = metrikListe.filter(c => c.bakiyeK < 0).length;
   const tumSatirlar = cariTumSatirlar().filter(r => !r.iptal);
   const tahsilatSatirlari = tumSatirlar.filter(r => r.tip === 'tahsilat' || r.tip === 'cek-alinan');
   const toplamTahsilatK = tahsilatSatirlari.reduce((t, r) => t + r.alacakK, 0);
@@ -8051,11 +8148,22 @@ function cariListesiView(){
       <div class="action-row">${chIslemMenuHtml('chListeMenu', '')}</div>
     </div>
     <div class="metric-grid compact">
-      <div class="metric"><div class="metric-top"><span>Tahsil edilecek</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${chTL(tahsilK)}</strong><small>${tahsilSayi} cari</small></div>
-      <div class="metric"><div class="metric-top"><span>Ödenecek</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${chTL(odemeK)}</strong><small>${odemeSayi} cari</small></div>
-      <div class="metric"><div class="metric-top"><span>Toplam tahsilat</span><span class="metric-icon">◎</span></div><strong>${chTL(toplamTahsilatK)}</strong><small>${tahsilatAdet} tahsilat kaydı</small></div>
-      <div class="metric"><div class="metric-top"><span>Cari sayısı</span><span class="metric-icon blue">${NAV_SVG.users}</span></div><strong>${liste.length}</strong><small>${iptalSayi ? iptalSayi + ' iptal kayıt saklı' : 'aktif görünüm'}</small></div>
+      <div class="metric clickable ${chListeBakiyeYon === 'alacak' ? 'secili' : ''}" title="Tahsil edilecek carileri listele"
+        onclick="carilereGit('alacak')"><div class="metric-top"><span>Tahsil edilecek</span><span class="metric-icon green">↙</span></div>
+        <strong style="color:var(--ok);">${chTL(tahsilK)}</strong><small>${tahsilSayi} cari · listelemek için tıklayın</small></div>
+      <div class="metric clickable ${chListeBakiyeYon === 'borc' ? 'secili' : ''}" title="Ödenecek carileri listele"
+        onclick="carilereGit('borc')"><div class="metric-top"><span>Ödenecek</span><span class="metric-icon red">↗</span></div>
+        <strong style="color:var(--risk);">${chTL(odemeK)}</strong><small>${odemeSayi} cari · listelemek için tıklayın</small></div>
+      <div class="metric clickable" title="Tüm tahsilat kayıtlarını aç" onclick="gelirlereGit('')">
+        <div class="metric-top"><span>Toplam tahsilat</span><span class="metric-icon">◎</span></div>
+        <strong>${chTL(toplamTahsilatK)}</strong><small>${tahsilatAdet} tahsilat kaydı · listelemek için tıklayın</small></div>
+      <div class="metric clickable ${!chListeBakiyeYon ? 'secili' : ''}" title="Tüm carileri listele" onclick="carilereGit('')">
+        <div class="metric-top"><span>Cari sayısı</span><span class="metric-icon blue">${NAV_SVG.users}</span></div>
+        <strong>${liste.length}</strong><small>${iptalSayi ? iptalSayi + ' iptal kayıt saklı' : 'aktif görünüm'}</small></div>
     </div>
+    ${chListeBakiyeYon ? `<div class="note" style="margin:-6px 0 14px;display:flex;align-items:center;gap:10px;">
+      <span>Yalnızca <b>${chListeBakiyeYon === 'alacak' ? 'tahsil edilecek' : 'ödenecek'}</b> bakiyesi olan cariler gösteriliyor — ${liste.length} kayıt.</span>
+      <button class="btn" style="flex:0 0 auto;height:30px;margin-left:auto;" onclick="carilereGit('')">✕ Filtreyi kaldır</button></div>` : ''}
     <div class="table-card">
       <div class="toolbar" style="padding:14px 16px;margin:0;border-bottom:1px solid var(--line);">
         <input class="tb-field" id="chListeAra" placeholder="Cari ara" oninput="chListeAra(this.value)">
@@ -8525,6 +8633,38 @@ function finYaklasanIslemler(gun){
   }));
   return out.sort((x, y) => x.ms - y.ms);
 }
+// ---- (2026-09-14q) Rakamdan kayda gitme: metrik kartları ve nakit akışı grafiği tıklanabilir ----
+// Kullanıcı isteği: "bu ay tahsilata bastığımda o ayki tahsilat alanına yönlendirme atalım ... tahsil edileceke
+// basıldığında ilgili tahsil edilecek cariler gelsin". Her kart, kendi rakamını üreten kayıtların listesine,
+// gerekiyorsa filtresi kurulmuş halde götürür. Hedef ekranlardaki filtreler aşağıdaki değişkenlerde tutulur.
+function finAyEtiket(key){
+  if(!key) return '';
+  const [y, m] = String(key).split('-');
+  return (PLAN_AYLAR[Number(m) - 1] || '') + ' ' + y;
+}
+function gelirlereGit(ayKey){
+  gelirAra = ''; gelirAy = ayKey || '';
+  selectSub('on-muhasebe', 'gelirler');
+}
+function giderlereGit(ayKey){
+  giderAra = ''; giderAy = ayKey || '';
+  selectSub('on-muhasebe', 'giderler');
+}
+// yon: 'alacak' (tahsil edilecek) | 'borc' (ödenecek) | '' (tümü)
+function carilereGit(yon){
+  cariSecili = null;
+  chListeBakiyeYon = yon || '';
+  chListeTip = '';
+  chListeSadeceBakiyeli = !!yon;
+  chListeSira = yon === 'borc' ? 'odeme' : 'tahsil';
+  selectSub('on-muhasebe', 'cari-hareketleri');
+}
+
+// (2026-09-14p) Finans ekranındaki iki uzun bölüm (kredi kartları + kasa/banka hesap listesi) açılıp kapanabilir.
+// Kullanıcı isteği: "liste aşağıya doğru çok kayıyor". Varsayılan KAPALI — başlık satırında hesap sayısı ve
+// toplam görünüyor, ayrıntı istenince açılıyor. Oturum içi durum (daTamamAcik/daHareketAcik ile aynı desen).
+let finKartAcik = false;
+let finHesapAcik = false;
 function kasaBankaView(){
   const bakiyeTopla = (liste, para) => liste.filter(a => (a.currency || 'TL') === para).reduce((s,a) => s + (Number(a.balance) || 0), 0);
   const kasaUsd = bakiyeTopla(KASA_ACCOUNTS, '$');
@@ -8563,19 +8703,28 @@ function kasaBankaView(){
       </div>
     </div>
     <div class="metric-grid">
-      <div class="metric"><div class="metric-top"><span>Kasa & banka</span><span class="metric-icon">₺</span></div><strong>${tl(genelTl)}</strong><small>${KASA_ACCOUNTS.length + BANK_ACCOUNTS.length} hesap${genelUsd ? ' · $ ' + genelUsd.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}${genelEur ? ' · € ' + genelEur.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}</small></div>
-      <div class="metric"><div class="metric-top"><span>Bu ay tahsilat</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${tl(buAy.tahsilat)}</strong><small class="${tOran !== null && tOran >= 0 ? 'trend' : ''}">${tOran === null ? 'geçen ay kayıt yok' : (tOran >= 0 ? '+' : '') + tOran + '% geçen aya göre'}</small></div>
-      <div class="metric"><div class="metric-top"><span>Bu ay ödeme</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${tl(buAy.odeme)}</strong><small class="${oOran !== null && oOran > 0 ? 'risk' : ''}">${oOran === null ? 'geçen ay kayıt yok' : (oOran >= 0 ? '+' : '') + oOran + '% geçen aya göre'}</small></div>
-      <div class="metric"><div class="metric-top"><span>Beklenen net</span><span class="metric-icon blue">◎</span></div><strong>${chTL(tahsilK - odemeK)}</strong><small>${chTL(tahsilK)} tahsil · ${chTL(odemeK)} ödeme</small></div>
+      <div class="metric clickable" title="Kasa ve banka hesap listesini aç" onclick="finHesapAcik=true; renderContent(); setTimeout(()=>{const e=document.querySelector('.table-card .panel-head'); if(e) e.scrollIntoView({behavior:'smooth',block:'center'});},60);">
+        <div class="metric-top"><span>Kasa & banka</span><span class="metric-icon">₺</span></div><strong>${tl(genelTl)}</strong><small>${KASA_ACCOUNTS.length + BANK_ACCOUNTS.length} hesap${genelUsd ? ' · $ ' + genelUsd.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}${genelEur ? ' · € ' + genelEur.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}</small></div>
+      <div class="metric clickable" title="${finAyEtiket(buAy.key)} tahsilat kayıtlarını aç" onclick="gelirlereGit('${buAy.key}')">
+        <div class="metric-top"><span>Bu ay tahsilat</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${tl(buAy.tahsilat)}</strong><small class="${tOran !== null && tOran >= 0 ? 'trend' : ''}">${tOran === null ? 'geçen ay kayıt yok' : (tOran >= 0 ? '+' : '') + tOran + '% geçen aya göre'}</small></div>
+      <div class="metric clickable" title="${finAyEtiket(buAy.key)} ödeme kayıtlarını aç" onclick="giderlereGit('${buAy.key}')">
+        <div class="metric-top"><span>Bu ay ödeme</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${tl(buAy.odeme)}</strong><small class="${oOran !== null && oOran > 0 ? 'risk' : ''}">${oOran === null ? 'geçen ay kayıt yok' : (oOran >= 0 ? '+' : '') + oOran + '% geçen aya göre'}</small></div>
+      <div class="metric clickable" title="Açık bakiyeli carileri aç" onclick="carilereGit('')">
+        <div class="metric-top"><span>Beklenen net</span><span class="metric-icon blue">◎</span></div><strong>${chTL(tahsilK - odemeK)}</strong><small>${chTL(tahsilK)} tahsil · ${chTL(odemeK)} ödeme</small></div>
     </div>
     <div class="two-col">
       <section class="panel">
-        <div class="panel-head"><div><h3>Nakit akışı</h3><p>Son 6 ay tahsilat ve ödeme karşılaştırması</p></div>
+        <div class="panel-head"><div><h3>Nakit akışı</h3><p>Son 6 ay · yeşil tahsilat, kırmızı ödeme — sütuna tıklayın, o ayın kayıtları açılsın</p></div>
           <div class="chart-legend"><span><i style="background:var(--ok);"></i>Tahsilat</span><span><i style="background:var(--risk);"></i>Ödeme</span></div></div>
         <div class="chart-wrap"><div class="chart">
-          ${seri.map(x => `<div class="bar-group" title="${x.etiket}: tahsilat ${tl(x.tahsilat)} · ödeme ${tl(x.odeme)}">
-            <div class="bar green" style="height:${Math.round(x.tahsilat / maks * 100)}%"></div>
-            <div class="bar red" style="height:${Math.round(x.odeme / maks * 100)}%"></div>
+          ${seri.map(x => `<div class="bar-group${x.tahsilat || x.odeme ? '' : ' bos'}"
+            title="${x.etiket} — tahsilat ${tl(x.tahsilat)} · ödeme ${tl(x.odeme)}${x.tahsilat || x.odeme ? '' : ' (kayıt yok)'}">
+            <div class="bar green" style="height:${Math.max(2, Math.round(x.tahsilat / maks * 100))}%"
+              title="${x.etiket} tahsilat: ${tl(x.tahsilat)} — tıklayın" onclick="gelirlereGit('${x.key}')">
+              <span class="bar-tip">${tl(x.tahsilat)}</span></div>
+            <div class="bar red" style="height:${Math.max(2, Math.round(x.odeme / maks * 100))}%"
+              title="${x.etiket} ödeme: ${tl(x.odeme)} — tıklayın" onclick="giderlereGit('${x.key}')">
+              <span class="bar-tip">${tl(x.odeme)}</span></div>
             <span class="bar-label">${x.etiket}</span></div>`).join('')}
         </div><div style="height:26px;"></div></div>
       </section>
@@ -8592,8 +8741,14 @@ function kasaBankaView(){
       </section>
     </div>
     <div class="table-card" style="margin-top:16px;">
-      <div class="panel-head"><div><h3>Kredi kartları</h3><p>Kartla yapılan ödemeler kart borcuna yazılır; kart ekstresi ödendiğinde borç düşer</p></div>
-        <button class="ghost" style="margin-left:auto;" onclick="openKartModal()">＋ Kart Ekle</button></div>
+      <div class="panel-head" style="cursor:pointer;" onclick="finKartAcik=!finKartAcik; renderContent();"
+        title="${finKartAcik ? 'Küçült' : 'Genişlet'}">
+        <div><h3>Kredi kartları</h3><p>${KREDI_KARTLARI.length
+          ? KREDI_KARTLARI.length + ' kart · toplam borç ' + tl(KREDI_KARTLARI.reduce((s,k) => s + kartBorcu(k), 0))
+          : 'Tanımlı kart yok'}</p></div>
+        ${finKartAcik ? `<button class="ghost" style="margin-left:auto;" onclick="event.stopPropagation(); openKartModal()">＋ Kart Ekle</button>` : ''}
+        <span class="panel-right" style="color:var(--ink-2);">${finKartAcik ? '▴' : '▾'}</span></div>
+      ${finKartAcik ? `
       <table class="data-table">
         <thead><tr><th>Kart</th><th class="sag">Limit</th><th class="sag">Kart borcu</th><th class="sag">Kullanılabilir</th><th></th></tr></thead>
         <tbody>
@@ -8604,10 +8759,16 @@ function kasaBankaView(){
             <td class="sag" style="white-space:nowrap;"><span class="mini-islem" title="Ekstre öde" onclick="openKartOdeModal('${k.id}')">₺</span><span class="mini-islem" title="Düzenle" onclick="openKartModal('${k.id}')">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteKart('${k.id}')">✕</span></td></tr>`).join('')
           : '<tr><td colspan="5"><div class="empty-state">Henüz kredi kartı yok. “Kart Ekle” ile tanımlayın; Ödeme Ekle ekranındaki Hesap listesinde görünür.</div></td></tr>'}
         </tbody>
-      </table>
+      </table>` : ''}
     </div>
     <div class="two-col" style="margin-top:16px;">
       <div class="table-card">
+        <div class="panel-head" style="cursor:pointer;" onclick="finHesapAcik=!finHesapAcik; renderContent();"
+          title="${finHesapAcik ? 'Küçült' : 'Genişlet'}">
+          <div><h3>Kasa ve banka hesapları</h3>
+            <p>${KASA_ACCOUNTS.length + BANK_ACCOUNTS.length} hesap · TL toplam ${tl(genelTl)}${genelUsd ? ' · $ ' + genelUsd.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}${genelEur ? ' · € ' + genelEur.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}</p></div>
+          <span class="panel-right" style="color:var(--ink-2);">${finHesapAcik ? '▴' : '▾'}</span></div>
+        ${finHesapAcik ? `
         <table class="data-table">
           <thead><tr><th>Hesap</th><th class="sag">Bakiye</th><th></th></tr></thead>
           <tbody>
@@ -8616,7 +8777,7 @@ function kasaBankaView(){
             ${!KASA_ACCOUNTS.length && !BANK_ACCOUNTS.length ? '<tr><td colspan="3"><div class="empty-state">Henüz hesap yok. “Hesap Ekle” ile kasa veya banka hesabı tanımlayın.</div></td></tr>' : ''}
           </tbody>
         </table>
-        <div class="table-summary"><span>TL Kasa ${tl(kasaTl)} · TL Banka ${tl(bankTl)}</span><strong>TL Genel Toplam: ${tl(genelTl)}</strong></div>
+        <div class="table-summary"><span>TL Kasa ${tl(kasaTl)} · TL Banka ${tl(bankTl)}</span><strong>TL Genel Toplam: ${tl(genelTl)}</strong></div>` : ''}
       </div>
       <section class="panel">
         <div class="panel-head"><div><h3>Genel toplam</h3><p>Kasa ve banka hesaplarının birleşik bakiyesi</p></div></div>
