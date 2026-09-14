@@ -2540,7 +2540,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14h';
+window.ROTA_SURUM = 'v2026-09-14j';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2621,6 +2621,55 @@ function veriOnar(){
     if(Array.isArray(MALZEME_FIYATLARI) && !MALZEME_FIYATLARI.some(mz => String(mz.ad || '').trim().toLowerCase() === def.ad.toLowerCase())){
       MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: def.ad, birim: def.birim, fiyat: def.fiyat, para: def.para, tedarikci: def.tedarikci, tarih:'2026-08-17' });
       degisti = true;
+    }
+  });
+  // (2026-09-14j) Dekant araç filosu — kullanıcının ARAÇLAR.xlsx dosyasından aktarıldı.
+  // Yalnızca dosyada olan alanlar yazılır: plaka + muayene/kasko/trafik(sigorta)/mtv1/mtv2 tarihleri.
+  // Marka, model, yıl, yakıt, km, zimmet, egzoz ve bakım alanları BİLİNÇLİ OLARAK BOŞ bırakıldı —
+  // kullanıcı isteği: "boş alanlar kalır ise boş geç, elle girmeye devam edeceğiz".
+  // Plakaya göre idempotent: aynı plaka zaten varsa yeniden eklenmez, mevcut kayda DOKUNULMAZ.
+  const daPlakaSade = p => String(p || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  [
+    { plate:'07 AFK 223', muayene:'',           kasko:'2027-06-11', trafik:'2027-06-11' },
+    { plate:'05 AFK 503', muayene:'2027-03-23', kasko:'2026-03-09', trafik:'2026-03-09' },
+    { plate:'07 AFK 203', muayene:'2026-12-15', kasko:'2026-01-19', trafik:'2026-01-19' },
+    { plate:'07 AFK 603', muayene:'2027-05-20', kasko:'2026-10-14', trafik:'2026-10-14' },
+    { plate:'07 AFK 653', muayene:'2027-03-31', kasko:'2026-10-31', trafik:'2026-10-31' },
+    { plate:'07 MVL 37',  muayene:'2027-06-25', kasko:'2026-09-30', trafik:'2026-09-30' },
+    { plate:'07 MKS 37',  muayene:'2027-01-06', kasko:'2026-09-28', trafik:'2026-09-28' },
+    { plate:'07 BFN 384', muayene:'2027-02-05', kasko:'2027-03-09', trafik:'2027-03-09' },
+    { plate:'07 AFK 030', muayene:'',           kasko:'2026-08-01', trafik:'2026-08-01' },
+    { plate:'07 AFK 803', muayene:'2027-06-23', kasko:'2026-09-13', trafik:'2026-09-13' },
+    { plate:'07 AFK 273', muayene:'',           kasko:'2027-06-11', trafik:'2027-06-11' },
+  ].forEach(def => {
+    if(!Array.isArray(VEHICLES)) return;
+    if(VEHICLES.some(v => daPlakaSade(v.plate) === daPlakaSade(def.plate))) return;
+    VEHICLES.push({
+      id: benzersizId('v'), plate: def.plate,
+      brand:'', model:'', year:'', fuel:'', km:'', owner:'', note:'',
+      dates:{ muayene:def.muayene, trafik:def.trafik, kasko:def.kasko,
+              mtv1:'2027-01-01', mtv2:'2027-07-01', egzoz:'', bakim:'' },
+      kms:{}, expenses:[],
+    });
+    degisti = true;
+  });
+  // (2026-09-14j) Uygulamayla gelen 3 ÖRNEK araç, gerçek filo girildikten sonra kullanıcı isteğiyle temizlenir.
+  // Yalnızca hiç dokunulmamış (plaka + marka + model hâlâ varsayılan) kayıtlar silinir; kullanıcı
+  // bunlardan birini düzenlediyse (marka/model değiştiyse) o kayda DOKUNULMAZ.
+  [
+    { plate:'01 ABC 123', brand:'Ford',    model:'Transit' },
+    { plate:'01 RTA 06',  brand:'Fiat',    model:'Doblo'   },
+    { plate:'01 KLM 34',  brand:'Renault', model:'Master'  },
+  ].forEach(demo => {
+    if(!Array.isArray(VEHICLES)) return;
+    for(let i = VEHICLES.length - 1; i >= 0; i--){
+      const v = VEHICLES[i];
+      if(daPlakaSade(v.plate) === daPlakaSade(demo.plate)
+        && String(v.brand || '').trim().toLowerCase() === demo.brand.toLowerCase()
+        && String(v.model || '').trim().toLowerCase() === demo.model.toLowerCase()){
+        VEHICLES.splice(i, 1);
+        degisti = true;
+      }
     }
   });
   const gorulen = new Set();
@@ -9262,13 +9311,16 @@ function vehicleCardHtml(v){
     .slice(0,3)
     .map(x => { const st = dueStatus(x.n);
       return `<span class="v-chip ${st.cls}">${x.f.short}: ${st.text}</span>`; }).join('');
-  const totalExp = v.expenses.reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const totalExp = (v.expenses || []).reduce((s,e)=>s+(Number(e.amount)||0),0);
+  // Boş alanlar (yakıt/km/zimmet girilmemiş araçlar) satırda "· 0 km ·" gibi asılı ayraç bırakmasın
+  const altBilgi = [v.fuel, (Number(v.km) ? Number(v.km).toLocaleString('tr-TR')+' km' : ''), v.owner]
+    .filter(Boolean).join(' · ');
   return `
     <div class="v-card" onclick="openVehicle('${v.id}')">
       <div class="v-card-top">
         <div>
           <div class="v-card-name">${vehicleLabel(v)}</div>
-          <div class="v-card-sub">${v.fuel} · ${(Number(v.km)||0).toLocaleString('tr-TR')} km · ${v.owner || 'Zimmetsiz'}</div>
+          <div class="v-card-sub">${altBilgi || 'Araç bilgileri girilmedi'}</div>
           <div class="v-card-sub">Toplam gider: <b style="color:var(--ink-2);">${money(totalExp)}</b></div>
         </div>
         ${plateHtml(v.plate)}
@@ -9291,7 +9343,7 @@ function aracDetailView(){
     <div class="page-head">
       <div>
         <div class="v-detail-head">${plateHtml(v.plate)}<div class="page-title" style="margin:0;">${vehicleLabel(v)}</div></div>
-        <div class="page-sub">${v.fuel} · ${(Number(v.km)||0).toLocaleString('tr-TR')} km · Zimmet: ${v.owner || '—'}</div>
+        <div class="page-sub">${[v.fuel, (Number(v.km) ? Number(v.km).toLocaleString('tr-TR')+' km' : ''), (v.owner ? 'Zimmet: '+v.owner : '')].filter(Boolean).join(' · ') || 'Araç bilgileri girilmedi — Düzenle ile tamamlayabilirsiniz'}</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin:-6px 0 18px;">
@@ -9356,7 +9408,10 @@ function aracFormView(){
   const isNew = !editingVehicleId;
   const ownerOptions = ['<option value="">Zimmetsiz</option>']
     .concat(USERS.map(u => `<option value="${u.name}" ${v.owner===u.name?'selected':''}>${u.name}</option>`)).join('');
-  const fuelOptions = FUEL_TYPES.map(f => `<option value="${f}" ${v.fuel===f?'selected':''}>${f}</option>`).join('');
+  // Yakıt tipi girilmemiş araçlarda (ör. Excel'den aktarılanlar) boş seçenek kalsın —
+  // aksi halde form açılınca tarayıcı ilk seçeneği (Dizel) seçili gösterir ve kaydedince yanlış yazılırdı.
+  const fuelOptions = [`<option value="" ${v.fuel ? '' : 'selected'}>— Seçilmedi —</option>`]
+    .concat(FUEL_TYPES.map(f => `<option value="${f}" ${v.fuel===f?'selected':''}>${f}</option>`)).join('');
   return `
     <div class="page-head"><div>
       <div class="page-title">${isNew ? 'Yeni Araç' : vehicleLabel(v)+' — Düzenle'}</div>
@@ -15105,6 +15160,7 @@ let daTamamAcik = false;
 // Ekrandan silinmez; buluta kaydedilir (DIS_ALIM_HAREKET). Sayfanın altında "Son hareketler" olarak görünür.
 let DIS_ALIM_HAREKET = [];
 let daHareketTumu = false;
+let daHareketAcik = false;
 const DA_ISLEM = {
   ekleme:    { ad:'ekledi',                      renk:'green' },
   guncelleme:{ ad:'düzenledi',                   renk:'blue' },
@@ -15172,11 +15228,15 @@ function daHareketPaneliHtml(){
   const liste = daHareketTumu ? DIS_ALIM_HAREKET : DIS_ALIM_HAREKET.slice(0, 12);
   return `
     <section class="panel" style="margin-top:16px;">
-      <div class="panel-head"><div><h3>Son hareketler</h3><p>Dış alımlarda kim ne yaptı — bu kayıtlar silinemez</p></div>
-        ${DIS_ALIM_HAREKET.length > 12 ? `<button class="ghost" onclick="daHareketTumu=!daHareketTumu; renderContent();">${daHareketTumu ? 'Son 12\'yi göster' : `Tümünü göster (${DIS_ALIM_HAREKET.length})`}</button>` : ''}</div>
-      <div class="activity">
-        ${liste.length ? liste.map(daHareketSatirHtml).join('') : '<div class="empty-state">Henüz hareket kaydı yok.</div>'}
+      <div class="panel-head" style="cursor:pointer;" onclick="daHareketAcik=!daHareketAcik; renderContent();"
+        title="${daHareketAcik ? 'Küçült' : 'Genişlet'}">
+        <div><h3>Son hareketler</h3><p>Dış alımlarda kim ne yaptı — bu kayıtlar silinemez</p></div>
+        ${daHareketAcik && DIS_ALIM_HAREKET.length > 12 ? `<button class="ghost" onclick="event.stopPropagation(); daHareketTumu=!daHareketTumu; renderContent();">${daHareketTumu ? 'Son 12\'yi göster' : `Tümünü göster (${DIS_ALIM_HAREKET.length})`}</button>` : ''}
+        <span class="panel-right" style="color:var(--ink-2);">${daHareketAcik ? '▴' : '▾'}</span>
       </div>
+      ${daHareketAcik ? `<div class="activity">
+        ${liste.length ? liste.map(daHareketSatirHtml).join('') : '<div class="empty-state">Henüz hareket kaydı yok.</div>'}
+      </div>` : ''}
     </section>`;
 }
 
