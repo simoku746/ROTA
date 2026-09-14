@@ -1651,6 +1651,10 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
 .metric strong{display:block;font-family:var(--font-display);font-size:25px;font-weight:800;color:var(--ink);margin:7px 0 4px;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .metric small{color:var(--ink-3);font-size:12px;display:block;}
 .metric small.trend{color:var(--ok);font-weight:700;} .metric small.risk{color:var(--risk);font-weight:700;}
+/* (2026-09-14s) Sunum/Demo rolü: tutar ve maaş girişleri okunamaz olsun ama DEĞER KORUNSUN
+   (değeri silmek, form kaydedilirse gerçek veriyi bozardı). */
+body.sunum-modu input[type=number]{color:transparent;text-shadow:0 0 9px rgba(20,30,50,.62);}
+body.sunum-modu input[type=number]:focus{color:transparent;}
 .metric.clickable{cursor:pointer;} .metric.clickable:hover{border-color:var(--signal);box-shadow:var(--shadow-sm);}
 /* (2026-09-14q) Tıklanan metrik kartı, listeyi süzdüğünü göstersin */
 .metric.secili{border-color:var(--signal);box-shadow:0 0 0 2px var(--signal-soft);}
@@ -2552,7 +2556,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14q';
+window.ROTA_SURUM = 'v2026-09-14s';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2975,11 +2979,17 @@ const ROLE_CONFIG = {
   URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'] },
   MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','gorevlerim'] },
   MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['haftalik-plan','gorevlerim'], yonetimSubs:['araclarim','kategoriler'] },
+  // (2026-09-14s) SUNUM/DEMO rolü — personele canlı tanıtım için. Yöneticiyle AYNI ekranlara erişir (her yer açık,
+  // cariler dahil) ama finansal rakamlar gizlenir: finans:false hem mevcut finansGorebilir() kontrollerini kapatır
+  // hem de ekrana basılan para tutarlarını maskeleyen sunumMaskele() katmanını devreye sokar.
+  SUNUM:    { label:'Sunum / Demo (rakamsız)', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], finans:false },
 };
 let CURRENT_ROLE = 'YONETICI';
-function roleCfg(){ return ROLE_CONFIG[CURRENT_ROLE]; }
-// Finansal rakamları (tahsilat, gelir-gider, tutar/toplam, satış raporları) yalnız Ön Muhasebe erişimi olan roller görür
-function finansGorebilir(){ return roleCfg().tabs.includes('on-muhasebe'); }
+function roleCfg(){ return ROLE_CONFIG[CURRENT_ROLE] || ROLE_CONFIG.YONETICI; }
+// Finansal rakamları (tahsilat, gelir-gider, tutar/toplam, satış raporları) yalnız Ön Muhasebe erişimi olan roller görür.
+// finans:false olan rol (SUNUM) Ön Muhasebe ekranlarını AÇABİLİR ama rakam göremez.
+function finansGorebilir(){ const c = roleCfg(); return c.finans === false ? false : c.tabs.includes('on-muhasebe'); }
+function sunumModu(){ return roleCfg().finans === false && roleCfg().tabs.includes('on-muhasebe'); }
 function initialsOf(name){ return name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase(); }
 
 function togglePwVisibility(){
@@ -3257,6 +3267,41 @@ function renderContent(){
   else if(currentPage==='yonetim') el.innerHTML = yonetimView();
   else if(currentPage==='destek') el.innerHTML = destekView();
   else el.innerHTML = placeholderView();
+  sunumGovdeSinifi();
+  sunumMaskele(el);
+}
+
+// (2026-09-14s) SUNUM modunda ekrandaki para tutarlarını maskeler.
+// Neden render sonrası tek noktada: tutarlar ~50 ayrı yerde satır içi biçimlendiriliyor; hepsini tek tek
+// değiştirmek yerine burada tek çıkışta maskelemek hem eksiksiz hem de diğer roller için tamamen etkisiz.
+// YALNIZ metin düğümlerinde çalışır — öznitelik, id, onclick ve input değerlerine DOKUNMAZ.
+// Para tutarı iki yazımla da geçiyor: sembol ÖNDE ("₺1.234,56") veya ARKADA ("1.234,56 TL", "0,00 $", "-14.027,82 €").
+// İlk sürümde yalnız "sembol önde" ve "TL/USD/EUR arkada" kalıpları vardı; hesap listesindeki "0,00 $" ve
+// "-14.027,82 €" satırları maskelenmeden kalmıştı (ekran görüntüsü incelemesinde yakalandı).
+const SUNUM_PARA_RE = /(?:₺|\$|€)\s?[−-]?\d[\d.,]*|[−-]?\d[\d.,]*\s?(?:TL\b|USD\b|EUR\b|₺|\$|€)/g;
+function sunumMaskele(kok){
+  if(!kok || !sunumModu()) return;
+  const yur = document.createTreeWalker(kok, NodeFilter.SHOW_TEXT, null);
+  const hedef = [];
+  while(yur.nextNode()){
+    const n = yur.currentNode;
+    const ebeveyn = n.parentNode;
+    if(ebeveyn && /^(SCRIPT|STYLE|TEXTAREA)$/.test(ebeveyn.nodeName)) continue;
+    SUNUM_PARA_RE.lastIndex = 0;
+    if(SUNUM_PARA_RE.test(n.nodeValue)) hedef.push(n);
+  }
+  hedef.forEach(n => {
+    SUNUM_PARA_RE.lastIndex = 0;
+    n.nodeValue = n.nodeValue.replace(SUNUM_PARA_RE, m => {
+      const sim = (m.match(/₺|\$|€/) || [''])[0];            // sembol önde de olabilir arkada da
+      return sim ? sim + '•••••' : '••••• TL';
+    });
+  });
+}
+// Tutar/maaş gibi sayı girişleri: DEĞER KORUNUR, yalnız görsel olarak okunamaz hale gelir.
+// (Değeri boşaltmak, sunum kullanıcısı formu kaydederse gerçek veriyi sıfırlayacağı için bilinçli olarak yapılmadı.)
+function sunumGovdeSinifi(){
+  if(document.body) document.body.classList.toggle('sunum-modu', sunumModu());
 }
 
 // ---------------- STOK ----------------
@@ -3518,8 +3563,23 @@ const PLAN_DEPARTMANLAR = {
   'Üretim + Montaj': { stages:['URETIM','MONTAJ'],  deps:['Üretim','Montaj'] },
   'Tümü':            { stages:null,                 deps:null },
 };
+// (2026-09-14r) Personel kartındaki departman listesi — TEK KAYNAK. Yukarıdaki PLAN_DEPARTMANLAR ile uyumlu olmalı,
+// yoksa o departmana personel atanamaz ve Haftalık Plan'da o satır hep boş kalır.
+// BULUNAN HATA: 'Keşif' bu listede yoktu. Sonuçları: (1) hiç kimse Keşif departmanına atanamıyordu,
+// (2) departmanı 'Keşif' olan bir personelin kartı açılıp kaydedildiğinde — seçenek listesinde karşılığı
+// olmadığı için tarayıcı ilk seçeneği ('Üretim') seçili gösteriyor — departman SESSİZCE 'Üretim'e dönüyordu.
+// Kullanıcı bildirimi: "personel departman değişikliği yapamıyorum, benim adım keşifte".
+const PERSONEL_DEPARTMANLAR = ['Keşif', 'Tasarım', 'Üretim', 'Montaj', 'Ofis', 'Diğer'];
+function personelDepartmanSecenekleri(secili){
+  const liste = PERSONEL_DEPARTMANLAR.slice();
+  // Listede olmayan eski/elle girilmiş bir değer varsa başa eklenir — kaydedince sessizce ezilmesin
+  if(secili && !liste.includes(secili)) liste.unshift(secili);
+  return liste.map(x => `<option ${secili === x ? 'selected' : ''}>${notEsc(x)}</option>`).join('');
+}
 const PLAN_VARSAYILAN_SURE = 120;   // tepsiden bırakılan iş için dakika
-function planYetkili(){ return CURRENT_ROLE === 'YONETICI' || CURRENT_ROLE === 'URETIM'; }   // düzenleme: yönetim/koordinatör + üretim sorumlusu; diğer roller yalnız görüntüler
+// düzenleme: yönetim/koordinatör + üretim sorumlusu; diğer roller yalnız görüntüler.
+// (2026-09-14s) SUNUM rolü de düzenleyebilir — canlı tanıtımda plan oluşturma/taşıma gösterilebilsin diye.
+function planYetkili(){ return CURRENT_ROLE === 'YONETICI' || CURRENT_ROLE === 'URETIM' || CURRENT_ROLE === 'SUNUM'; }
 function planSecim(){ return PLAN_DEPARTMANLAR[planDepartman] || PLAN_DEPARTMANLAR['Üretim + Montaj']; }
 // İşin mevcut aşaması için planlanmış bloğu
 function planBlogu(j){ return PLAN_TASKS.find(t => t.jobId === j.id && t.stage === j.stage) || null; }
@@ -7108,8 +7168,8 @@ function personelFormView(){
               <div class="field"><label>Unvan</label>
                 <input id="prUnvan" value="${d.unvan}" placeholder="Örn. Montaj Ustası"></div>
               <div class="field"><label>Departman</label>
-                <select id="prDepartman">${['Üretim','Montaj','Tasarım','Ofis','Diğer'].map(x =>
-                  `<option ${d.departman === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+                <select id="prDepartman">${personelDepartmanSecenekleri(d.departman)}</select>
+                <div class="hint" style="margin-top:4px;">Haftalık Plan'da personel bu departmanın satırında görünür.</div></div>
             </div>
             <div class="field"><label>Brüt Maaş (₺)</label>
               <input id="prBrut" type="number" min="0" value="${d.brut || ''}" placeholder="30000"></div>
@@ -8687,8 +8747,10 @@ function kasaBankaView(){
   const yaklasan = finYaklasanIslemler(30).slice(0, 8);
   const oran = (a, b) => b ? Math.round((a - b) / b * 100) : null;
   const tOran = oran(buAy.tahsilat, gecenAy ? gecenAy.tahsilat : 0), oOran = oran(buAy.odeme, gecenAy ? gecenAy.odeme : 0);
+  // (2026-09-14s) Sunum modunda gerçek hesap numarası da görünmesin — alanın var olduğu yine anlaşılır
   const hesapSatir = (a, tur) => `<tr><td><strong>${notEsc(a.name)}</strong><small>${
-        [tur === 'kasa' ? 'Kasa hesabı' : 'Banka hesabı', notEsc(a.sube || ''), a.hesapNo ? 'No: ' + notEsc(a.hesapNo) : '']
+        [tur === 'kasa' ? 'Kasa hesabı' : 'Banka hesabı', notEsc(a.sube || ''),
+         a.hesapNo ? 'No: ' + (sunumModu() ? '•••••' : notEsc(a.hesapNo)) : '']
           .filter(Boolean).join(' · ')}</small></td>
       <td class="money">${(Number(a.balance) || 0).toLocaleString('tr-TR',{minimumFractionDigits:2})} ${a.currency}</td>
       <td class="sag" style="white-space:nowrap;"><span class="mini-islem" title="Düzenle" onclick="openAccountModal('${tur}','${a.id}')">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteAccount('${tur}','${a.id}')">✕</span></td></tr>`;
