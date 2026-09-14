@@ -2444,7 +2444,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14e';
+window.ROTA_SURUM = 'v2026-09-14f';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2474,6 +2474,53 @@ function veriOnar(){
   ].forEach(def => {
     if(Array.isArray(MALZEME_FIYATLARI) && !MALZEME_FIYATLARI.some(mz => String(mz.ad || '').trim().toLowerCase() === def.ad.toLowerCase())){
       MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: def.ad, birim: def.birim, fiyat:0, para: def.para, tedarikci:'', tarih:'' });
+      degisti = true;
+    }
+  });
+  // Dekant Medya tedarikçi fiyat listesi (17.08.2026) — fiyatlar EUR/m² olarak girildi (kullanıcı talebiyle)
+  [
+    { ad:'Sistem Alüminyum Profili', birim:'m²', para:'EUR', fiyat:13.66, tedarikci:'' },
+    { ad:'Dekota 2,5mm Beyaz', birim:'m²', para:'EUR', fiyat:2.5, tedarikci:'Dekota' },
+    { ad:'Dekota 4,5mm Beyaz', birim:'m²', para:'EUR', fiyat:4.51, tedarikci:'Dekota' },
+    { ad:'Dekota 7,4mm Beyaz', birim:'m²', para:'EUR', fiyat:7.45, tedarikci:'Dekota' },
+    { ad:'Dekota 8mm Beyaz', birim:'m²', para:'EUR', fiyat:7.99, tedarikci:'Dekota' },
+    { ad:'Dekota 14mm Beyaz', birim:'m²', para:'EUR', fiyat:14.94, tedarikci:'Dekota' },
+    { ad:'Dekota 18mm Beyaz', birim:'m²', para:'EUR', fiyat:18.48, tedarikci:'Dekota' },
+    { ad:'Citylight', birim:'m²', para:'EUR', fiyat:0.38, tedarikci:'' },
+    { ad:'Blueback', birim:'m²', para:'EUR', fiyat:0.39, tedarikci:'' },
+    { ad:'Fibermark', birim:'m²', para:'EUR', fiyat:0.8, tedarikci:'' },
+    { ad:'Akrolimer 2mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:18.5, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 2,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:18.86, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 2,8mm Renkli', birim:'m²', para:'EUR', fiyat:20.72, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 2,8mm Siyah', birim:'m²', para:'EUR', fiyat:20.72, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 4,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:29.74, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 4,8mm Renkli', birim:'m²', para:'EUR', fiyat:33.36, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 5,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:37.5, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 5,8mm Renkli', birim:'m²', para:'EUR', fiyat:41.81, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 7,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:48.49, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 7,8mm Renkli', birim:'m²', para:'EUR', fiyat:54.07, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 9,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:61.43, tedarikci:'Akrolimer' },
+    { ad:'Akrolimer 9,8mm Renkli', birim:'m²', para:'EUR', fiyat:68.48, tedarikci:'Akrolimer' },
+    { ad:'Pia 2,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:18.9, tedarikci:'Pia' },
+    { ad:'Pia 2,8mm Renkli', birim:'m²', para:'EUR', fiyat:19.38, tedarikci:'Pia' },
+    { ad:'Pia 2,8mm Siyah', birim:'m²', para:'EUR', fiyat:19.84, tedarikci:'Pia' },
+    { ad:'Pia 4,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:32.39, tedarikci:'Pia' },
+    { ad:'Pia 4,8mm Renkli', birim:'m²', para:'EUR', fiyat:34.01, tedarikci:'Pia' },
+    { ad:'Pia 5,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:39.14, tedarikci:'Pia' },
+    { ad:'Pia 5,8mm Renkli', birim:'m²', para:'EUR', fiyat:41.1, tedarikci:'Pia' },
+    { ad:'Pia 7,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:52.64, tedarikci:'Pia' },
+    { ad:'Pia 7,8mm Renkli', birim:'m²', para:'EUR', fiyat:55.27, tedarikci:'Pia' },
+    { ad:'Pia 9,8mm Beyaz/Şeffaf/Rakı Beyazı', birim:'m²', para:'EUR', fiyat:66.13, tedarikci:'Pia' },
+    { ad:'Pia 9,8mm Renkli', birim:'m²', para:'EUR', fiyat:69.44, tedarikci:'Pia' },
+    { ad:'Çekme Pleksi 2,8mm Beyaz/Şeffaf', birim:'m²', para:'EUR', fiyat:16, tedarikci:'' },
+    { ad:'Çekme Pleksi 4,8mm Beyaz/Şeffaf', birim:'m²', para:'EUR', fiyat:27.47, tedarikci:'' },
+    { ad:'Oracal Kesim Folyo', birim:'m²', para:'EUR', fiyat:2.1, tedarikci:'Oracal' },
+    { ad:'Oracal Metalik Folyo', birim:'m²', para:'EUR', fiyat:2.5, tedarikci:'Oracal' },
+    { ad:'Unifol Kesim Folyo', birim:'m²', para:'EUR', fiyat:1.91, tedarikci:'Unifol' },
+    { ad:'Unifol Metalik Folyo', birim:'m²', para:'EUR', fiyat:2.1, tedarikci:'Unifol' },
+  ].forEach(def => {
+    if(Array.isArray(MALZEME_FIYATLARI) && !MALZEME_FIYATLARI.some(mz => String(mz.ad || '').trim().toLowerCase() === def.ad.toLowerCase())){
+      MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: def.ad, birim: def.birim, fiyat: def.fiyat, para: def.para, tedarikci: def.tedarikci, tarih:'2026-08-17' });
       degisti = true;
     }
   });
