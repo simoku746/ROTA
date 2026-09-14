@@ -2444,7 +2444,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14f';
+window.ROTA_SURUM = 'v2026-09-14g';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2463,18 +2463,21 @@ function veriOnar(){
   if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && String(k.ad).toLowerCase() === 'kartlı alışveriş')){
     KATEGORILER.push({ id: benzersizId('kd'), ad:'Kartlı Alışveriş', tip:'gider', sistem:true }); degisti = true;
   }
-  // Lightbox sihirbazı için gereken malzeme türleri fiyat listesinde yoksa eklenir (fiyat 0 — kullanıcı girer)
+  // (2026-09-14g) Lightbox sihirbazı için otomatik eklenen 6 malzeme türü artık STANDART olarak eklenmiyor —
+  // kullanıcı isteği: "standart default gelmesin". Daha önce otomatik eklenmiş ama kullanıcının hiç dokunmadığı
+  // (fiyatı hâlâ 0, TL, tedarikçisiz) kayıtlar burada bir kerelik temizlenir; kullanıcının kendi girdiği/değiştirdiği
+  // gerçek kayıtlara (fiyat girilmiş veya tedarikçi yazılmış) dokunulmaz.
   [
-    { ad:'Lightbox Kasa Profili (6m)', birim:'adet', para:'TL' },
-    { ad:'Köşe Aparatı',               birim:'adet', para:'TL' },
-    { ad:'Trafo',                      birim:'adet', para:'TL' },
-    { ad:'Işıklı Kumaş Baskı (UV)',    birim:'m²',   para:'TL' },
-    { ad:'Kompozit Panel 4mm',         birim:'m²',   para:'TL' },
-    { ad:'Forex Panel 8mm',            birim:'m²',   para:'TL' },
-  ].forEach(def => {
-    if(Array.isArray(MALZEME_FIYATLARI) && !MALZEME_FIYATLARI.some(mz => String(mz.ad || '').trim().toLowerCase() === def.ad.toLowerCase())){
-      MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: def.ad, birim: def.birim, fiyat:0, para: def.para, tedarikci:'', tarih:'' });
-      degisti = true;
+    'Lightbox Kasa Profili (6m)', 'Köşe Aparatı', 'Trafo',
+    'Işıklı Kumaş Baskı (UV)', 'Kompozit Panel 4mm', 'Forex Panel 8mm',
+  ].forEach(ad => {
+    if(!Array.isArray(MALZEME_FIYATLARI)) return;
+    for(let i = MALZEME_FIYATLARI.length - 1; i >= 0; i--){
+      const mz = MALZEME_FIYATLARI[i];
+      if(String(mz.ad || '').trim().toLowerCase() === ad.toLowerCase() && Number(mz.fiyat) === 0 && (mz.para || 'TL') === 'TL' && !mz.tedarikci){
+        MALZEME_FIYATLARI.splice(i, 1);
+        degisti = true;
+      }
     }
   });
   // Dekant Medya tedarikçi fiyat listesi (17.08.2026) — fiyatlar EUR/m² olarak girildi (kullanıcı talebiyle)
@@ -11711,7 +11714,7 @@ function mxKurlaYenile(){
 }
 
 // ---- Veri modeli / geriye uyumlu dönüşüm ----
-const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası','Lightbox Kasa Profili (6m)','Köşe Aparatı','Işıklı Kumaş Baskı (UV)','Kompozit Panel 4mm','Forex Panel 8mm'];
+const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası'];
 function mxGrupTahmin(ad){
   const a = String(ad || '').toLowerCase();
   if(/işçilik|iscilik|montaj|usta|ekip|atölye|atolye/.test(a)) return 'iscilik';
