@@ -1981,57 +1981,153 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 /* ================= TEKLİF MALİYETLERİ (iç kullanım) — referans: ROTA-Teklif-Maliyetleri-Tasarim-Referansi.html =================
    Tema token'ları kullanılır (açık/koyu). Turuncu yalnız ana aksiyon + aktif adım; yeşil yalnız pozitif finans; kırmızı hata/negatif. */
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-/* ---- Maliyet Hesabı ekranı: eski (ilk) tasarıma dönüş — 2026-09-14 ---- */
-.mx-head{display:grid;grid-template-columns:minmax(240px,1fr) 76px 106px 112px 32px;gap:8px;
-  font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.7px;color:var(--ink-3);padding:0 4px 8px;}
-.mx-row{display:grid;grid-template-columns:minmax(240px,1fr) 76px 106px 112px 32px;gap:8px;align-items:center;
-  padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
-.mx-row .mx-aciklama{grid-column:1 / -1;height:28px;font-size:11.5px;color:var(--ink-2);
-  border:1px dashed var(--line-strong);background:var(--surface);}
-.mx-row .mx-aciklama:focus{border-style:solid;}
-.mx-row .mx-aciklama::placeholder{color:var(--ink-3);}
-.mx-row input{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
-  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
-.mx-row input:focus{outline:none;border-color:var(--ink);}
-.mx-row .mx-tutar{font-family:var(--font-mono);font-weight:600;text-align:right;background:var(--surface-sunk);border-color:var(--line);}
-.mx-olcu{grid-column:1 / -1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);}
-.mx-olcu select{height:28px;padding:0 7px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;max-width:210px;}
-.mx-olcu input{height:28px;width:82px;padding:0 8px;border:1px dashed var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font-size:11.5px;}
+/* ---- Maliyet Hesabı ekranı — kompakt/kurumsal revizyon — 2026-09-14h ---- */
+/* kayıt durumu rozeti */
+.mx-kaydet{height:36px;padding:0 14px;border:0;border-radius:8px;font-size:13px;font-weight:650;display:inline-flex;align-items:center;gap:7px;
+  font-family:inherit;cursor:pointer;background:var(--signal);color:#fff;transition:background .14s ease;}
+.mx-kaydet.aktif:hover{background:var(--signal-ink);}
+.mx-kaydet.kaydedildi,.mx-kaydet.nötr{background:var(--surface);color:var(--ink-2);border:1px solid var(--line);opacity:1;}
+.mx-kaydet.kaydediliyor{background:var(--signal);color:#fff;}
+.mx-kaydet.kaydediliyor::before{content:'';width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.5);
+  border-top-color:#fff;animation:mxSpin .7s linear infinite;}
+.mx-kaydet.hata{background:var(--risk);color:#fff;}
+.mx-kaydet:disabled{cursor:default;}
+@keyframes mxSpin{to{transform:rotate(360deg);}}
+
+/* günlük kur şeridi */
+.mx-kur-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:0 16px;min-height:60px;margin-bottom:14px;font-size:12.5px;}
+.mx-kur-bar b{font-family:var(--font-display);font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+.mx-kur-bar label{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;}
+.mx-kur-bar label input{height:38px;width:104px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;
+  background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;
+  transition:border-color .14s ease,box-shadow .14s ease;}
+.mx-kur-bar label input:hover{border-color:var(--ink-3);}
+.mx-kur-bar label input:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px rgba(255,107,22,.16);}
+.mx-kur-guncelle{flex:0 0 auto;height:35px;padding:0 13px;border:1px solid var(--line-strong);border-radius:8px;
+  background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:650;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;gap:6px;transition:background .14s ease,border-color .14s ease,color .14s ease;}
+.mx-kur-guncelle:hover{background:var(--surface-sunk);border-color:var(--ink-3);color:var(--ink);}
+.mx-kur-guncelle:active{transform:translateY(1px);}
+.mx-kur-guncelle:disabled{opacity:.55;cursor:default;}
+.kur-kaynak{margin-left:auto;font-size:11px;color:var(--ink-3);font-style:normal;white-space:nowrap;}
+
+/* sekmeler */
+.mx-sekmeler{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+.mx-sekme{height:41px;padding:0 16px;border:0;background:transparent;color:var(--ink-2);font-size:13.5px;font-weight:600;
+  font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .14s ease,border-color .14s ease;}
+.mx-sekme:hover{color:var(--ink);}
+.mx-sekme.on{color:var(--ink);font-weight:650;border-bottom-color:var(--signal);}
+
+/* iki kolonlu yerleşim */
+.mx-layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start;}
+@media(max-width:1200px){ .mx-layout{grid-template-columns:1fr;} }
+
+/* maliyet kalemi kartı */
+.mx-liste{display:flex;flex-direction:column;gap:8px;}
+.mx-row{background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--signal);border-radius:8px;
+  padding:12px 14px 10px;box-shadow:0 1px 3px rgba(15,31,61,.03);}
+.mx-row-top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.mx-row-id{flex:1 1 220px;min-width:180px;}
+.mx-row-label{display:block;font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--ink-3);margin-bottom:5px;}
+.mx-row-name{display:flex;align-items:center;gap:8px;}
+.mx-row-ikon{flex:0 0 auto;color:var(--signal);}
+.mx-ad-input{flex:1;min-width:0;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;
+  background:var(--surface);color:var(--ink);font-size:14.5px;font-weight:650;
+  transition:border-color .14s ease,box-shadow .14s ease;}
+.mx-ad-input:hover{border-color:var(--ink-3);}
+.mx-ad-input:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px rgba(255,107,22,.16);}
+.mx-row-rozet{flex:0 0 auto;height:19px;padding:0 8px;border-radius:999px;background:var(--surface-sunk);color:var(--ink-3);
+  font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;display:inline-flex;align-items:center;white-space:nowrap;}
+.mx-row-nums{display:flex;align-items:flex-end;gap:8px;flex:0 0 auto;}
+.mx-field{display:flex;flex-direction:column;gap:4px;}
+.mx-field label{font-family:var(--font-display);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);}
+.mx-field input{height:36px;padding:0 9px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
+  color:var(--ink);font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,box-shadow .14s ease;}
+.mx-field input:hover{border-color:var(--ink-3);}
+.mx-field input:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px rgba(255,107,22,.16);}
+.mx-field.mx-f-miktar input{width:82px;}
+.mx-field.mx-f-birim input{width:104px;}
+.mx-field.mx-f-tutar input{width:118px;}
+.mx-row .mx-tutar{font-family:var(--font-mono);font-weight:700;text-align:right;background:var(--surface-sunk);
+  border-color:var(--line);color:var(--ink);}
+.mx-row .li-remove{align-self:flex-end;flex:0 0 auto;}
+.mx-olcu{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);margin-top:10px;
+  padding-top:10px;border-top:1px dashed var(--line);min-height:38px;}
+.mx-olcu select{height:32px;padding:0 8px;border:1px dashed var(--line-strong);border-radius:7px;background:var(--surface);
+  color:var(--ink);font-size:11.5px;max-width:210px;transition:border-color .14s ease;}
+.mx-olcu select:hover{border-color:var(--ink-3);}
+.mx-olcu input{height:32px;width:88px;padding:0 9px;border:1px dashed var(--line-strong);border-radius:7px;
+  background:var(--surface);color:var(--ink);font-size:11.5px;transition:border-color .14s ease,box-shadow .14s ease;}
+.mx-olcu input:hover{border-color:var(--ink-3);}
+.mx-olcu input:focus{outline:none;border-color:var(--signal);border-style:solid;box-shadow:0 0 0 3px rgba(255,107,22,.16);}
 .mx-olcu .m2sonuc{font-family:var(--font-mono);font-weight:700;color:var(--ok);}
 .mx-bagli{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);
-  background:var(--surface);border:1px dashed var(--line-strong);border-radius:6px;padding:4px 8px;max-width:300px;}
-.kur-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);
-  border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;}
-.kur-bar b{font-family:var(--font-display);}
-.kur-bar label{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12px;}
-.kur-bar input{height:28px;width:96px;padding:0 8px;border:1px solid var(--line-strong);border-radius:6px;
-  background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:12px;}
-.kur-bar .kur-kaynak{margin-left:auto;font-size:11px;color:var(--ink-3);font-style:normal;}
+  background:var(--surface-sunk);border:1px solid var(--line);border-radius:7px;padding:5px 9px;max-width:320px;}
+.mx-row .mx-aciklama{display:block;width:100%;box-sizing:border-box;margin-top:8px;min-height:40px;max-height:66px;
+  padding:9px 11px;border:1px dashed var(--line-strong);border-radius:7px;background:var(--surface-muted);
+  color:var(--ink);font-size:13px;font-family:inherit;resize:none;overflow-y:auto;line-height:1.4;
+  transition:border-color .14s ease,box-shadow .14s ease;}
+.mx-row .mx-aciklama:hover{border-color:var(--ink-3);}
+.mx-row .mx-aciklama:focus{outline:none;border-style:solid;border-color:var(--signal);box-shadow:0 0 0 3px rgba(255,107,22,.16);}
+.mx-row .mx-aciklama::placeholder{color:var(--ink-3);}
+
+/* + satır ekle */
+.add-line-btn{width:auto!important;min-width:0!important;display:inline-flex;align-items:center;gap:6px;
+  height:36px;padding:0 16px;background:var(--surface)!important;border:1px solid var(--signal)!important;
+  color:var(--signal-ink)!important;border-radius:8px;font-weight:650;font-size:13px;}
+.add-line-btn:hover{background:var(--signal-soft)!important;}
+.add-line-btn:active{transform:translateY(1px);}
+
+/* hızlı ekleme chipleri */
+.mx-chips{display:flex;flex-wrap:wrap;gap:6px 8px;margin:12px 0 2px;}
+.mx-chip{height:31px;padding:0 12px;border:1px solid var(--line);border-radius:999px;display:inline-flex;align-items:center;gap:5px;
+  background:var(--surface);color:var(--ink-2);font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;
+  transition:border-color .14s ease,background .14s ease,color .14s ease;}
+.mx-chip::before{content:'+';color:var(--ink-3);font-weight:700;}
+.mx-chip:hover{border-color:var(--signal);background:var(--signal-soft);color:var(--signal-ink);}
+.mx-chip:hover::before{color:var(--signal-ink);}
+
+/* tedarikçi fiyatları sekmesi */
 .mz-head,.mz-row{display:grid;grid-template-columns:minmax(180px,1fr) 92px 110px 92px 120px 32px;gap:8px;align-items:center;}
 .mz-head{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);padding:0 7px 6px;}
-.mz-row{padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
-.mz-row input,.mz-row select{height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:6px;
-  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
+.mz-row{padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;
+  transition:border-color .14s ease;}
+.mz-row:hover{border-color:var(--line-strong);}
+.mz-row input,.mz-row select{height:34px;padding:0 9px;border:1px solid var(--line-strong);border-radius:7px;
+  background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;transition:border-color .14s ease,box-shadow .14s ease;}
+.mz-row input:hover,.mz-row select:hover{border-color:var(--ink-3);}
+.mz-row input:focus,.mz-row select:focus{outline:none;border-color:var(--signal);box-shadow:0 0 0 3px rgba(255,107,22,.16);}
 .mz-row .mz-tl{font-family:var(--font-mono);font-weight:600;text-align:right;font-size:12px;color:var(--ink-2);}
-.mx-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;}
-.mx-chip{height:26px;padding:0 11px;border:1px dashed var(--line-strong);border-radius:999px;
-  background:var(--surface);color:var(--ink-2);font-size:11.5px;cursor:pointer;font-family:inherit;}
-.mx-chip:hover{border-style:solid;border-color:var(--ink);color:var(--ink);}
-.mx-ozet{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:14px 16px;}
-.mx-ozet .t-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);padding:5px 0;}
-.mx-ozet .t-row span:last-child{font-family:var(--font-mono);color:var(--ink);font-weight:600;}
-.mx-ozet .t-row.final{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;font-size:13.5px;}
+
+/* özet kartı */
+.mx-ozet{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;
+  box-shadow:0 4px 16px rgba(15,31,61,.035);}
+.mx-ozet h5{font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--ink-3);margin:0 0 12px;}
+.mx-ozet .t-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--ink-2);padding:5px 0;}
+.mx-ozet .t-row span:last-child{font-family:var(--font-mono);color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;text-align:right;}
+.mx-ozet .t-row.mx-toplam-satir span:last-child{font-size:27px;font-weight:750;color:var(--ink);}
+.mx-ozet .t-row.final{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;}
+.mx-ozet .t-row.final span:last-child{font-size:22px;font-weight:750;}
+.mx-marj-pill{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;
+  background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;}
+
+@media(max-width:768px){
+  .mx-row-top{flex-direction:column;}
+  .mx-row-id{flex:0 0 auto;width:100%;min-width:0;}
+  .mx-row-nums{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mx-field.mx-f-miktar input,.mx-field.mx-f-birim input,.mx-field.mx-f-tutar input{width:100%;}
+  .mx-row .li-remove{grid-column:1/-1;justify-self:end;}
+  .mx-chips{width:100%;}
+}
 .mx-bas{align-items:flex-start;}
 .mx-bas-aksiyon{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .mx-rozet{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:999px;background:var(--surface-sunk);color:var(--ink-2);font-size:12px;font-weight:700;letter-spacing:0;cursor:help;}
 .mx-kur-chip{height:40px;padding:0 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;cursor:pointer;font-family:inherit;}
 .mx-kur-chip:hover{border-color:var(--line-strong);background:var(--surface-muted);}
-.mx-kaydet{height:40px;}
-.mx-kaydet.kaydedildi,.mx-kaydet.nötr{background:var(--surface);color:var(--ink-2);border:1px solid var(--line);opacity:1;}
-.mx-kaydet.kaydediliyor{opacity:.75;}
-.mx-kaydet.hata{background:var(--risk);}
-.mx-kaydet:disabled{cursor:default;}
 /* adımlar */
 .mx-adimlar{display:flex;gap:28px;margin:6px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto;}
 .mx-adim{border:0;background:transparent;padding:4px 8px 12px;color:var(--ink-2);font-weight:650;font-size:13.5px;font-family:inherit;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;border-bottom:3px solid transparent;margin-bottom:-1px;}
@@ -2444,7 +2540,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14g';
+window.ROTA_SURUM = 'v2026-09-14h';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -11903,7 +11999,7 @@ function mxKaydetDurum(){
 function mxKaydetYenile(){
   const b = document.getElementById('mxKaydetBtn'); if(!b) return;
   const d = mxKaydetDurum();
-  b.textContent = (d.cls === 'aktif' ? '▣ ' : '') + d.metin; b.disabled = d.disabled; b.className = 'primary mx-kaydet ' + d.cls;
+  b.textContent = d.metin; b.disabled = d.disabled; b.className = 'mx-kaydet ' + d.cls;
 }
 function mxKaydet(){ if(typeof liveSave === 'function') liveSave(); mxKaydetYenile(); }
 window.addEventListener('beforeunload', e => {
@@ -11931,13 +12027,26 @@ function maliyetView(id){
       ${mxSkeletonHtml()}`;
   }
   const items = m.items;
+  const mxRozetMetni = { malzeme:'Malzeme', iscilik:'İşçilik', dis_hizmet:'Dış Hizmet' };
+  const mxPaketIkon = `<svg class="mx-row-ikon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>`;
   const rows = items.map((r, i) => r.aktif === false ? '' : `
     <div class="mx-row">
-      <input value="${notEsc(r.ad || '')}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mkGuncelle(${i},'ad',this.value)">
-      <input inputmode="decimal" value="${virgulYaz(r.miktar ?? 1)}" oninput="mkGuncelle(${i},'miktar',this.value)">
-      <input inputmode="decimal" value="${virgulYaz(r.fiyat ?? 0)}" oninput="mkGuncelle(${i},'fiyat',this.value)">
-      <input class="mx-tutar" id="mxTutar${i}" readonly value="${tl(r.toplamTL || 0)}">
-      <button class="li-remove" onclick="mkSatirSil(${i})">✕</button>
+      <div class="mx-row-top">
+        <div class="mx-row-id">
+          <span class="mx-row-label">Ürün / Maliyet Kalemi</span>
+          <div class="mx-row-name">
+            ${mxPaketIkon}
+            <input class="mx-ad-input" value="${notEsc(r.ad || '')}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mkGuncelle(${i},'ad',this.value)">
+            ${mxRozetMetni[r.grup] ? `<span class="mx-row-rozet">${mxRozetMetni[r.grup]}</span>` : ''}
+          </div>
+        </div>
+        <div class="mx-row-nums">
+          <div class="mx-field mx-f-miktar"><label>Miktar</label><input inputmode="decimal" value="${virgulYaz(r.miktar ?? 1)}" oninput="mkGuncelle(${i},'miktar',this.value)"></div>
+          <div class="mx-field mx-f-birim"><label>Birim Maliyet</label><input inputmode="decimal" value="${virgulYaz(r.fiyat ?? 0)}" oninput="mkGuncelle(${i},'fiyat',this.value)"></div>
+          <div class="mx-field mx-f-tutar"><label>Tutar</label><input class="mx-tutar" id="mxTutar${i}" readonly value="${tl(r.toplamTL || 0)}"></div>
+          <button class="li-remove" aria-label="Kalemi sil" title="Kalemi sil" onclick="mkSatirSil(${i})">✕</button>
+        </div>
+      </div>
       <div class="mx-olcu">📐
         <span class="mx-bagli" id="mxMz_${i}">${mkBagliHtml(r, i)}</span>
         <input inputmode="decimal" placeholder="En (cm)" value="${r.en ? virgulYaz(r.en) : ''}" oninput="mkOlcu(${i},'en',this.value)">
@@ -11945,12 +12054,12 @@ function maliyetView(id){
         <input inputmode="decimal" placeholder="Boy (cm)" value="${r.boy ? virgulYaz(r.boy) : ''}" oninput="mkOlcu(${i},'boy',this.value)">
         <span class="m2sonuc" id="mxM2_${i}">${mkOlcuMetni(r)}</span>
       </div>
-      <input class="mx-aciklama" value="${(r.not || '').replace(/"/g,'&quot;')}"
-        placeholder="Açıklama — ör. X firmasından alındı, özel iskontolu fiyattır"
-        oninput="mkGuncelle(${i},'not',this.value)">
+      <textarea class="mx-aciklama" rows="1"
+        placeholder="Açıklama / tedarikçi notu — ör. X firmasından alındı, özel iskontolu fiyattır"
+        oninput="mkGuncelle(${i},'not',this.value)">${notEsc(r.not || '')}</textarea>
     </div>`).join('');
   const solBlok = maliyetTab === 'fiyatlar' ? `
-      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
+      <div class="form-block" style="min-width:0; margin-bottom:0;">
         <div class="mz-head"><span>Malzeme</span><span>Birim</span><span>Fiyat</span><span>Döviz</span><span style="text-align:right;">Güncel ₺</span><span></span></div>
         ${MALZEME_FIYATLARI.map((mz, i) => `
         <div class="mz-row">
@@ -11969,9 +12078,8 @@ function maliyetView(id){
         <div class="hint" style="margin:10px 0 0;">Dövizli fiyatlar üstteki günlük satış kuruyla ₺'ye çevrilir ve maliyet satırlarına bu ₺ değeri yazılır.
         Buradaki fiyatlar tüm tekliflerde ortak kullanılır.</div>
       </div>` : `
-      <div class="form-block" style="flex:2.4; min-width:540px; margin-bottom:0;">
-        <div class="mx-head"><span>Kalem</span><span>Miktar</span><span>Birim Maliyet</span><span style="text-align:right;">Tutar</span><span></span></div>
-        ${rows}
+      <div class="form-block" style="min-width:0; margin-bottom:0;">
+        <div class="mx-liste">${rows}</div>
         <button class="add-line-btn" onclick="mkSatirEkle('')">+ Satır Ekle</button>
         <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
         <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mkSatirEkle('${a.replace(/'/g,"\\'")}')">${notEsc(a)}</button>`).join('')}</div>
@@ -11992,28 +12100,28 @@ function maliyetView(id){
         <div class="page-sub">${notEsc(q.no)} · ${notEsc(teklifMusteriAdi(q))} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
       </div>
       <div class="action-row">
-        <button id="mxKaydetBtn" class="primary mx-kaydet ${kaydet.cls}" ${kaydet.disabled ? 'disabled' : ''} onclick="mxKaydet()">${kaydet.cls === 'aktif' ? '▣ ' : ''}${kaydet.metin}</button>
+        <button id="mxKaydetBtn" class="mx-kaydet ${kaydet.cls}" ${kaydet.disabled ? 'disabled' : ''} onclick="mxKaydet()">${kaydet.metin}</button>
       </div>
     </div>
-    <div class="kur-bar">
-      💱 <b>Günlük Kur</b>
+    <div class="mx-kur-bar">
+      <b>💱 Günlük Kur</b>
       <label>$ Satış <input inputmode="decimal" value="${KURLAR.usd ? virgulYaz(KURLAR.usd) : ''}" placeholder="0" onchange="kurElleDegistir('usd', this.value)"></label>
       <label>€ Satış <input inputmode="decimal" value="${KURLAR.eur ? virgulYaz(KURLAR.eur) : ''}" placeholder="0" onchange="kurElleDegistir('eur', this.value)"></label>
-      <button class="btn" style="flex:0 0 auto;height:28px;font-size:11.5px;" onclick="kurGetir(true)">🔄 Güncelle</button>
+      <button class="mx-kur-guncelle" onclick="kurGetir(true)">🔄 Güncelle</button>
       <span class="kur-kaynak">${KURLAR.kaynak ? notEsc(KURLAR.kaynak) + (KURLAR.tarih ? ' · ' + notEsc(KURLAR.tarih) : '') : 'Kur henüz alınmadı — Güncelle deyin ya da elle girin.'}</span>
     </div>
-    <div class="hp-mod" style="margin-bottom:12px;display:inline-flex;">
-      <button class="${maliyetTab === 'kalemler' ? 'on' : ''}" onclick="maliyetTab='kalemler'; renderContent();">Maliyet Kalemleri</button>
-      <button class="${maliyetTab === 'fiyatlar' ? 'on' : ''}" onclick="maliyetTab='fiyatlar'; renderContent();">Tedarikçi Fiyatları</button>
+    <div class="mx-sekmeler">
+      <button class="mx-sekme ${maliyetTab === 'kalemler' ? 'on' : ''}" onclick="maliyetTab='kalemler'; renderContent();">Maliyet Kalemleri</button>
+      <button class="mx-sekme ${maliyetTab === 'fiyatlar' ? 'on' : ''}" onclick="maliyetTab='fiyatlar'; renderContent();">Tedarikçi Fiyatları</button>
     </div>
-    <div class="body-two" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+    <div class="mx-layout">
       ${solBlok}
-      <div class="mx-ozet" style="flex:1; min-width:260px;">
-        <h5 style="font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-3);margin:0 0 10px;">Özet</h5>
-        <div class="t-row"><span>Toplam Maliyet:</span><span id="mxToplam">${tl(maliyet)}</span></div>
+      <div class="mx-ozet">
+        <h5>Özet</h5>
+        <div class="t-row mx-toplam-satir"><span>Toplam Maliyet:</span><span id="mxToplam">${tl(maliyet)}</span></div>
         <div class="t-row"><span>Teklif Tutarı (KDV hariç):</span><span>${tl(satisTutari)}</span></div>
         <div class="t-row final"><span>Öngörülen Kâr:</span><span id="mxKar" style="color:${kar >= 0 ? 'var(--ok)' : 'var(--risk)'};">${tl(kar)}</span></div>
-        <div class="t-row"><span>Kâr Marjı:</span><span id="mxMarj">${marj === null ? '—' : '%' + Math.round(marj)}</span></div>
+        <div class="t-row"><span>Kâr Marjı:</span><span id="mxMarj" class="mx-marj-pill">${marj === null ? '—' : '%' + Math.round(marj)}</span></div>
         <div class="hint" style="margin:12px 0 0;">Kâr, teklifin KDV hariç toplamından maliyet düşülerek hesaplanır.</div>
       </div>
     </div>
@@ -12066,7 +12174,7 @@ function mkSatirEkle(ad){
   }
   mxSatirHesapla(r, mxKur(q));
   renderContent();
-  const inputs = document.querySelectorAll('.mx-row input:first-child');
+  const inputs = document.querySelectorAll('.mx-ad-input');
   const son = inputs[inputs.length - 1]; if(son && !ad) son.focus();
 }
 function mkSatirSil(i){
