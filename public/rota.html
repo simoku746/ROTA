@@ -2540,7 +2540,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14l';
+window.ROTA_SURUM = 'v2026-09-14n';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2561,8 +2561,25 @@ function veriOnar(){
   }
   // (2026-09-14k) Araç yakıt giderleri için "Yakıt" kategorisi — gider formunda bu kategori seçilince plaka alanı açılır
   // ve gider, Araçlarım'daki o aracın gider dökümüne bağlanır. Kullanıcı kendi "Yakıt" kategorisini açtıysa tekrar eklenmez.
-  if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && String(k.ad).toLowerCase() === 'yakıt')){
+  // (2026-09-14n) Karşılaştırma toLocaleLowerCase('tr') ile yapılıyor — düz toLowerCase() kullanıldığında kullanıcının
+  // "YAKIT" yazımı 'yakit' olup 'yakıt' ile eşleşmiyor ve İKİNCİ bir "Yakıt" kategorisi ekleniyordu.
+  if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && trKucuk(k.ad) === 'yakıt')){
     KATEGORILER.push({ id: benzersizId('kd'), ad:'Yakıt', tip:'gider', sistem:true }); degisti = true;
+  }
+  // (2026-09-14n) Yukarıdaki hata yüzünden kullanıcının "YAKIT" kategorisinin yanına eklenmiş olabilecek ikinci
+  // (sistem) "Yakıt" kategorisi temizlenir. Güvenlik: yalnız sistem tarafından eklenen kayıt ve YALNIZCA hiçbir
+  // gelir/gider/sabit gider kaydı bu kategoriyi kullanmıyorsa silinir — kullanıcının kendi kategorisine dokunulmaz.
+  if(Array.isArray(KATEGORILER)){
+    const yakitlar = KATEGORILER.filter(k => k.tip === 'gider' && trKucuk(k.ad) === 'yakıt');
+    if(yakitlar.length > 1){
+      const kullanimda = id => (GIDERLER || []).some(x => x.kategoriId === id) || (GELIRLER || []).some(x => x.kategoriId === id);
+      const kullanicininki = yakitlar.find(k => !k.sistem) || yakitlar[0];
+      yakitlar.forEach(k => {
+        if(k === kullanicininki || !k.sistem || kullanimda(k.id)) return;
+        KATEGORILER = KATEGORILER.filter(x => x !== k);
+        degisti = true;
+      });
+    }
   }
   // (2026-09-14g) Lightbox sihirbazı için otomatik eklenen 6 malzeme türü artık STANDART olarak eklenmiyor —
   // kullanıcı isteği: "standart default gelmesin". Daha önce otomatik eklenmiş ama kullanıcının hiç dokunmadığı
@@ -2701,6 +2718,36 @@ function veriOnar(){
         degisti = true;
       }
     }
+  });
+  // (2026-09-14m) Dekant banka hesapları — kullanıcının BANKA HESAPLARI.xlsx dosyasından aktarıldı.
+  // "Hesap Tipi" sütunu (hepsi TİCARİ) kullanıcı isteğiyle ALINMADI. Bakiyesi boş olan 2 hesap 0 ile başlar.
+  // İsim bazlı idempotent: aynı adla bir hesap zaten varsa yeniden eklenmez ve mevcut kayda DOKUNULMAZ
+  // (kullanıcının bakiyesi/hareketleri korunur). Dosyadaki iki kayıt yalnızca "YAPI KREDİ"/"YAPIKREDİ"
+  // yazımıyla ayrıldığı için adlar dosyadaki gibi BİREBİR bırakıldı, birleştirilmedi.
+  const baHesapSade = s => String(s || '').trim().toLocaleUpperCase('tr').replace(/\s+/g, ' ');
+  [
+    { name:'YAPIKREDİ',                      sube:'MURATPAŞA',           hesapNo:'403333011',    currency:'TL', balance:-205507.58 },
+    { name:'ZİRAAT BANKASI',                 sube:'ASPENDOS BULVARI',    hesapNo:'97613419-5001',currency:'TL', balance:25694.90 },
+    { name:'YAPI KREDİ DOLAR',               sube:'MURATPAŞA',           hesapNo:'',             currency:'$',  balance:0 },
+    { name:'YAPI KREDİ EURO',                sube:'MURATPAŞA',           hesapNo:'',             currency:'€',  balance:-14027.82 },
+    { name:'GARANTİ BANKASI',                sube:'AKDENİZ SANAYİ ŞUBE', hesapNo:'6292515',      currency:'TL', balance:18856.06 },
+    { name:'GARANTİ BANKASI EURO',           sube:'AKDENİZ SANAYİ ŞUBE', hesapNo:'9084016',      currency:'€',  balance:0 },
+    { name:'GARANTİ DİĞER KREDİ',            sube:'AKDENİZ SANAYİ',      hesapNo:'6292412',      currency:'TL', balance:2986940.69 },
+    { name:'GARANTİ BANKASI VADELİ HESAP',   sube:'AKDENİZ SANAYİ',      hesapNo:'6397886',      currency:'TL', balance:367114.21 },
+    { name:'GARANTİ BANKASI VADELİ HESAP 2', sube:'AKDENİZ SANAYİ',      hesapNo:'6397882',      currency:'TL', balance:-325211.46 },
+    { name:'GARANTİ BANKASI YATIRIM HESABI', sube:'AKDENİZ SANAYİ',      hesapNo:'6397733',      currency:'TL', balance:6737344.09 },
+    { name:'YAPIKREDİ BANKASI YATIRIM',      sube:'MURATPAŞA',           hesapNo:'25103326',     currency:'TL', balance:-7374610.11 },
+    { name:'GARANTİ BANKASI YATIRIM DİĞER',  sube:'AKDENİZ SANAYİ',      hesapNo:'6291797',      currency:'TL', balance:-11057898.75 },
+    { name:'GARANTİ BANKASI YENİ VADELİ HE', sube:'AKDENİZ SANAYİ',      hesapNo:'6397606',      currency:'TL', balance:77946.60 },
+    { name:'YAPI KREDİ VADELİ HESAP',        sube:'MURATPAŞA',           hesapNo:'',             currency:'TL', balance:29089971.11 },
+    { name:'GARANTİ BANKASI MEVDUAT',        sube:'AKDENİZ SANAYİ',      hesapNo:'6397458',      currency:'TL', balance:20030.42 },
+    { name:'YAPIKREDİ VADELİ HESAP',         sube:'MURATPAŞA',           hesapNo:'',             currency:'TL', balance:-4490000 },
+  ].forEach(def => {
+    if(!Array.isArray(BANK_ACCOUNTS)) return;
+    if(BANK_ACCOUNTS.some(x => baHesapSade(x.name) === baHesapSade(def.name))) return;
+    BANK_ACCOUNTS.push({ id: benzersizId('ba'), name: def.name, sube: def.sube, hesapNo: def.hesapNo,
+      currency: def.currency, balance: def.balance });
+    degisti = true;
   });
   const gorulen = new Set();
   QUOTES.forEach(q => {
@@ -6574,9 +6621,15 @@ function kategoriSelectHtml(id, tip, secili, onchange){
 // Yakıt (ve benzeri araç) kategorisi seçilince gider formunda plaka alanı açılır; seçilen araç gidere `aracId`
 // olarak yazılır. Gider KOPYALANMAZ — Araçlarım'daki döküm bu bağlantıyı okuyarak aynı kaydı gösterir, böylece
 // gider düzenlenince/silinince araç dökümü de kendiliğinden güncel kalır (tek kaynak).
+// DİKKAT (2026-09-14n): Kategori adı karşılaştırmasında MUTLAKA toLocaleLowerCase('tr') kullanılmalı.
+// JS'in varsayılan küçültmesi Türkçe noktalı/noktasız i'yi karıştırır: 'YAKIT'.toLowerCase() → 'yakit' (noktalı),
+// bu da 'yakıt' (noktasız) ile eşleşmez; /yakıt/i.test('YAKIT') de false döner. Kullanıcı kategorisini "YAKIT"
+// diye büyük harfle yazdığı için plaka alanı hiç açılmıyordu.
+function trKucuk(s){ return String(s == null ? '' : s).toLocaleLowerCase('tr'); }
 function aracKategorisiMi(katId){
   if(!katId) return false;
-  return /yakıt|akaryakit|akaryakıt|araç|arac/i.test(kategoriAdi(katId));
+  const ad = trKucuk(kategoriAdi(katId));
+  return /yakıt|yakit|akaryakıt|akaryakit|araç|arac/.test(ad);
 }
 function aracSecSecenekleri(secili){
   return ['<option value="">— Araç seçilmedi —</option>']
@@ -8454,11 +8507,13 @@ function finYaklasanIslemler(gun){
   return out.sort((x, y) => x.ms - y.ms);
 }
 function kasaBankaView(){
-  const kasaUsd = KASA_ACCOUNTS.filter(a=>a.currency==='$').reduce((s,a)=>s+a.balance,0);
-  const kasaTl = KASA_ACCOUNTS.filter(a=>a.currency==='TL').reduce((s,a)=>s+a.balance,0);
-  const bankTl = BANK_ACCOUNTS.filter(a=>a.currency==='TL').reduce((s,a)=>s+a.balance,0);
-  const bankUsd = BANK_ACCOUNTS.filter(a=>a.currency==='$').reduce((s,a)=>s+a.balance,0);
+  const bakiyeTopla = (liste, para) => liste.filter(a => (a.currency || 'TL') === para).reduce((s,a) => s + (Number(a.balance) || 0), 0);
+  const kasaUsd = bakiyeTopla(KASA_ACCOUNTS, '$');
+  const kasaTl  = bakiyeTopla(KASA_ACCOUNTS, 'TL');
+  const bankTl  = bakiyeTopla(BANK_ACCOUNTS, 'TL');
+  const bankUsd = bakiyeTopla(BANK_ACCOUNTS, '$');
   const genelUsd = kasaUsd + bankUsd;
+  const genelEur = bakiyeTopla(KASA_ACCOUNTS, '€') + bakiyeTopla(BANK_ACCOUNTS, '€');   // (2026-09-14m) EUR hesaplar
   const genelTl = kasaTl + bankTl;
   const aylar = finSon6Ay();
   const seri = aylar.map(a => ({ ...a, tahsilat: 0, odeme: 0 }));
@@ -8473,8 +8528,10 @@ function kasaBankaView(){
   const yaklasan = finYaklasanIslemler(30).slice(0, 8);
   const oran = (a, b) => b ? Math.round((a - b) / b * 100) : null;
   const tOran = oran(buAy.tahsilat, gecenAy ? gecenAy.tahsilat : 0), oOran = oran(buAy.odeme, gecenAy ? gecenAy.odeme : 0);
-  const hesapSatir = (a, tur) => `<tr><td><strong>${notEsc(a.name)}</strong><small>${tur === 'kasa' ? 'Kasa hesabı' : 'Banka hesabı'}</small></td>
-      <td class="money">${a.balance.toLocaleString('tr-TR',{minimumFractionDigits:2})} ${a.currency}</td>
+  const hesapSatir = (a, tur) => `<tr><td><strong>${notEsc(a.name)}</strong><small>${
+        [tur === 'kasa' ? 'Kasa hesabı' : 'Banka hesabı', notEsc(a.sube || ''), a.hesapNo ? 'No: ' + notEsc(a.hesapNo) : '']
+          .filter(Boolean).join(' · ')}</small></td>
+      <td class="money">${(Number(a.balance) || 0).toLocaleString('tr-TR',{minimumFractionDigits:2})} ${a.currency}</td>
       <td class="sag" style="white-space:nowrap;"><span class="mini-islem" title="Düzenle" onclick="openAccountModal('${tur}','${a.id}')">✎</span><span class="mini-islem sil" title="Sil" onclick="deleteAccount('${tur}','${a.id}')">✕</span></td></tr>`;
   return `
     <div class="page-head">
@@ -8487,7 +8544,7 @@ function kasaBankaView(){
       </div>
     </div>
     <div class="metric-grid">
-      <div class="metric"><div class="metric-top"><span>Kasa & banka</span><span class="metric-icon">₺</span></div><strong>${tl(genelTl)}</strong><small>${KASA_ACCOUNTS.length + BANK_ACCOUNTS.length} hesap${genelUsd ? ' · $ ' + genelUsd.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}</small></div>
+      <div class="metric"><div class="metric-top"><span>Kasa & banka</span><span class="metric-icon">₺</span></div><strong>${tl(genelTl)}</strong><small>${KASA_ACCOUNTS.length + BANK_ACCOUNTS.length} hesap${genelUsd ? ' · $ ' + genelUsd.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}${genelEur ? ' · € ' + genelEur.toLocaleString('tr-TR',{minimumFractionDigits:2}) : ''}</small></div>
       <div class="metric"><div class="metric-top"><span>Bu ay tahsilat</span><span class="metric-icon green">↙</span></div><strong style="color:var(--ok);">${tl(buAy.tahsilat)}</strong><small class="${tOran !== null && tOran >= 0 ? 'trend' : ''}">${tOran === null ? 'geçen ay kayıt yok' : (tOran >= 0 ? '+' : '') + tOran + '% geçen aya göre'}</small></div>
       <div class="metric"><div class="metric-top"><span>Bu ay ödeme</span><span class="metric-icon red">↗</span></div><strong style="color:var(--risk);">${tl(buAy.odeme)}</strong><small class="${oOran !== null && oOran > 0 ? 'risk' : ''}">${oOran === null ? 'geçen ay kayıt yok' : (oOran >= 0 ? '+' : '') + oOran + '% geçen aya göre'}</small></div>
       <div class="metric"><div class="metric-top"><span>Beklenen net</span><span class="metric-icon blue">◎</span></div><strong>${chTL(tahsilK - odemeK)}</strong><small>${chTL(tahsilK)} tahsil · ${chTL(odemeK)} ödeme</small></div>
@@ -8548,6 +8605,7 @@ function kasaBankaView(){
           <div class="finance-row"><span>₺</span><div class="fr-metin"><strong>TL Kasa</strong><small>${KASA_ACCOUNTS.filter(a=>a.currency==='TL').length} hesap</small></div><span class="money">${tl(kasaTl)}</span></div>
           <div class="finance-row"><span>₺</span><div class="fr-metin"><strong>TL Banka</strong><small>${BANK_ACCOUNTS.filter(a=>a.currency==='TL').length} hesap</small></div><span class="money">${tl(bankTl)}</span></div>
           ${genelUsd ? `<div class="finance-row"><span>$</span><div class="fr-metin"><strong>Döviz ($)</strong><small>kasa + banka</small></div><span class="money">$ ${genelUsd.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>` : ''}
+          ${genelEur ? `<div class="finance-row"><span>€</span><div class="fr-metin"><strong>Döviz (€)</strong><small>kasa + banka</small></div><span class="money">€ ${genelEur.toLocaleString('tr-TR',{minimumFractionDigits:2})}</span></div>` : ''}
           <div class="finance-row"><span>Σ</span><div class="fr-metin"><strong>TL Genel Toplam</strong><small>tüm hesaplar</small></div><span class="money pos">${tl(genelTl)}</span></div>
         </div>
       </section>
@@ -8610,28 +8668,43 @@ function openAccountModal(tur, id){
     <div class="modal-head"><h2>${a ? 'Hesabı Düzenle' : 'Yeni Hesap'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="field"><label>Hesap Adı</label><input id="accName" value="${a ? notEsc(a.name) : ''}" placeholder="Örn. Merkez Kasa"></div>
     <div class="field-row">
-      <div class="field"><label>Tür</label><select id="accType" ${a ? 'disabled' : ''}>
+      <div class="field"><label>Tür</label><select id="accType" ${a ? 'disabled' : ''} onchange="accBankaAlanlariTazele()">
         <option value="kasa" ${tur === 'kasa' ? 'selected' : ''}>Kasa</option>
         <option value="banka" ${tur === 'banka' ? 'selected' : ''}>Banka</option></select></div>
       <div class="field"><label>Para Birimi</label><select id="accCurrency">
         <option value="TL" ${a && a.currency === 'TL' ? 'selected' : ''}>TL</option>
-        <option value="$" ${a && a.currency === '$' ? 'selected' : ''}>$</option></select></div>
+        <option value="$" ${a && a.currency === '$' ? 'selected' : ''}>$</option>
+        <option value="€" ${a && a.currency === '€' ? 'selected' : ''}>€</option></select></div>
     </div>
-    <div class="field"><label>${a ? 'Bakiye' : 'Başlangıç Bakiyesi'}</label><input id="accBalance" type="number" value="${a ? a.balance : 0}"></div>
+    <div class="field-row" id="accBankaAlanlari" style="${(a ? tur : (tur || 'kasa')) === 'banka' ? '' : 'display:none;'}">
+      <div class="field"><label>Şube <span style="color:var(--ink-3);font-weight:400;">(isteğe bağlı)</span></label>
+        <input id="accSube" value="${a ? notEsc(a.sube || '') : ''}" placeholder="Örn. Muratpaşa"></div>
+      <div class="field"><label>Hesap No <span style="color:var(--ink-3);font-weight:400;">(isteğe bağlı)</span></label>
+        <input id="accHesapNo" value="${a ? notEsc(a.hesapNo || '') : ''}" placeholder="Örn. 6292515"></div>
+    </div>
+    <div class="field"><label>${a ? 'Bakiye' : 'Başlangıç Bakiyesi'}</label><input id="accBalance" type="number" step="0.01" value="${a ? a.balance : 0}"></div>
     <button class="modal-submit" onclick="submitAccount('${tur || ''}','${a ? a.id : ''}')">${a ? 'Kaydet' : 'Hesabı Ekle'}</button>
   `;
   showModal();
+}
+// Şube / Hesap No yalnız banka hesabı için anlamlı — tür değişince göster/gizle
+function accBankaAlanlariTazele(){
+  const t = document.getElementById('accType'), alan = document.getElementById('accBankaAlanlari');
+  if(!t || !alan) return;
+  alan.style.display = t.value === 'banka' ? '' : 'none';
 }
 function submitAccount(tur, id){
   const name = document.getElementById('accName').value.trim();
   if(!name) return;
   const currency = document.getElementById('accCurrency').value;
   const balance = Number(document.getElementById('accBalance').value) || 0;
+  const deger = x => { const el = document.getElementById(x); return el ? el.value.trim() : ''; };
   const a = id ? hesapBul(tur, id) : null;
-  if(a){ a.name = name; a.currency = currency; a.balance = balance; }
+  if(a){ a.name = name; a.currency = currency; a.balance = balance; a.sube = deger('accSube'); a.hesapNo = deger('accHesapNo'); }
   else {
     const type = document.getElementById('accType').value;
-    (type === 'kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS).push({ id: benzersizId(type === 'kasa' ? 'ka' : 'ba'), name, balance, currency });
+    (type === 'kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS).push({ id: benzersizId(type === 'kasa' ? 'ka' : 'ba'), name, balance, currency,
+      sube: type === 'banka' ? deger('accSube') : '', hesapNo: type === 'banka' ? deger('accHesapNo') : '' });
   }
   closeModal(); renderContent();
   showToast(a ? `${name} güncellendi.` : `${name} eklendi.`);
@@ -9417,11 +9490,14 @@ function aracGiderBaginiKaldir(vid, gid){
   showToast('Gider bu araçtan ayrıldı — kayıt Giderler\'de duruyor.');
 }
 function vehicleCardHtml(v){
+  // (2026-09-14n) Rozetler tarih sırasına göre dizilir. "Ödendi" işaretlileri sona atan eski sıralama,
+  // 4 rozetlik sınır yüzünden kasko/trafik rozetlerini karttan tamamen düşürüyor ve tarih hiç girilmemiş
+  // gibi gösteriyordu (kullanıcı bildirimi). Sınır 3'ten 4'e çıkarıldı ki 7 alanın önemli olanları sığsın.
   const chips = DATE_FIELDS
     .map(f => ({ f:f, n:daysLeft(v.dates[f.key]), odendi:tarihOdendiMi(v, f.key) }))
     .filter(x => x.n !== null)
-    .sort((a,b) => (a.odendi === b.odendi ? a.n - b.n : (a.odendi ? 1 : -1)))   // ödenmişler sona
-    .slice(0,3)
+    .sort((a,b) => a.n - b.n)
+    .slice(0,4)
     .map(x => { const st = x.odendi ? { cls:'ok', text:'ödendi' } : dueStatus(x.n);
       return `<span class="v-chip ${st.cls}">${x.f.short}: ${st.text}</span>`; }).join('');
   const totalExp = aracGiderToplam(v);
