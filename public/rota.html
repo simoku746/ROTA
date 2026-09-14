@@ -564,6 +564,7 @@ tr:last-child td{border-bottom:none;}
 .tf-totals,.totals{display:flex;flex-direction:column;align-items:flex-end;gap:3px;
   font-family:var(--font-mono);font-size:12px;color:var(--ink-2);padding:10px 4px 0;}
 .tf-totals .grand,.totals b{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);}
+.tf-totals span.iskonto,.quote-summary .tf-totals>div.iskonto strong,.qd-toplam .sat.iskonto b{color:var(--risk);}
 
 .islem-item{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 12px;
   background:none;border:none;text-align:left;cursor:pointer;font-size:12.5px;color:var(--ink);}
@@ -2367,7 +2368,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-12h';
+window.ROTA_SURUM = 'v2026-09-14a';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2386,6 +2387,20 @@ function veriOnar(){
   if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && String(k.ad).toLowerCase() === 'kartlı alışveriş')){
     KATEGORILER.push({ id: benzersizId('kd'), ad:'Kartlı Alışveriş', tip:'gider', sistem:true }); degisti = true;
   }
+  // Lightbox sihirbazı için gereken malzeme türleri fiyat listesinde yoksa eklenir (fiyat 0 — kullanıcı girer)
+  [
+    { ad:'Lightbox Kasa Profili (6m)', birim:'adet', para:'TL' },
+    { ad:'Köşe Aparatı',               birim:'adet', para:'TL' },
+    { ad:'Trafo',                      birim:'adet', para:'TL' },
+    { ad:'Işıklı Kumaş Baskı (UV)',    birim:'m²',   para:'TL' },
+    { ad:'Kompozit Panel 4mm',         birim:'m²',   para:'TL' },
+    { ad:'Forex Panel 8mm',            birim:'m²',   para:'TL' },
+  ].forEach(def => {
+    if(Array.isArray(MALZEME_FIYATLARI) && !MALZEME_FIYATLARI.some(mz => String(mz.ad || '').trim().toLowerCase() === def.ad.toLowerCase())){
+      MALZEME_FIYATLARI.push({ id: benzersizId('mz'), ad: def.ad, birim: def.birim, fiyat:0, para: def.para, tedarikci:'', tarih:'' });
+      degisti = true;
+    }
+  });
   const gorulen = new Set();
   QUOTES.forEach(q => {
     if(gorulen.has(q.id)){
@@ -10910,6 +10925,16 @@ function teklifEkleForm(){
             <div id="lineItemsBox"></div>
           </div>
           <div class="collapse-link" onclick="addLineItem()">+ Yeni Satır</div>
+          <div class="tf-iskonto-row" style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
+            <label style="font-size:13px;color:var(--navy-muted);font-weight:600;">İskonto</label>
+            <select id="qIskontoTip" onchange="updateGrandTotals()" style="width:auto;min-width:90px;">
+              <option value="yuzde" ${(editing?.iskontoTip || 'yuzde') === 'yuzde' ? 'selected' : ''}>Yüzde (%)</option>
+              <option value="tutar" ${editing?.iskontoTip === 'tutar' ? 'selected' : ''}>Tutar</option>
+            </select>
+            <input id="qIskontoDeger" inputmode="decimal" placeholder="0" style="width:100px;"
+              value="${editing && editing.iskontoDeger ? virgulYaz(editing.iskontoDeger) : ''}" oninput="updateGrandTotals()">
+            <span class="hint" style="margin:0;">Ara toplamdan düşülür, KDV indirimli tutar üzerinden hesaplanır.</span>
+          </div>
           <div class="tf-totals" id="totalsBox" style="display:none;"></div>
         </section>
 
@@ -11012,9 +11037,28 @@ function parseDims(text){
   return { w: Math.round(a*f*10)/10, h: Math.round(b*f*10)/10 };
 }
 
-function quoteTotal(q){ return q.items.reduce((s,i)=> s + lineGross(i), 0); }
-function quoteSub(q){ return q.items.reduce((s,i)=> s + lineNet(i), 0); }
+// İskonto (indirim): q.iskontoTip 'tutar'|'yuzde', q.iskontoDeger sayı. Ara toplam üzerinden, KDV hesaplanmadan
+// ÖNCE uygulanır — her satırın net tutarı aynı oranda indirilir, KDV o indirimli tutar üzerinden hesaplanır
+// (farklı KDV oranlı satırlar karışsa bile doğru sonuç verir).
+function quoteHamSub(q){ return q.items.reduce((s,i)=> s + lineNet(i), 0); }        // indirimsiz Ara Toplam
+function quoteIskontoOrani(q){
+  const ham = quoteHamSub(q);
+  const deger = Number(q.iskontoDeger) || 0;
+  if(ham <= 0 || deger <= 0) return 0;
+  let tutar = q.iskontoTip === 'tutar' ? deger : ham * deger / 100;
+  tutar = Math.min(Math.max(tutar, 0), ham);
+  return tutar / ham;
+}
+function quoteIskontoTutari(q){ return quoteHamSub(q) * quoteIskontoOrani(q); }
+function quoteTotal(q){
+  const oran = quoteIskontoOrani(q);
+  return q.items.reduce((s,i)=> s + lineNet(i) * (1 - oran) * (1 + (Number(i.kdv)||0)/100), 0);
+}
+function quoteSub(q){ return quoteHamSub(q) - quoteIskontoTutari(q); }              // indirimli Ara Toplam
 function quoteKdvAmount(q){ return quoteTotal(q) - quoteSub(q); }
+function teklifIskontoEtiketi(q){
+  return q.iskontoTip === 'tutar' ? 'İskonto' : `İskonto (%${virgulYaz(q.iskontoDeger)})`;
+}
 
 let quoteLineItems = [];
 const CURRENCY_SYMBOLS = { TL:'₺', USD:'$', EUR:'€' };
@@ -11253,13 +11297,28 @@ function syncRow(idx){
 }
 function updateGrandTotals(){
   const sym = CURRENCY_SYMBOLS[quoteCurrency];
-  const sub = quoteLineItems.reduce((s,i)=>s+lineNet(i),0);
-  const total = quoteLineItems.reduce((s,i)=>s+lineGross(i),0);
+  const ham = quoteLineItems.reduce((s,i)=>s+lineNet(i),0);        // iskonto öncesi Ara Toplam
+  const tipEl = document.getElementById('qIskontoTip');
+  const degerEl = document.getElementById('qIskontoDeger');
+  const iskontoTip = tipEl ? tipEl.value : 'yuzde';
+  const iskontoDeger = degerEl ? virgulSayi(degerEl.value) : 0;
+  let iskontoTutar = 0;
+  if(ham > 0 && iskontoDeger > 0){
+    iskontoTutar = iskontoTip === 'tutar' ? iskontoDeger : ham * iskontoDeger / 100;
+    iskontoTutar = Math.min(Math.max(iskontoTutar, 0), ham);       // ara toplamdan fazla indirim olamaz
+  }
+  const oran = ham > 0 ? iskontoTutar / ham : 0;
+  const sub = ham - iskontoTutar;                                  // iskontolu Ara Toplam (KDV'nin üzerinden hesaplandığı tutar)
+  const total = quoteLineItems.reduce((s,i)=> s + lineNet(i) * (1 - oran) * (1 + (Number(i.kdv)||0)/100), 0);
+  const iskontoEtiketi = iskontoTip === 'tutar' ? 'İskonto' : `İskonto (%${virgulYaz(iskontoDeger)})`;
   const totalsBox = document.getElementById('totalsBox');
-  if(totalsBox) totalsBox.innerHTML = `<span>Ara Toplam: ${sym}${sub.toLocaleString('tr-TR')}</span><span>Toplam KDV: ${sym}${Math.round(total-sub).toLocaleString('tr-TR')}</span><span class="grand">Genel Toplam: ${sym}${Math.round(total).toLocaleString('tr-TR')}</span>`;
+  if(totalsBox) totalsBox.innerHTML = `<span>Ara Toplam: ${sym}${Math.round(ham).toLocaleString('tr-TR')}</span>`
+    + (iskontoTutar > 0 ? `<span class="iskonto">${iskontoEtiketi}: −${sym}${Math.round(iskontoTutar).toLocaleString('tr-TR')}</span>` : '')
+    + `<span>Toplam KDV: ${sym}${Math.round(total-sub).toLocaleString('tr-TR')}</span><span class="grand">Genel Toplam: ${sym}${Math.round(total).toLocaleString('tr-TR')}</span>`;
   // Sağdaki sabit Teklif Özeti paneli (aynı değerler, yalnız sunum)
   const ozet = document.getElementById('totalsBoxOzet');
-  if(ozet) ozet.innerHTML = `<div><span>Ara toplam</span><strong>${sym}${sub.toLocaleString('tr-TR',{minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
+  if(ozet) ozet.innerHTML = `<div><span>Ara toplam</span><strong>${sym}${ham.toLocaleString('tr-TR',{minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
+    ${iskontoTutar > 0 ? `<div class="iskonto"><span>${iskontoEtiketi}</span><strong>−${sym}${iskontoTutar.toLocaleString('tr-TR',{minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>` : ''}
     <div><span>KDV</span><strong>${sym}${(total-sub).toLocaleString('tr-TR',{minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
     <div class="grand"><span>GENEL TOPLAM</span><strong>${sym}${total.toLocaleString('tr-TR',{minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>`;
 }
@@ -11338,6 +11397,10 @@ function submitQuote(){
   const gecEl = document.getElementById('qGecerlilik');
   const gecerlilik = gecEl && gecEl.value ? gecEl.value : (editingQuoteId ? ((QUOTES.find(x=>x.id===editingQuoteId)||{}).gecerlilik || '') : isoPlus(60));
   const kosullar = (quoteKosullar || []).map(r => ({ k: String(r.k || '').trim(), v: String(r.v || '').trim() })).filter(r => r.k);
+  const iskontoTipEl = document.getElementById('qIskontoTip');
+  const iskontoDegerEl = document.getElementById('qIskontoDeger');
+  const iskontoTip = iskontoTipEl ? iskontoTipEl.value : 'yuzde';
+  const iskontoDeger = iskontoDegerEl ? virgulSayi(iskontoDegerEl.value) : 0;
   const items = quoteLineItems.filter(i=>i.title);
   items.forEach(it => { delete it._detayKapatildi; if(typeof it.detail === 'string') it.detail = it.detail.replace(/\s+$/,''); });
   // Teklifte yazılan yeni ürünler kataloğa eklenir — sonraki tekliflerde ilk harften otomatik tamamlanır
@@ -11352,7 +11415,7 @@ function submitQuote(){
   let targetId;
   if(editingQuoteId){
     const q = QUOTES.find(x=>x.id===editingQuoteId);
-    q.customerId = customerId; q.repName = repName; q.girisMetni = girisMetni; q.notlar = notlar; q.items = items; q.currency = quoteCurrency; q.kdvMode = kdvMode; q.kosullar = kosullar; q.gecerlilik = gecerlilik;
+    q.customerId = customerId; q.repName = repName; q.girisMetni = girisMetni; q.notlar = notlar; q.items = items; q.currency = quoteCurrency; q.kdvMode = kdvMode; q.kosullar = kosullar; q.gecerlilik = gecerlilik; q.iskontoTip = iskontoTip; q.iskontoDeger = iskontoDeger;
     q.musteriAdi = (CUSTOMERS.find(c => c.id === customerId) || {}).name || q.musteriAdi;
     targetId = q.id;
     showToast(`Teklif No: ${q.no} güncellendi.`);
@@ -11363,7 +11426,7 @@ function submitQuote(){
       date: new Date().toISOString().slice(0,10), // teklif tarihi her zaman bugün, otomatik
       status:'Taslak', girisMetni, notlar, items, kdvMode, kosullar,
       tur:'Satış Teklifi', sonuc:'Sonuçlandırılmamış', etiketler:[],
-      gecerlilik,
+      gecerlilik, iskontoTip, iskontoDeger,
       musteriAdi: (CUSTOMERS.find(c => c.id === customerId) || {}).name || '',
     };
     QUOTES.push(q);
@@ -11514,7 +11577,7 @@ function mxKurlaYenile(){
 }
 
 // ---- Veri modeli / geriye uyumlu dönüşüm ----
-const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası'];
+const HAZIR_MALIYET_KALEMLERI = ['Folyo Baskı','Dijital Baskı','Kutu Harf','Pleksi','Alüminyum Profil','LED Modül','Trafo','Vida','Dübel','Silikon','Boya','Elektrik Malzemesi','Montaj İşçiliği','Nakliye','Vinç Kirası','Lightbox Kasa Profili (6m)','Köşe Aparatı','Işıklı Kumaş Baskı (UV)','Kompozit Panel 4mm','Forex Panel 8mm'];
 function mxGrupTahmin(ad){
   const a = String(ad || '').toLowerCase();
   if(/işçilik|iscilik|montaj|usta|ekip|atölye|atolye/.test(a)) return 'iscilik';
@@ -11613,7 +11676,10 @@ function mxGrupDagilimi(q, kur){
   }).filter(d => d.tutar > 0);
 }
 // Teklifin KDV hariç satış tutarı ₺ (teklif dövizliyse kurla çevrilir)
-function mxSatisTL(q, kur){ return kurus(mxTLcevir(quoteSub(q), q.currency || 'TL', kur || mxKur(q))); }
+// NOT: Kâr/marj hesabı bilinçli olarak teklifin İSKONTOSUZ (ham) tutarı üzerinden yapılır — Maliyet modülündeki
+// hedef marj/kâr ekleme mantığı iskonto kavramından bağımsız tutuldu (iskonto yalnız Teklifler ekranı ve müşteri
+// belgesinde görünen bir düzeltme; maliyet+marj fiyatlamasını bozmasın diye).
+function mxSatisTL(q, kur){ return kurus(mxTLcevir(quoteHamSub(q), q.currency || 'TL', kur || mxKur(q))); }
 function mxOzet(q){
   const kur = mxKur(q), m = ensureMaliyet(q);
   const maliyet = mxToplamMaliyet(q, kur), satis = mxSatisTL(q, kur), kar = mxBrutKar(satis, maliyet);
@@ -11800,6 +11866,7 @@ function mxTabloKartHtml(q){
           <button class="mx-filtre-btn ${filtreSayi ? 'aktif' : ''}" aria-label="Filtreler" aria-haspopup="dialog" aria-expanded="${!!mxDurum.filtreAcik}" onclick="event.stopPropagation(); mxDurum.filtreAcik=!mxDurum.filtreAcik; mxDurum.menu=null; renderContent();"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;"><path d="M2 3h12l-4.5 5.5V13l-3 1.5V8.5z"/></svg>${filtreSayi ? `<i class="sayac">${filtreSayi}</i>` : ''}</button>
           ${mxDurum.filtreAcik ? mxFiltrePopoverHtml(q) : ''}
         </div>
+        <button class="ghost" onclick="lbSihirbazAc()">🔲 Lightbox Sihirbazı</button>
         <button class="ghost" onclick="mxSablonModal()">▧ Şablondan Ekle</button>
         <button class="primary" onclick="mxKalemModal()">＋ Maliyet Ekle</button>
       </div>
@@ -11807,7 +11874,7 @@ function mxTabloKartHtml(q){
       <div class="mx-bos">
         <h3>Henüz maliyet kalemi eklenmedi</h3>
         <p>Teklifin kârlılığını hesaplamak için ilk maliyet kalemini ekleyin veya kayıtlı bir şablon kullanın.</p>
-        <div class="aksiyon"><button class="primary" onclick="mxKalemModal()">＋ İlk Maliyeti Ekle</button><button class="ghost" onclick="mxSablonModal()">▧ Şablondan Ekle</button></div>
+        <div class="aksiyon"><button class="primary" onclick="mxKalemModal()">＋ İlk Maliyeti Ekle</button><button class="ghost" onclick="lbSihirbazAc()">🔲 Lightbox Sihirbazı</button><button class="ghost" onclick="mxSablonModal()">▧ Şablondan Ekle</button></div>
       </div>` : `
       ${bildirim}
       <div class="mx-tablo" role="table" aria-label="Maliyet kalemleri">
@@ -12577,7 +12644,7 @@ function mxTeklifeUygulaModal(){
   const o = mxOzet(q); if(o.oneri === null) return;
   const kur = mxKur(q); const kod = q.currency || 'TL'; const kurD = mxKurDegeri(kod, kur);
   const yeniTeklif = kod === 'TL' ? o.oneri : (kurD ? kurus(o.oneri / kurD) : null);
-  const eskiTeklif = kurus(quoteSub(q));
+  const eskiTeklif = kurus(quoteHamSub(q));
   const kalemler = (q.items || []).filter(it => lineQty(it) > 0);
   const fark = yeniTeklif === null ? null : kurus(yeniTeklif - eskiTeklif);
   document.getElementById('modalBox').innerHTML = `
@@ -12609,7 +12676,7 @@ function mxTeklifeUygula(){
   const hedef = kod === 'TL' ? o.oneri : kurus(o.oneri / kurD);
   const sec = document.querySelector('input[name="mxDagit"]:checked'); const yontem = sec ? sec.value : 'yok';
   if(yontem === 'yok'){ closeModal(); showToast('Teklif tutarı değiştirilmedi.'); return; }
-  const eski = kurus(quoteSub(q));
+  const eski = kurus(quoteHamSub(q));
   const items = q.items.filter(it => lineQty(it) > 0);
   if(!items.length){ showToast('Teklifte kalem yok.'); return; }
   if(yontem === 'oran' && eski > 0){
@@ -12618,18 +12685,18 @@ function mxTeklifeUygula(){
   } else {
     const idx = document.getElementById('mxDagitKalem') ? Number(document.getElementById('mxDagitKalem').value) : q.items.indexOf(items[0]);
     const it = q.items[idx] || items[0];
-    const digerleri = kurus(quoteSub(q) - lineNet(it));
+    const digerleri = kurus(quoteHamSub(q) - lineNet(it));
     it.price = kurus((hedef - digerleri) / lineQty(it));
   }
   // kuruş artığını en büyük kaleme yaz (yuvarlama farkı)
-  const artik = kurus(hedef - quoteSub(q));
+  const artik = kurus(hedef - quoteHamSub(q));
   if(Math.abs(artik) >= 0.01){
     const enBuyuk = items.slice().sort((a, b) => lineNet(b) - lineNet(a))[0];
     enBuyuk.price = kurus((Number(enBuyuk.price) || 0) + artik / lineQty(enBuyuk));
   }
-  mxGecmisYaz(q, 'uygulama', yontem === 'oran' ? 'oranla dağıtıldı' : 'tek kaleme uygulandı', mxPara(eski, kod), mxPara(kurus(quoteSub(q)), kod));
+  mxGecmisYaz(q, 'uygulama', yontem === 'oran' ? 'oranla dağıtıldı' : 'tek kaleme uygulandı', mxPara(eski, kod), mxPara(kurus(quoteHamSub(q)), kod));
   if(typeof liveMarkDirty === 'function') liveMarkDirty();
-  closeModal(); renderContent(); showToast(`Teklif tutarı güncellendi: ${mxPara(kurus(quoteSub(q)), kod)} (KDV hariç).`);
+  closeModal(); renderContent(); showToast(`Teklif tutarı güncellendi: ${mxPara(kurus(quoteHamSub(q)), kod)} (KDV hariç).`);
 }
 
 // ---- Adım 4: kârlılık & onay ----
@@ -12674,6 +12741,154 @@ function mxGecmisDrawer(){
   document.getElementById('sideDrawer').classList.add('genis');
   document.getElementById('drawerOverlay').classList.add('show');
   document.getElementById('sideDrawer').classList.add('show');
+}
+
+// ---------------- LIGHTBOX (IŞIKLI KUTU) MALİYET SİHİRBAZI ----------------
+// En/boy girilince: 6 metrelik profil çubuklardan kaç adet gerektiği (kesim yerleşimi), 4 köşe aparatı,
+// arka yüzeyde ızgara düzeninde LED modül sayısı (aralık ayarlanabilir) ve toplam watt'a göre standart
+// kademeden trafo seçimi, kumaş + UV baskı m² hesaplanır. Sonuçlar mevcut maliyet motoruna ("dogrudan" /
+// "en_boy" hesap türleriyle, mxKalemModal ile birebir aynı alan modeliyle) kalem olarak eklenir — yeni bir
+// hesapTuru veya ayrı bir state anahtarı gerektirmez.
+const LB_TRAFO_KADEME = [60, 100, 150, 200, 300, 400];   // Watt — piyasada yaygın standart LED trafo güçleri
+const LB_ZEMIN_TIPLERI = { kompozit4:'Kompozit Panel 4mm', forex8:'Forex Panel 8mm' };  // LED'lerin dizildiği arka zemin — işe göre değişir
+let lbModal = null;
+
+// 600 cm'lik çubuklardan 2×en + 2×boy parçasını en az çubukla kesmek için basit "ilk uyan" yerleştirme.
+// Bir kenar 600 cm'den uzunsa (nadiren), o kenar için önce tam çubuklar ayrılır, kalan uzunluk diğer
+// parçalarla birlikte paketlenir. Sadece 4 parça olduğundan bu yaklaşım pratikte optimal sonuç verir.
+function lbProfilBarSayisi(enCm, boyCm){
+  const BOY = 600;
+  const ilkParcalar = [Number(enCm) || 0, Number(enCm) || 0, Number(boyCm) || 0, Number(boyCm) || 0].filter(x => x > 0);
+  let barSayisi = 0;
+  const kalanlar = [];
+  ilkParcalar.forEach(p => {
+    if(p > BOY){ barSayisi += Math.floor(p / BOY); p = p % BOY; }
+    if(p > 0) kalanlar.push(p);
+  });
+  kalanlar.sort((a, b) => b - a);
+  const cubuklar = [];   // her açık çubukta kalan boş kapasite (cm)
+  kalanlar.forEach(p => {
+    const yer = cubuklar.findIndex(kapasite => kapasite >= p);
+    if(yer === -1) cubuklar.push(BOY - p);
+    else cubuklar[yer] -= p;
+  });
+  return barSayisi + cubuklar.length;
+}
+function lbLedModulSayisi(enCm, boyCm, aralikCm){
+  const a = Math.max(1, Number(aralikCm) || 15);
+  const nx = Math.max(1, Math.round((Number(enCm) || 0) / a));
+  const ny = Math.max(1, Math.round((Number(boyCm) || 0) / a));
+  return nx * ny;
+}
+function lbTrafoSec(toplamWatt, guvenlikPayYuzde){
+  const gerekli = (Number(toplamWatt) || 0) * (1 + (Number(guvenlikPayYuzde) || 0) / 100);
+  const maxKademe = LB_TRAFO_KADEME[LB_TRAFO_KADEME.length - 1];
+  const uygun = LB_TRAFO_KADEME.find(w => w >= gerekli);
+  if(uygun) return { watt: uygun, adet: gerekli > 0 ? 1 : 0 };
+  return { watt: maxKademe, adet: Math.ceil(gerekli / maxKademe) };
+}
+function lbHesapla(enCm, boyCm, ledAralikCm, ledWattAdet, guvenlikPay){
+  const en = Number(enCm) || 0, boy = Number(boyCm) || 0;
+  const alanM2 = kurus(en * boy / 10000);
+  const profilBar = lbProfilBarSayisi(en, boy);
+  const ledSayisi = lbLedModulSayisi(en, boy, ledAralikCm);
+  const toplamWatt = kurus(ledSayisi * (Number(ledWattAdet) || 0));
+  const trafo = lbTrafoSec(toplamWatt, guvenlikPay);
+  return { en, boy, alanM2, profilBar, koseSayisi: (en > 0 && boy > 0) ? 4 : 0, ledSayisi, toplamWatt, trafo };
+}
+function lbSihirbazAc(){
+  const q = mxAktifTeklif(); if(!q) return;
+  lbModal = { en:'', boy:'', zeminTip:'kompozit4', ledAralik:15, ledWatt:1.2, guvenlikPay:20, gelismis:false };
+  lbSihirbazCiz();
+}
+function lbSihirbazOku(){
+  if(!lbModal) return;
+  const g = id => { const e = document.getElementById(id); return e ? e.value : undefined; };
+  const al = (id, key) => { const x = g(id); if(x !== undefined) lbModal[key] = x === '' ? '' : virgulSayi(x); };
+  al('lbfEn','en'); al('lbfBoy','boy'); al('lbfAralik','ledAralik'); al('lbfWatt','ledWatt'); al('lbfPay','guvenlikPay');
+  const zt = g('lbfZemin'); if(zt !== undefined) lbModal.zeminTip = zt;
+  return lbModal;
+}
+function lbSihirbazCiz(){
+  const q = mxAktifTeklif(); if(!q || !lbModal) return;
+  const v = lbModal;
+  const h = lbHesapla(v.en, v.boy, v.ledAralik, v.ledWatt, v.guvenlikPay);
+  const gecerli = Number(v.en) > 0 && Number(v.boy) > 0;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><h2>🔲 Lightbox (Işıklı Kutu) Sihirbazı</h2><button class="modal-close" aria-label="Kapat" onclick="closeModal()">✕</button></div>
+    <div class="mx-form">
+      <div class="hint" style="margin:-4px 0 12px;">En ve boyu girin — profil, köşe aparatı, arka yüzey LED modülü, trafo ve kumaş/UV baskı kalemleri otomatik hesaplanıp maliyet listesine eklenir.</div>
+      <div style="display:flex;gap:12px;">
+        <div class="field"><label for="lbfEn">En (cm)</label><input id="lbfEn" inputmode="decimal" value="${virgulYaz(v.en)}" oninput="lbSihirbazOku(); lbSihirbazCiz();" autofocus></div>
+        <div class="field"><label for="lbfBoy">Boy (cm)</label><input id="lbfBoy" inputmode="decimal" value="${virgulYaz(v.boy)}" oninput="lbSihirbazOku(); lbSihirbazCiz();"></div>
+      </div>
+      <div class="field"><label for="lbfZemin">LED zemin malzemesi</label><select id="lbfZemin" onchange="lbSihirbazOku(); lbSihirbazCiz();">
+        <option value="kompozit4" ${v.zeminTip === 'kompozit4' ? 'selected' : ''}>4 mm Kompozit Panel</option>
+        <option value="forex8" ${v.zeminTip === 'forex8' ? 'selected' : ''}>8 mm Forex</option>
+      </select></div>
+      <button type="button" class="mx-gelismis-bas" aria-expanded="${!!v.gelismis}" onclick="lbSihirbazOku(); lbModal.gelismis=!lbModal.gelismis; lbSihirbazCiz();"><span>Gelişmiş ayarlar (LED aralığı, watt, trafo güvenlik payı)</span><i>${v.gelismis ? '⌃' : '⌄'}</i></button>
+      ${v.gelismis ? `
+      <div style="display:flex;gap:12px;">
+        <div class="field"><label for="lbfAralik">LED modül aralığı (cm)</label><input id="lbfAralik" inputmode="decimal" value="${virgulYaz(v.ledAralik)}" oninput="lbSihirbazOku(); lbSihirbazCiz();"></div>
+        <div class="field"><label for="lbfWatt">Modül başı watt</label><input id="lbfWatt" inputmode="decimal" value="${virgulYaz(v.ledWatt)}" oninput="lbSihirbazOku(); lbSihirbazCiz();"></div>
+        <div class="field"><label for="lbfPay">Trafo güvenlik payı (%)</label><input id="lbfPay" inputmode="decimal" value="${virgulYaz(v.guvenlikPay)}" oninput="lbSihirbazOku(); lbSihirbazCiz();"></div>
+      </div>
+      <div class="hint" style="margin:-4px 0 12px;">Modül aralığı ve watt değeri, atölyenizin kullandığı LED modül tipine göre ayarlanabilir; trafo standart kademelerden (${LB_TRAFO_KADEME.join('/')} W) seçilir.</div>` : ''}
+      ${gecerli ? `
+      <table class="data-table" style="margin-top:4px;">
+        <thead><tr><th>Kalem</th><th class="sag">Miktar</th></tr></thead>
+        <tbody>
+          <tr><td>Lightbox kasa profili (6 m çubuk)</td><td class="sag">${h.profilBar} adet</td></tr>
+          <tr><td>Köşe aparatı</td><td class="sag">${h.koseSayisi} adet</td></tr>
+          <tr><td>LED modül (arka yüzey, ${mxSayi(v.ledAralik)} cm aralık)</td><td class="sag">${h.ledSayisi} adet</td></tr>
+          <tr><td>Trafo (toplam ${mxSayi(h.toplamWatt)} W, %${mxSayi(v.guvenlikPay,0)} paylı)</td><td class="sag">${h.trafo.adet} adet × ${h.trafo.watt} W</td></tr>
+          <tr><td>LED zemin — ${notEsc(LB_ZEMIN_TIPLERI[v.zeminTip] || LB_ZEMIN_TIPLERI.kompozit4)}</td><td class="sag">${mxSayi(h.alanM2)} m²</td></tr>
+          <tr><td>Işıklı kumaş + UV baskı</td><td class="sag">${mxSayi(h.alanM2)} m²</td></tr>
+        </tbody>
+      </table>` : `<div class="empty-state">En ve boy girin.</div>`}
+      <div class="mx-form-aksiyon"><button class="ghost" onclick="closeModal()">Vazgeç</button><button class="primary" ${gecerli ? '' : 'disabled'} onclick="lbSihirbazEkle()">Kalemleri Maliyete Ekle</button></div>
+    </div>`;
+  showModal(); document.getElementById('modalBox').classList.add('wide');
+}
+// Fiyat eşleştirme: önce tam ad eşleşmesi (ör. "Kompozit Panel 4mm" seçilince genel "Kompozit Panel"
+// kaydını değil, tam o kaydı bulur), yoksa mevcut bulanık eşleştirmeye (mxUrunEslesir) düşer.
+function lbFiyatBul(esasAd){
+  const tam = MALZEME_FIYATLARI.find(mz => String(mz.ad || '').trim().toLowerCase() === String(esasAd).trim().toLowerCase());
+  return tam || MALZEME_FIYATLARI.find(mz => mxUrunEslesir(mz, { ad: esasAd }));
+}
+function lbKalemOlustur(q, grup, esasAd, gosterimEk, olcu, hesapTuru, miktar, birim, en, boy){
+  const eslesen = lbFiyatBul(esasAd);
+  const ad = `${esasAd}${gosterimEk || ''} — ${olcu}`;
+  const m = ensureMaliyet(q);
+  const r = {
+    id: benzersizId('mk'), aktif:true, sira:(m.items.length ? Math.max(...m.items.map(x => x.sira || 0)) : 0) + 1,
+    grup, ad, kod:'', aciklama:'Lightbox sihirbazı ile eklendi', hesapTuru, miktar, birim, en: en || '', boy: boy || '', adet:1, fire:0,
+    tedarikciAd: eslesen ? (eslesen.tedarikci || '') : '', tedarikciId: eslesen ? mxTedarikciIdBul(eslesen.tedarikci || '') : null,
+    fiyatKaydiId: eslesen ? eslesen.id : null, para: eslesen ? eslesen.para : 'TL',
+    fiyatOrj: eslesen ? (eslesen.kdvDahil ? kurus(eslesen.fiyat / (1 + (eslesen.kdvOran || 0) / 100)) : eslesen.fiyat) : 0,
+    fiyatTarihi: eslesen ? (eslesen.tarih || '') : '', gecerlilik: eslesen ? (eslesen.gecerlilik || '') : '', not:'', manuel: !eslesen
+  };
+  mxSatirHesapla(r, mxKur(q));
+  m.items.push(r);
+  mxGecmisYaz(q, 'ekleme', r.ad, '', mxPara(mxSatirToplam(r, mxKur(q))));
+  return r;
+}
+function lbSihirbazEkle(){
+  const q = mxAktifTeklif(); if(!q || !lbModal) return;
+  const v = lbModal;
+  if(!(Number(v.en) > 0 && Number(v.boy) > 0)){ showToast('En ve boy girin.'); return; }
+  const h = lbHesapla(v.en, v.boy, v.ledAralik, v.ledWatt, v.guvenlikPay);
+  const olcu = `${mxSayi(h.en)}×${mxSayi(h.boy)} cm lightbox`;
+  lbKalemOlustur(q, 'malzeme', 'Lightbox Kasa Profili (6m)', '', olcu, 'dogrudan', h.profilBar, 'adet');
+  lbKalemOlustur(q, 'malzeme', 'Köşe Aparatı', '', olcu, 'dogrudan', h.koseSayisi, 'adet');
+  lbKalemOlustur(q, 'malzeme', 'LED Modül', '', olcu, 'dogrudan', h.ledSayisi, 'adet');
+  lbKalemOlustur(q, 'malzeme', `Trafo ${h.trafo.watt}W`, '', olcu, 'dogrudan', h.trafo.adet, 'adet');
+  const zeminAd = LB_ZEMIN_TIPLERI[v.zeminTip] || LB_ZEMIN_TIPLERI.kompozit4;
+  lbKalemOlustur(q, 'malzeme', zeminAd, ' (LED zemini)', olcu, 'en_boy', h.alanM2, 'm²', v.en, v.boy);
+  lbKalemOlustur(q, 'malzeme', 'Işıklı Kumaş Baskı (UV)', '', olcu, 'en_boy', h.alanM2, 'm²', v.en, v.boy);
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  lbModal = null; closeModal(); renderContent();
+  showToast(`Lightbox kalemleri eklendi: ${h.profilBar} profil, ${h.koseSayisi} köşe, ${h.ledSayisi} LED modül, ${h.trafo.adet} trafo, ${mxSayi(h.alanM2)} m² ${zeminAd.toLowerCase()}, ${mxSayi(h.alanM2)} m² kumaş.`);
 }
 
 // ---------------- MÜŞTERİYE GİDEN TEKLİF BELGESİ ----------------
@@ -12816,10 +13031,13 @@ function teklifBelgesiHtml(q, c){
 
           <div class="quote-doc-totals">
             <div class="qd-toplam${q.kdvMode === 'Hariç' ? ' haric' : ''}">
+              ${quoteIskontoOrani(q) > 0 ? `
+              <div class="sat"><span>Ara toplam</span><b class="qd-para">${teklifParaMetni(q, quoteHamSub(q))}</b></div>
+              <div class="sat iskonto"><span>${teklifIskontoEtiketi(q)}</span><b class="qd-para">−${teklifParaMetni(q, quoteIskontoTutari(q))}</b></div>` : ''}
               ${q.kdvMode === 'Hariç' ? `
               <div class="genel"><span>Genel toplam<small>KDV hariç</small></span><b class="qd-para">${teklifParaMetni(q, quoteSub(q))}</b></div>
               <div class="qd-kdv-notu">${teklifKdvNotu(q)}</div>` : `
-              <div class="sat"><span>Ara toplam</span><b class="qd-para">${teklifParaMetni(q, quoteSub(q))}</b></div>
+              <div class="sat"><span>${quoteIskontoOrani(q) > 0 ? 'İndirimli ara toplam' : 'Ara toplam'}</span><b class="qd-para">${teklifParaMetni(q, quoteSub(q))}</b></div>
               <div class="sat"><span>${teklifKdvEtiketi(q)}</span><b class="qd-para">${teklifParaMetni(q, quoteKdvAmount(q))}</b></div>
               <hr class="cizgi">
               <div class="genel"><span>Genel toplam</span><b class="qd-para">${teklifParaMetni(q, quoteTotal(q))}</b></div>
@@ -12893,7 +13111,8 @@ function quoteViewPage(id){
       <aside class="quote-summary no-print" style="flex:0 0 310px; min-width:260px; top:88px;">
         <p>TEKLİF ÖZETİ</p>
         <div class="tf-totals" style="${finansGorebilir() ? '' : 'display:none;'}">
-          <div><span>Ara toplam</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteSub(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
+          <div><span>Ara toplam</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteHamSub(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
+          ${quoteIskontoOrani(q) > 0 ? `<div class="iskonto"><span>${teklifIskontoEtiketi(q)}</span><strong>−${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteIskontoTutari(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>` : ''}
           <div><span>KDV</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteKdvAmount(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
           <div class="grand"><span>GENEL TOPLAM</span><strong>${CURRENCY_SYMBOLS[q.currency||'TL']}${quoteTotal(q).toLocaleString('tr-TR',{minimumFractionDigits:2})}</strong></div>
         </div>
