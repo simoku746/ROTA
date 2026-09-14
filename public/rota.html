@@ -2540,7 +2540,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14k';
+window.ROTA_SURUM = 'v2026-09-14l';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2658,11 +2658,12 @@ function veriOnar(){
     });
     degisti = true;
   });
-  // (2026-09-14k) İçe aktarılan filodaki 4 aracın kasko/trafik tarihi, Excel hazırlandığı sırada zaten geçmişte kalmıştı.
-  // Kullanıcı bu poliçelerin ASLINDA ÖDENDİĞİNİ, yalnızca sisteme geç girildiği için gecikmiş göründüğünü bildirdi
-  // (aynen: "araç gecikenleri şimdilik kaldır, sana attığımda aslında onlar ödenmiş oluyor"). Boşuna "gecikti" uyarısı
-  // üretmemeleri için bu tarihler BİR KERELİK boşaltılır — yeni poliçe tarihlerini kullanıcı elle girecek.
-  // Güvenlik: yalnızca değer HÂLÂ içe aktarılan tarihse temizlenir; kullanıcı güncellediyse o tarihe DOKUNULMAZ.
+  // (2026-09-14l) 14k'da bu 4 aracın geçmişte kalan kasko/trafik tarihleri, gecikme uyarısı üretmesinler diye
+  // BOŞALTILMIŞTI. Kullanıcı bunun yanlış olduğunu bildirdi (aynen: "bazılarına trafik sigortası bilgilerini falan
+  // girmemişsin, boş geçmişsin excel'de var aslında") — tarihler Excel'de VAR ve durmalı; istenen şey yalnızca
+  // gecikmiş UYARISININ çıkmamasıydı. Bu yüzden tarihler Excel değerleriyle geri yükleniyor ve aynı anda
+  // "ödendi" olarak işaretleniyor (kullanıcı bu poliçelerin ödendiğini söylemişti) — böylece veri tam kalıyor
+  // ama uyarı çıkmıyor. Güvenlik: yalnızca alan HÂLÂ BOŞSA yazılır; kullanıcı yeni bir tarih girdiyse DOKUNULMAZ.
   [
     { plate:'07 AFK 203', kasko:'2026-01-19', trafik:'2026-01-19' },
     { plate:'05 AFK 503', kasko:'2026-03-09', trafik:'2026-03-09' },
@@ -2672,9 +2673,15 @@ function veriOnar(){
     if(!Array.isArray(VEHICLES)) return;
     const v = VEHICLES.find(x => daPlakaSade(x.plate) === daPlakaSade(def.plate));
     if(!v || !v.dates) return;
+    if(v.odendiMig14l) return;                  // bu araç için bir kez uygulanır (kullanıcı işareti kaldırırsa geri gelmesin)
     ['kasko', 'trafik'].forEach(alan => {
-      if(v.dates[alan] === def[alan]){ v.dates[alan] = ''; degisti = true; }
+      if(!v.dates[alan]) v.dates[alan] = def[alan];   // 14k'da boşaltılmışsa Excel değeriyle geri yükle
+      if(v.dates[alan] !== def[alan]) return;         // kullanıcı yeni bir tarih girmişse hiç dokunma
+      v.odendi = v.odendi || {};
+      v.odendi[alan] = def[alan];               // ödendi işareti: tarih görünür, uyarı üretmez
     });
+    v.odendiMig14l = true;
+    degisti = true;
   });
   // (2026-09-14j) Uygulamayla gelen 3 ÖRNEK araç, gerçek filo girildikten sonra kullanıcı isteğiyle temizlenir.
   // Yalnızca hiç dokunulmamış (plaka + marka + model hâlâ varsayılan) kayıtlar silinir; kullanıcı
@@ -9293,6 +9300,24 @@ function dueStatus(n){
   if(n <= VEHICLE_ALERT_WINDOW)    return { cls:'soon', text:n+' gün kaldı' };
   return { cls:'ok', text:n+' gün kaldı' };
 }
+// (2026-09-14l) "Ödendi / yenilendi" işareti — tarih kayıtta DURUR ama uyarı üretmez.
+// Kullanım: poliçe/vergi ödenmiş ama yeni dönemin tarihi henüz elde yoksa, eski tarih boşuna "gecikti" uyarısı vermesin.
+// v.odendi = { kasko:'2026-01-19', ... } — işaret O TARİHE bağlıdır: tarih değişince işaret kendiliğinden geçersiz olur
+// ve hatırlatmalar normal şekilde yeniden çalışır (eskimiş bir işaretin yeni dönemi sessizce gizlemesi engellenir).
+function tarihOdendiMi(v, key){
+  const d = (v.dates || {})[key];
+  return !!d && (v.odendi || {})[key] === d;
+}
+function tarihOdendiDegistir(vid, key){
+  const v = VEHICLES.find(x => x.id === vid); if(!v) return;
+  const d = (v.dates || {})[key];
+  if(!d){ showToast('Önce bir tarih girin.'); return; }
+  v.odendi = v.odendi || {};
+  const alan = DATE_FIELDS.find(f => f.key === key);
+  if(v.odendi[key] === d){ delete v.odendi[key]; showToast((alan ? alan.label : 'Kayıt') + ' — ödendi işareti kaldırıldı.'); }
+  else { v.odendi[key] = d; showToast((alan ? alan.label : 'Kayıt') + ' ödendi olarak işaretlendi, uyarı vermez.'); }
+  renderContent();
+}
 function plateHtml(p, sm){
   return '<span class="plate'+(sm?' sm':'')+'"><span class="plate-tr">TR</span><span class="plate-no">'+(p||'—')+'</span></span>';
 }
@@ -9305,6 +9330,7 @@ function vehicleAlerts(){
   VEHICLES.forEach(v => DATE_FIELDS.forEach(f => {
     const n = daysLeft(v.dates[f.key]);
     if(n === null || n > VEHICLE_ALERT_WINDOW) return;
+    if(tarihOdendiMi(v, f.key)) return;          // ödendi işaretlenmiş kayıtlar hatırlatma üretmez
     out.push({ v:v, f:f, n:n, st:dueStatus(n) });
   }));
   return out.sort((a,b) => a.n - b.n);
@@ -9392,11 +9418,11 @@ function aracGiderBaginiKaldir(vid, gid){
 }
 function vehicleCardHtml(v){
   const chips = DATE_FIELDS
-    .map(f => ({ f:f, n:daysLeft(v.dates[f.key]) }))
+    .map(f => ({ f:f, n:daysLeft(v.dates[f.key]), odendi:tarihOdendiMi(v, f.key) }))
     .filter(x => x.n !== null)
-    .sort((a,b) => a.n - b.n)
+    .sort((a,b) => (a.odendi === b.odendi ? a.n - b.n : (a.odendi ? 1 : -1)))   // ödenmişler sona
     .slice(0,3)
-    .map(x => { const st = dueStatus(x.n);
+    .map(x => { const st = x.odendi ? { cls:'ok', text:'ödendi' } : dueStatus(x.n);
       return `<span class="v-chip ${st.cls}">${x.f.short}: ${st.text}</span>`; }).join('');
   const totalExp = aracGiderToplam(v);
   // Boş alanlar (yakıt/km/zimmet girilmemiş araçlar) satırda "· 0 km ·" gibi asılı ayraç bırakmasın
@@ -9423,7 +9449,8 @@ function aracDetailView(){
   const exps = aracGiderKayitlari(v);
   const totalExp = exps.reduce((s,e)=>s+e.tutar,0);
   const fuelExp  = exps.filter(e=>/yakıt|akaryakıt/i.test(e.tur)).reduce((s,e)=>s+e.tutar,0);
-  const nearest  = DATE_FIELDS.map(f=>({f:f,n:daysLeft(v.dates[f.key])})).filter(x=>x.n!==null).sort((a,b)=>a.n-b.n)[0];
+  const nearest  = DATE_FIELDS.map(f=>({f:f,n:daysLeft(v.dates[f.key])}))
+    .filter(x=>x.n!==null && !tarihOdendiMi(v, x.f.key)).sort((a,b)=>a.n-b.n)[0];
   const bakimKm  = (v.kms||{}).bakim;
   const sinceBakim = (bakimKm && v.km && Number(v.km) >= Number(bakimKm)) ? Number(v.km)-Number(bakimKm) : null;
   return `
@@ -9449,11 +9476,16 @@ function aracDetailView(){
     </div>
 
     <div class="group-header"><span>— Resmî Tarihler ve Kilometreler</span><span>30 gün kala uyarı verilir</span></div>
+    <div class="hint" style="margin:0 0 10px;">Ödemesi yapılmış ama yeni dönemin tarihi henüz belli değilse satırdaki
+      <b>✓ ödendi</b> ile işaretleyin — tarih kayıtta kalır, gecikme uyarısı vermez. Yeni tarihi girdiğinizde hatırlatma
+      kendiliğinden yeniden çalışır.</div>
     <table style="margin-bottom:22px;">
       <thead><tr><th>İşlem</th><th>Tarih</th><th>Girdiği Kilometre</th><th style="text-align:right;">Durum</th></tr></thead>
       <tbody>
         ${DATE_FIELDS.map(f => {
-          const n = daysLeft(v.dates[f.key]); const st = dueStatus(n);
+          const n = daysLeft(v.dates[f.key]);
+          const odendi = tarihOdendiMi(v, f.key);
+          const st = odendi ? { cls:'ok', text:'✓ ödendi' } : dueStatus(n);
           const km = (v.kms||{})[f.key];
           let kmCell = '<span style="color:var(--ink-3);">—</span>';
           if(f.hasKm && km){
@@ -9464,7 +9496,11 @@ function aracDetailView(){
             kmCell = '<span style="color:var(--ink-3);">girilmedi</span>';
           }
           return `<tr><td><b>${f.label}</b></td><td>${formatDate(v.dates[f.key])}</td><td>${kmCell}</td>
-            <td style="text-align:right;"><span class="v-chip ${st.cls}">${st.text}</span></td></tr>`; }).join('')}
+            <td style="text-align:right;"><span class="v-chip ${st.cls}">${st.text}</span>
+              ${v.dates[f.key] ? `<div class="due" style="margin-top:3px;cursor:pointer;text-decoration:underline;"
+                onclick="tarihOdendiDegistir('${v.id}','${f.key}')"
+                title="${odendi ? 'Ödendi işaretini kaldır — hatırlatma yeniden çalışır' : 'Ödendi olarak işaretle — bu tarih için uyarı verilmez'}"
+                >${odendi ? 'işareti kaldır' : '✓ ödendi'}</div>` : ''}</td></tr>`; }).join('')}
       </tbody>
     </table>
 
