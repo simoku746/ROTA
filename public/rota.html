@@ -2540,7 +2540,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14n';
+window.ROTA_SURUM = 'v2026-09-14o';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2748,6 +2748,25 @@ function veriOnar(){
     BANK_ACCOUNTS.push({ id: benzersizId('ba'), name: def.name, sube: def.sube, hesapNo: def.hesapNo,
       currency: def.currency, balance: def.balance });
     degisti = true;
+  });
+  // (2026-09-14o) Uygulamayla gelen ÖRNEK/DEMO kasa-banka hesapları, gerçek banka hesapları girildikten sonra
+  // kullanıcı isteğiyle temizlenir (aynen: "sadece attığım banka hesapları - demo test banka hesaplarını kaldır").
+  // Güvenlik: yalnız adı VE bakiyesi hâlâ varsayılan değerinde olan kayıt silinir. Bakiye değiştiyse o hesapta
+  // gerçek para hareketi yapılmış demektir; silinmez (geçmiş gelir/gider kayıtları zaten hiçbir durumda silinmez).
+  [
+    { liste:'kasa',  name:'Dolar Kasa',                  balance:0 },
+    { liste:'kasa',  name:'Merkez Kasa',                 balance:2000 },
+    { liste:'banka', name:'Garanti Bankası - Ana Hesap', balance:2944 },
+  ].forEach(demo => {
+    const hedef = demo.liste === 'kasa' ? KASA_ACCOUNTS : BANK_ACCOUNTS;
+    if(!Array.isArray(hedef)) return;
+    for(let i = hedef.length - 1; i >= 0; i--){
+      const h = hedef[i];
+      if(String(h.name || '').trim() !== demo.name) continue;
+      if(Math.round((Number(h.balance) || 0) * 100) !== Math.round(demo.balance * 100)) continue;  // dokunulmuş, bırak
+      hedef.splice(i, 1);
+      degisti = true;
+    }
   });
   const gorulen = new Set();
   QUOTES.forEach(q => {
