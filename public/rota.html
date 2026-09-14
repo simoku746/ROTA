@@ -2540,7 +2540,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14j';
+window.ROTA_SURUM = 'v2026-09-14k';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2558,6 +2558,11 @@ function veriOnar(){
   let degisti = false;
   if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && String(k.ad).toLowerCase() === 'kartlı alışveriş')){
     KATEGORILER.push({ id: benzersizId('kd'), ad:'Kartlı Alışveriş', tip:'gider', sistem:true }); degisti = true;
+  }
+  // (2026-09-14k) Araç yakıt giderleri için "Yakıt" kategorisi — gider formunda bu kategori seçilince plaka alanı açılır
+  // ve gider, Araçlarım'daki o aracın gider dökümüne bağlanır. Kullanıcı kendi "Yakıt" kategorisini açtıysa tekrar eklenmez.
+  if(Array.isArray(KATEGORILER) && !KATEGORILER.some(k => k.tip === 'gider' && String(k.ad).toLowerCase() === 'yakıt')){
+    KATEGORILER.push({ id: benzersizId('kd'), ad:'Yakıt', tip:'gider', sistem:true }); degisti = true;
   }
   // (2026-09-14g) Lightbox sihirbazı için otomatik eklenen 6 malzeme türü artık STANDART olarak eklenmiyor —
   // kullanıcı isteği: "standart default gelmesin". Daha önce otomatik eklenmiş ama kullanıcının hiç dokunmadığı
@@ -2652,6 +2657,24 @@ function veriOnar(){
       kms:{}, expenses:[],
     });
     degisti = true;
+  });
+  // (2026-09-14k) İçe aktarılan filodaki 4 aracın kasko/trafik tarihi, Excel hazırlandığı sırada zaten geçmişte kalmıştı.
+  // Kullanıcı bu poliçelerin ASLINDA ÖDENDİĞİNİ, yalnızca sisteme geç girildiği için gecikmiş göründüğünü bildirdi
+  // (aynen: "araç gecikenleri şimdilik kaldır, sana attığımda aslında onlar ödenmiş oluyor"). Boşuna "gecikti" uyarısı
+  // üretmemeleri için bu tarihler BİR KERELİK boşaltılır — yeni poliçe tarihlerini kullanıcı elle girecek.
+  // Güvenlik: yalnızca değer HÂLÂ içe aktarılan tarihse temizlenir; kullanıcı güncellediyse o tarihe DOKUNULMAZ.
+  [
+    { plate:'07 AFK 203', kasko:'2026-01-19', trafik:'2026-01-19' },
+    { plate:'05 AFK 503', kasko:'2026-03-09', trafik:'2026-03-09' },
+    { plate:'07 AFK 030', kasko:'2026-08-01', trafik:'2026-08-01' },
+    { plate:'07 AFK 803', kasko:'2026-09-13', trafik:'2026-09-13' },
+  ].forEach(def => {
+    if(!Array.isArray(VEHICLES)) return;
+    const v = VEHICLES.find(x => daPlakaSade(x.plate) === daPlakaSade(def.plate));
+    if(!v || !v.dates) return;
+    ['kasko', 'trafik'].forEach(alan => {
+      if(v.dates[alan] === def[alan]){ v.dates[alan] = ''; degisti = true; }
+    });
   });
   // (2026-09-14j) Uygulamayla gelen 3 ÖRNEK araç, gerçek filo girildikten sonra kullanıcı isteğiyle temizlenir.
   // Yalnızca hiç dokunulmamış (plaka + marka + model hâlâ varsayılan) kayıtlar silinir; kullanıcı
@@ -6314,7 +6337,10 @@ function giderlerView(){
           <div>
             <div class="ledger-title">${g.client || g.hesap}</div>
             ${g.client ? `<div class="ledger-sub">${g.hesap} ‹ ${g.tur}</div>` : `<div class="ledger-sub">${g.tur}</div>`}
-            <div class="ledger-meta">${g.tarih}${g.vade ? ' · '+g.vade : ' · Vade tarihi yok'}${g.kategoriId ? ' · '+kategoriAdi(g.kategoriId) : ''}</div>
+            <div class="ledger-meta">${g.tarih}${g.vade ? ' · '+g.vade : ' · Vade tarihi yok'}${g.kategoriId ? ' · '+kategoriAdi(g.kategoriId) : ''}${(() => {
+              const av = g.aracId ? (VEHICLES || []).find(x => x.id === g.aracId) : null;
+              return av ? ' · 🚗 ' + notEsc(av.plate) : '';
+            })()}</div>
           </div>
           <div style="text-align:right;">
             <div class="ledger-amount">₺${g.tutar.toLocaleString('tr-TR',{minimumFractionDigits:2})}${g.odendi ? '<span class="odendi">Ödendi</span>' : ''}</div>
@@ -6366,7 +6392,10 @@ function giderEkleForm(){
         <div class="field"><label>${tarihLabel}</label><input id="gTarih" value="${bugunTR()}"></div>
         <div class="field"><label>Hesap</label><select id="gHesap" onchange="kartKategoriOner('gHesap','gKategori')">${hesapSecenekleri(true)}</select>
           <div class="hint" style="margin-top:4px;">Kredi kartı seçilirse tutar kartın borcuna yazılır; kasa/banka bakiyesi değişmez.</div></div>
-        <div class="field"><label>Kategori</label>${kategoriSelectHtml('gKategori','gider','')}</div>
+        <div class="field"><label>Kategori</label>${kategoriSelectHtml('gKategori','gider','',"gAracAlaniTazele('gKategori','gAracAlan','gArac')")}</div>
+        <div class="field" id="gAracAlan" style="display:none;"><label>Araç (plaka)</label>
+          <select id="gArac">${aracSecSecenekleri('')}</select>
+          <div class="hint" style="margin-top:4px;">Araç seçilirse bu gider, Araçlarım'daki o aracın gider dökümünde de görünür.</div></div>
         <div class="field"><label>Açıklama</label><input id="gAciklama" placeholder="Açıklama"></div>
         <div class="field-row">
           <div class="field" style="flex:2;"><label>Tutar <span style="color:var(--ink-3);font-weight:400;">(KDV dahil)</span></label><input type="number" id="gTutar" placeholder="0" oninput="gKdvBilgiYaz()"></div>
@@ -6427,6 +6456,7 @@ function submitGider(){
     tutar: tutar,
     odendi: giderFormTur !== 'tekrarlayan',
     kategoriId: val('gKategori') || null,
+    aracId: val('gArac') || null,     // (2026-09-14k) seçilirse gider Araçlarım'daki o araca bağlanır
   };
   GIDERLER.unshift(yeniGider);
   hesapBakiyeDeltaUygula(yeniGider.hesap, -giderNakitEtkisi(yeniGider));
@@ -6443,7 +6473,11 @@ function openGiderDuzenle(id){
     <div class="field"><label>Açıklama / Tür</label><input id="giTur" value="${notEsc(g.tur || '')}"></div>
     <div class="field"><label>Tarih</label><input id="giTarih" value="${notEsc(g.tarih || '')}"></div>
     <div class="field"><label>Hesap</label><select id="giHesap">${hesapSecenekleri(true)}</select></div>
-    <div class="field"><label>Kategori</label>${kategoriSelectHtml('giKategori','gider', g.kategoriId || '')}</div>
+    <div class="field"><label>Kategori</label>${kategoriSelectHtml('giKategori','gider', g.kategoriId || '', "gAracAlaniTazele('giKategori','giAracAlan','giArac')")}</div>
+    <div class="field" id="giAracAlan" style="${(aracKategorisiMi(g.kategoriId) || g.aracId) && (VEHICLES || []).length ? '' : 'display:none;'}">
+      <label>Araç (plaka)</label>
+      <select id="giArac">${aracSecSecenekleri(g.aracId || '')}</select>
+      <div class="hint" style="margin-top:4px;">Araç seçilirse bu gider, Araçlarım'daki o aracın gider dökümünde de görünür. "— Araç seçilmedi —" yaparsanız bağlantı kalkar, gider kaydı silinmez.</div></div>
     <div class="field-row">
       <div class="field" style="flex:2;"><label>Tutar (₺, KDV dahil)</label><input id="giTutar" type="number" value="${Number(g.tutar) || 0}"></div>
       <div class="field"><label>KDV</label><select id="giKdv">${KDV_ORANLARI.map(o => `<option value="${o}" ${Number(g.kdvOran || 0) === o ? 'selected' : ''}>%${o}</option>`).join('')}</select></div>
@@ -6468,6 +6502,8 @@ function submitGiderDuzenle(id){
   g.tarih = document.getElementById('giTarih').value;
   g.hesap = document.getElementById('giHesap').value;
   g.kategoriId = document.getElementById('giKategori').value || null;
+  const giAracEl = document.getElementById('giArac');
+  g.aracId = (giAracEl && giAracEl.value) || null;   // (2026-09-14k) araç bağlantısı burada da düzenlenebilir
   g.tutar = tutar;
   const gi = kdvAyir(tutar, document.getElementById('giKdv').value);
   g.kdvOran = gi.oran; g.kdvK = gi.kdvK; g.matrahK = gi.matrahK;
@@ -6507,20 +6543,47 @@ function kartKategoriOner(hesapId, katId){
   const h = document.getElementById(hesapId), k = document.getElementById(katId);
   if(!h || !k || !kartAdiMi(h.value)) return;
   const kid = kategoriIdByAd('Kartlı Alışveriş', 'gider');
-  if(kid && !k.value) k.value = kid;
+  if(kid && !k.value){
+    k.value = kid;
+    // Kategori koda göre değiştiği için select'in kendi onchange'i tetiklenmez — araç/plaka alanını elle tazele
+    gAracAlaniTazele('gKategori', 'gAracAlan', 'gArac');
+  }
 }
 function kategoriIdByAd(ad, tip){
   const k = KATEGORILER.find(x => x.tip === tip && x.ad.toLowerCase() === String(ad).toLowerCase());
   return k ? k.id : null;
 }
-function kategoriSelectHtml(id, tip, secili){
+function kategoriSelectHtml(id, tip, secili, onchange){
   return `<div style="display:flex;gap:8px;align-items:center;">
-    <select id="${id}" style="flex:1;">
+    <select id="${id}" style="flex:1;" ${onchange ? `onchange="${onchange}"` : ''}>
       <option value="">Kategorisiz</option>
       ${kategorilerByTip(tip).map(k => `<option value="${k.id}" ${secili === k.id ? 'selected' : ''}>${k.ad}</option>`).join('')}
     </select>
     <button class="btn" style="flex:0 0 auto;height:36px;" onclick="openKategoriModal('${tip}','${id}')">+ Yeni</button>
   </div>`;
+}
+
+// ---- Gider ↔ Araç bağlantısı (2026-09-14k) ----
+// Yakıt (ve benzeri araç) kategorisi seçilince gider formunda plaka alanı açılır; seçilen araç gidere `aracId`
+// olarak yazılır. Gider KOPYALANMAZ — Araçlarım'daki döküm bu bağlantıyı okuyarak aynı kaydı gösterir, böylece
+// gider düzenlenince/silinince araç dökümü de kendiliğinden güncel kalır (tek kaynak).
+function aracKategorisiMi(katId){
+  if(!katId) return false;
+  return /yakıt|akaryakit|akaryakıt|araç|arac/i.test(kategoriAdi(katId));
+}
+function aracSecSecenekleri(secili){
+  return ['<option value="">— Araç seçilmedi —</option>']
+    .concat((VEHICLES || []).map(v =>
+      `<option value="${v.id}" ${secili === v.id ? 'selected' : ''}>${v.plate}${v.brand || v.model ? ' · ' + vehicleLabel(v) : ''}</option>`)).join('');
+}
+// Kategori değişince plaka alanını göster/gizle. Alan gizlenirken seçim de sıfırlanır ki
+// kategori değiştirilip kaydedildiğinde yanlış araca gider bağlanmasın.
+function gAracAlaniTazele(katId, alanId, selectId){
+  const kat = document.getElementById(katId), alan = document.getElementById(alanId), sec = document.getElementById(selectId);
+  if(!kat || !alan || !sec) return;
+  const goster = aracKategorisiMi(kat.value) && (VEHICLES || []).length;
+  alan.style.display = goster ? '' : 'none';
+  if(!goster) sec.value = '';
 }
 function openKategoriModal(tip, hedefSelectId){
   document.getElementById('modalBox').innerHTML = `
@@ -9303,6 +9366,30 @@ function aracListView(){
       : `<div class="empty-state">Henüz araç eklenmedi.</div>`}
   `;
 }
+// (2026-09-14k) Bir aracın gider dökümü = araç ekranından elle girilenler + Giderler'den bu araca bağlananlar.
+// Bağlı kayıtlar KOPYALANMAZ, GIDERLER'den okunur — gider düzenlenince/silinince burası da kendiliğinden güncellenir.
+function aracGiderKayitlari(v){
+  if(!v) return [];
+  const manuel = (v.expenses || []).map(e => ({
+    id: e.id, ms: isoToMs(e.date), tarihMetni: formatDate(e.date),
+    tur: e.type || 'Gider', aciklama: e.desc || '', tutar: Number(e.amount) || 0, kaynak: 'arac',
+  }));
+  const bagli = (GIDERLER || []).filter(g => g.aracId === v.id).map(g => ({
+    id: g.id, ms: kayitTarihMs(g), tarihMetni: g.tarih || '—',
+    tur: kategoriAdi(g.kategoriId), aciklama: [g.client, g.tur].filter(Boolean).join(' — '),
+    tutar: Number(g.tutar) || 0, kaynak: 'gider',
+  }));
+  return manuel.concat(bagli).sort((a, b) => b.ms - a.ms);
+}
+function aracGiderToplam(v){ return aracGiderKayitlari(v).reduce((s, e) => s + e.tutar, 0); }
+// Araç ekranından bağlantıyı kaldırır — gider kaydının kendisi Giderler'de DURMAYA DEVAM EDER, silinmez.
+function aracGiderBaginiKaldir(vid, gid){
+  const g = (GIDERLER || []).find(x => x.id === gid);
+  if(!g) return;
+  g.aracId = null;
+  renderContent();
+  showToast('Gider bu araçtan ayrıldı — kayıt Giderler\'de duruyor.');
+}
 function vehicleCardHtml(v){
   const chips = DATE_FIELDS
     .map(f => ({ f:f, n:daysLeft(v.dates[f.key]) }))
@@ -9311,7 +9398,7 @@ function vehicleCardHtml(v){
     .slice(0,3)
     .map(x => { const st = dueStatus(x.n);
       return `<span class="v-chip ${st.cls}">${x.f.short}: ${st.text}</span>`; }).join('');
-  const totalExp = (v.expenses || []).reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const totalExp = aracGiderToplam(v);
   // Boş alanlar (yakıt/km/zimmet girilmemiş araçlar) satırda "· 0 km ·" gibi asılı ayraç bırakmasın
   const altBilgi = [v.fuel, (Number(v.km) ? Number(v.km).toLocaleString('tr-TR')+' km' : ''), v.owner]
     .filter(Boolean).join(' · ');
@@ -9333,9 +9420,9 @@ function vehicleCardHtml(v){
 function aracDetailView(){
   const v = VEHICLES.find(x => x.id === viewingVehicleId);
   if(!v){ aracStep='list'; return aracListView(); }
-  const exps = v.expenses.slice().sort((a,b) => (a.date < b.date ? 1 : -1));
-  const totalExp = exps.reduce((s,e)=>s+(Number(e.amount)||0),0);
-  const fuelExp  = exps.filter(e=>e.type==='Yakıt').reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const exps = aracGiderKayitlari(v);
+  const totalExp = exps.reduce((s,e)=>s+e.tutar,0);
+  const fuelExp  = exps.filter(e=>/yakıt|akaryakıt/i.test(e.tur)).reduce((s,e)=>s+e.tutar,0);
   const nearest  = DATE_FIELDS.map(f=>({f:f,n:daysLeft(v.dates[f.key])})).filter(x=>x.n!==null).sort((a,b)=>a.n-b.n)[0];
   const bakimKm  = (v.kms||{}).bakim;
   const sinceBakim = (bakimKm && v.km && Number(v.km) >= Number(bakimKm)) ? Number(v.km)-Number(bakimKm) : null;
@@ -9383,13 +9470,19 @@ function aracDetailView(){
 
     <div class="group-header"><span>— Giderler</span>
       <span style="cursor:pointer;text-decoration:underline;" onclick="openExpenseModal('${v.id}')">+ Gider Ekle</span></div>
+    <div class="hint" style="margin:0 0 10px;">Ön Muhasebe &gt; Giderler'de <b>Yakıt</b> kategorisi seçilip bu plaka işaretlenen kayıtlar burada
+      <span class="tag blue">Giderler</span> etiketiyle otomatik görünür; aynı kayıt iki kez yazılmaz.</div>
     ${exps.length ? `<table style="margin-bottom:22px;">
       <thead><tr><th>Tarih</th><th>Tür</th><th>Açıklama</th><th style="text-align:right;">Tutar</th><th></th></tr></thead>
       <tbody>
         ${exps.map(e => `<tr>
-          <td>${formatDate(e.date)}</td><td>${e.type}</td><td>${e.desc || '—'}</td>
-          <td style="text-align:right;font-family:var(--font-mono);">${money(e.amount)}</td>
-          <td style="text-align:right;width:34px;"><span style="cursor:pointer;color:var(--ink-3);" title="Sil" onclick="deleteExpense('${v.id}','${e.id}')">✕</span></td>
+          <td>${e.tarihMetni}</td>
+          <td>${notEsc(e.tur)}${e.kaynak === 'gider' ? ' <span class="tag blue" style="margin-left:4px;">Giderler</span>' : ''}</td>
+          <td>${notEsc(e.aciklama) || '—'}</td>
+          <td style="text-align:right;font-family:var(--font-mono);">${money(e.tutar)}</td>
+          <td style="text-align:right;width:34px;">${e.kaynak === 'gider'
+            ? `<span style="cursor:pointer;color:var(--ink-3);" title="Bu giderin araç bağlantısını kaldır (gider kaydı Giderler'de kalır)" onclick="aracGiderBaginiKaldir('${v.id}','${e.id}')">⛓</span>`
+            : `<span style="cursor:pointer;color:var(--ink-3);" title="Sil" onclick="deleteExpense('${v.id}','${e.id}')">✕</span>`}</td>
         </tr>`).join('')}
         <tr><td colspan="3"><b>Toplam</b></td>
           <td style="text-align:right;font-family:var(--font-mono);"><b>${money(totalExp)}</b></td><td></td></tr>
@@ -9483,6 +9576,8 @@ function saveVehicle(){
 function deleteVehicle(id){
   const v = VEHICLES.find(x => x.id === id);
   VEHICLES = VEHICLES.filter(x => x.id !== id);
+  // (2026-09-14k) Bu araca bağlı gider kayıtları SİLİNMEZ (muhasebe verisi) — yalnız araç bağlantıları boşaltılır
+  (GIDERLER || []).forEach(g => { if(g.aracId === id) g.aracId = null; });
   editingVehicleId = null; viewingVehicleId = null; aracStep = 'list'; renderContent();
   showToast((v ? v.plate : 'Araç') + ' silindi.');
 }
