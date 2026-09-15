@@ -2556,7 +2556,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-15a';
+window.ROTA_SURUM = 'v2026-09-15b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2984,30 +2984,120 @@ const SUB_STATE = {
 };
 
 // ---------------- ROL BAZLI ERİŞİM ----------------
+// (2026-09-15) ROL KURGUSU — kullanıcının tanımladığı yapı.
+// Yetki bayrakları (tabs/gorevSubs/yonetimSubs'a ek):
+//   finans:false        → şirket geneli finans rakamları gizli (Ön Muhasebe/raporlar/dashboard toplamları)
+//   plan:'duzen'|'goruntule'|null → haftalık planda düzenleme / yalnız görüntüleme / hiç
+//   disAlim:'duzen'|'ekle'|null   → dış alımlarda tam düzenleme / yalnız yeni kayıt ekleme / hiç
+//   teklif:'hepsi'|'kendi'|null   → tüm teklifler / yalnız temsilcisi olduğu teklifler / hiç
+//   teklifTutari:false  → teklif ve maliyet rakamlarını da göremez (üretim tarafı)
 const ROLE_CONFIG = {
-  YONETICI: { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'] },
-  TASARIM:  { label:'Tasarım',  tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['tum-isler','haftalik-plan','dis-alimlar','gorevlerim','projeler'] },   // grafik: teklif hazırlar, finans rakamı görmez, planı görüntüler, dış alımları yönetir
-  URETIM:   { label:'Üretim',   tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'] },
-  MONTAJ:   { label:'Montaj (Saha)', tabs:['ana-sayfa','gorev-yonetimi','destek'], gorevSubs:['haftalik-plan','gorevlerim'] },
-  MUHASEBE: { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['haftalik-plan','gorevlerim'], yonetimSubs:['araclarim','kategoriler'] },
+  YONETICI:      { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
+  KOORDINATOR:   { label:'Koordinatör', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
+  MUHASEBE:      { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'goruntule', disAlim:'ekle', teklif:'hepsi' },
+  // Üretim Müdürü: haftalık plan + dış alım (tam düzenleme) + araçlar. Başka hiçbir şey görmez, teklif/finans yok.
+  // (Eski "Montaj (Saha)" rolü kullanıcı kararıyla bu rolle birleştirildi.)
+  URETIM_MUDURU: { label:'Üretim Müdürü', tabs:['ana-sayfa','gorev-yonetimi','yonetim','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], yonetimSubs:['araclarim'], finans:false, teklifTutari:false, plan:'duzen', disAlim:'duzen', teklif:null },
+  // Tasarımcı: planı yalnız GÖRÜNTÜLER, dış alıma yeni kayıt EKLER, kendi tekliflerini ve maliyetlerini yönetir.
+  TASARIM:       { label:'Tasarımcı', tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], finans:false, plan:'goruntule', disAlim:'ekle', teklif:'kendi' },
+  // Satış-Pazarlama ve Mimar: yalnız kendi teklifleri + maliyetleri. Plan ve dış alıma hiç dokunmaz.
+  SATIS:         { label:'Satış-Pazarlama', tabs:['ana-sayfa','kisiler','teklifler','destek'], gorevSubs:[], finans:false, plan:null, disAlim:null, teklif:'kendi' },
+  MIMAR:         { label:'Mimar', tabs:['ana-sayfa','kisiler','teklifler','destek'], gorevSubs:[], finans:false, plan:null, disAlim:null, teklif:'kendi' },
   // (2026-09-14s) SUNUM/DEMO rolü — personele canlı tanıtım için. Yöneticiyle AYNI ekranlara erişir (her yer açık,
   // cariler dahil) ama finansal rakamlar gizlenir: finans:false hem mevcut finansGorebilir() kontrollerini kapatır
   // hem de ekrana basılan para tutarlarını maskeleyen sunumMaskele() katmanını devreye sokar.
-  SUNUM:    { label:'Sunum / Demo (rakamsız)', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], finans:false },
+  SUNUM:    { label:'Sunum / Demo (rakamsız)', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], finans:false, plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
 };
+// Eski rol anahtarları → yeni karşılıkları. Veritabanındaki hesaplar hâlâ eski adları taşıyabilir
+// (URETIM, MONTAJ); rol çözümlemesi bunları yeni role çevirir. Montaj, kullanıcı kararıyla Üretim Müdürü'ne katıldı.
+const ESKI_ROL_ESLEME = { URETIM:'URETIM_MUDURU', MONTAJ:'URETIM_MUDURU' };
 let CURRENT_ROLE = 'YONETICI';
-function roleCfg(){ return ROLE_CONFIG[CURRENT_ROLE] || ROLE_CONFIG.YONETICI; }
+function roleCfg(){
+  if(ROLE_CONFIG[CURRENT_ROLE]) return ROLE_CONFIG[CURRENT_ROLE];
+  const eski = ESKI_ROL_ESLEME[CURRENT_ROLE];
+  // Tanınmayan rol yanlışlıkla tam yetki almasın — en dar role (Mimar) düşer.
+  return (eski && ROLE_CONFIG[eski]) || ROLE_CONFIG.MIMAR;
+}
 // (2026-09-14t) SUNUM rolü veritabanında YOKTUR ve olamaz: sunucudaki rol listesi (lib/roles.ts) ve Postgres
 // enum'u sabittir; SUNUM seçilerek hesap açılmaya çalışıldığında API "Geçersiz rol" döndürür.
 // Bu yüzden sunum hesabı veritabanında NORMAL YÖNETİCİ olarak açılır; uygulama, e-postasına bakarak onu
 // giriş anında SUNUM moduna alır (tüm ekranlar açık, rakamlar maskeli). Şema/göç gerekmez, yalnız rota.html değişir.
 const SUNUM_HESAPLARI = ['demo@dekant.com'];
 function sunumHesabiMi(email){ return SUNUM_HESAPLARI.includes(String(email || '').trim().toLowerCase()); }
-function rolCozumle(email, rol){ return sunumHesabiMi(email) ? 'SUNUM' : rol; }
+
+// (2026-09-15) YENİ ROLLER VERİTABANINA EKLENMEDEN ÇALIŞIR.
+// Sunucudaki rol listesi (lib/roles.ts) ve Postgres enum'u sabittir: YONETICI/TASARIM/URETIM/MONTAJ/MUHASEBE.
+// Vercel derlemesi `prisma db push` çalıştırmadığı için yeni bir enum değeri eklemek elle göç ister.
+// Bu yüzden ayrıntılı rol, uygulamanın KENDİ verisinde tutuluyor: PERSONELLER[].kullanici.rol (AppState JSON).
+// Giriş anında e-postadan personel bulunur, rol oradan okunur; yoksa veritabanı rolüne düşülür.
+// Hesap açarken sunucuya her zaman GEÇERLİ bir veritabanı rolü gönderilir (bkz. ROL_DB_ESLEME).
+const ROL_DB_ESLEME = {
+  YONETICI:'YONETICI', KOORDINATOR:'YONETICI', MUHASEBE:'MUHASEBE',
+  URETIM_MUDURU:'URETIM', TASARIM:'TASARIM', SATIS:'TASARIM', MIMAR:'TASARIM', SUNUM:'YONETICI',
+};
+function rolDbKarsiligi(rol){ return ROL_DB_ESLEME[rol] || 'TASARIM'; }
+function rolNormalle(rol){
+  const r = String(rol || '').trim();
+  if(ROLE_CONFIG[r]) return r;
+  if(ESKI_ROL_ESLEME[r]) return ESKI_ROL_ESLEME[r];   // URETIM / MONTAJ → URETIM_MUDURU
+  return '';
+}
+function rolCozumle(email, rol){
+  if(sunumHesabiMi(email)) return 'SUNUM';
+  const e = String(email || '').trim().toLowerCase();
+  // Önce uygulama verisindeki ayrıntılı rol (Yönetim > Kullanıcılar'dan atanan)
+  const p = e && Array.isArray(PERSONELLER)
+    ? PERSONELLER.find(x => x.kullanici && String(x.kullanici.email || '').trim().toLowerCase() === e) : null;
+  const uygulamaRolu = p && p.kullanici ? rolNormalle(p.kullanici.rol) : '';
+  return uygulamaRolu || rolNormalle(rol) || 'TASARIM';
+}
 // Finansal rakamları (tahsilat, gelir-gider, tutar/toplam, satış raporları) yalnız Ön Muhasebe erişimi olan roller görür.
 // finans:false olan rol (SUNUM) Ön Muhasebe ekranlarını AÇABİLİR ama rakam göremez.
 function finansGorebilir(){ const c = roleCfg(); return c.finans === false ? false : c.tabs.includes('on-muhasebe'); }
-function sunumModu(){ return roleCfg().finans === false && roleCfg().tabs.includes('on-muhasebe'); }
+function sunumModu(){ return CURRENT_ROLE === 'SUNUM'; }
+
+// ---- (2026-09-15) Rol yetkileri ----
+// Haftalık plan: düzenleyebilir mi / en azından görüntüleyebilir mi
+function gorevEkraniVar(){ return roleCfg().tabs.includes('gorev-yonetimi'); }
+// Tüm İşler (iş havuzu) ekranını gören roller — ana sayfadaki iş odaklı panellerin ölçütü budur.
+function isListesiGorur(){ return gorevEkraniVar() && roleCfg().gorevSubs.includes('tum-isler'); }
+function planYetkili(){ return roleCfg().plan === 'duzen'; }
+function planGorebilir(){ return !!roleCfg().plan; }
+// Dış alımlar: yeni kayıt ekleyebilir mi / mevcut kaydı düzenleyip silebilir mi
+function disAlimEkleyebilir(){ const d = roleCfg().disAlim; return d === 'ekle' || d === 'duzen'; }
+function disAlimDuzenleyebilir(){ return roleCfg().disAlim === 'duzen'; }
+// Teklifler: hepsini mi yoksa yalnız kendi temsilcisi olduklarını mı görür
+function teklifKapsami(){ return roleCfg().teklif || null; }     // 'hepsi' | 'kendi' | null
+function tumTeklifleriGorur(){ return teklifKapsami() === 'hepsi'; }
+// Teklif/maliyet RAKAMLARI — şirket geneli finanstan ayrıdır: Tasarımcı/Satış/Mimar kendi tekliflerinin
+// tutarını ve maliyetini görmek ZORUNDA (işleri bu), ama Ön Muhasebe rakamlarını görmezler.
+function teklifTutariGorebilir(){ const c = roleCfg(); return c.teklifTutari === false ? false : !!c.teklif; }
+// Giriş yapan kişinin teklifteki "Temsilci" adı — sahiplik bununla belirlenir (kullanıcı kararı).
+function benimTemsilciAdim(){
+  const p = (typeof benimPersonelim === 'function') ? benimPersonelim() : null;
+  if(p && p.name) return p.name;
+  if(typeof LIVE !== 'undefined' && LIVE.user && LIVE.user.name) return LIVE.user.name;
+  return '';
+}
+function teklifTemsilciOptionlari(mevcut){
+  const hepsi = tumTeklifleriGorur() ? teklifTemsilciSecenekleri() : [benimTemsilciAdim()].filter(Boolean);
+  const liste = hepsi.slice();
+  if(mevcut && !liste.includes(mevcut)) liste.unshift(mevcut);
+  if(!liste.length) liste.push(benimTemsilciAdim() || '—');
+  const secili = mevcut || (tumTeklifleriGorur() ? '' : (benimTemsilciAdim() || liste[0]));
+  return liste.map(s => `<option value="${s}" ${s === secili ? 'selected' : ''}>${s}</option>`).join('');
+}
+function teklifBenimMi(q){
+  if(tumTeklifleriGorur()) return true;
+  const ben = trKucuk(benimTemsilciAdim()).trim();
+  return !!ben && trKucuk(q && q.repName || '').trim() === ben;
+}
+// Rolün görmesi gereken teklif listesi — teklif ekranı, raporlar, arama ve ana sayfa bunu kullanır
+function gorunurTeklifler(){
+  if(tumTeklifleriGorur()) return QUOTES;
+  if(!teklifKapsami()) return [];
+  return QUOTES.filter(teklifBenimMi);
+}
 function initialsOf(name){ return name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase(); }
 
 function togglePwVisibility(){
@@ -3017,7 +3107,7 @@ function togglePwVisibility(){
   else { input.type = 'password'; btn.textContent = '👁️'; }
 }
 function doLogin(role){
-  CURRENT_ROLE = role;
+  CURRENT_ROLE = ROLE_CONFIG[role] ? role : (ESKI_ROL_ESLEME[role] || role);
   gorevSub = roleCfg().gorevSubs[0] || 'gorevlerim';
   yonetimSub = (roleCfg().yonetimSubs||[])[0] || 'kullanicilar';
   aracStep = 'list'; editingVehicleId = null; viewingVehicleId = null;
@@ -3102,8 +3192,8 @@ function globalAraSonuclar(q){
   const icerir = v => String(v || '').toLocaleLowerCase('tr').includes(s);
   if(tabs.includes('kisiler')) CUSTOMERS.filter(c => icerir(c.name) || icerir(c.contact) || icerir(c.phone) || icerir(c.company)).slice(0, 5)
     .forEach(c => out.push({ grup:'Kişiler', baslik:c.name, alt:[c.contact, c.phone].filter(Boolean).join(' · ') || (c.durum || ''), etiket:c.durum || 'Kişi', renk:c.durum === 'Tedarikçi' ? 'orange' : 'blue', onclick:`goTo('kisiler'); openKisiDrawer('${c.id}')` }));
-  if(tabs.includes('teklifler')) QUOTES.filter(q => icerir(q.no) || icerir(teklifMusteriAdi(q)) || icerir(q.repName)).slice(0, 5)
-    .forEach(q => out.push({ grup:'Teklifler', baslik:`${q.no || 'Teklif'} · ${teklifMusteriAdi(q)}`, alt:`${formatDate(q.date)}${finansGorebilir() ? ' · ' + CURRENCY_SYMBOLS[q.currency||'TL'] + Math.round(quoteTotal(q)).toLocaleString('tr-TR') : ''}`, etiket:q.status, renk:statusSlug(q.status) === 'st-reddedildi' ? 'red' : (statusSlug(q.status) === 'st-gonderildi' ? 'orange' : 'green'), onclick:`goTo('teklifler'); openQuoteView('${q.id}')` }));
+  if(tabs.includes('teklifler')) gorunurTeklifler().filter(q => icerir(q.no) || icerir(teklifMusteriAdi(q)) || icerir(q.repName)).slice(0, 5)
+    .forEach(q => out.push({ grup:'Teklifler', baslik:`${q.no || 'Teklif'} · ${teklifMusteriAdi(q)}`, alt:`${formatDate(q.date)}${teklifTutariGorebilir() ? ' · ' + CURRENCY_SYMBOLS[q.currency||'TL'] + Math.round(quoteTotal(q)).toLocaleString('tr-TR') : ''}`, etiket:q.status, renk:statusSlug(q.status) === 'st-reddedildi' ? 'red' : (statusSlug(q.status) === 'st-gonderildi' ? 'orange' : 'green'), onclick:`goTo('teklifler'); openQuoteView('${q.id}')` }));
   if(tabs.includes('gorev-yonetimi')) JOBS.filter(j => icerir(j.code) || icerir(j.client) || icerir(j.desc) || (j.assignees||[]).some(icerir)).slice(0, 5)
     .forEach(j => out.push({ grup:'İşler', baslik:`${j.code} · ${j.client}`, alt:j.desc, etiket:STAGE_LABELS_TR[j.stage] || j.stage, renk:'gray', onclick:`openJobDrawer('${j.id}')` }));
   return out;
@@ -3141,7 +3231,9 @@ function hizliOlusturAc(){
     kartlar.push(kart(NAV_SVG.file, 'Yeni teklif', 'Müşteriye fiyat hazırla', "closeModal(); goTo('teklifler'); yeniTeklifBaslat();"));
   if(tabs.includes('on-muhasebe'))
     kartlar.push(kart(NAV_SVG.wallet, 'Tahsilat gir', 'Cari hareket ekle', "closeModal(); selectSub('on-muhasebe','gelirler'); gelirStep='form'; renderContent();"));
-  if(tabs.includes('gorev-yonetimi') && roleCfg().gorevSubs.includes('haftalik-plan'))
+  if(disAlimEkleyebilir() && roleCfg().gorevSubs.includes('dis-alimlar'))
+    kartlar.push(kart(NAV_SVG.box, 'Dış alım', 'Malzeme / sipariş kaydı aç', "closeModal(); selectSub('gorev-yonetimi','dis-alimlar'); openDisAlimModal();"));
+  if(tabs.includes('gorev-yonetimi') && roleCfg().gorevSubs.includes('haftalik-plan') && planYetkili())
     kartlar.push(kart(NAV_SVG.home, 'Planlama', 'İşi haftaya yerleştir', "closeModal(); selectSub('gorev-yonetimi','haftalik-plan');"));
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><div><div class="eyebrow">HIZLI OLUŞTUR</div><h2>Ne eklemek istiyorsunuz?</h2></div><button class="modal-close" onclick="closeModal()">×</button></div>
@@ -3239,7 +3331,16 @@ function toggleSubmenu(key){
   renderNav(); renderContent();
   tarayiciGecmisYaz();
 }
+// Rolün erişemeyeceği sekme/alt sekmeye elle (geçmiş, eski bağlantı, kod içi çağrı) gidilmesini engeller.
+function sayfaYetkisi(key){ return roleCfg().tabs.includes(key); }
+function altSayfaYetkisi(parentKey, subKey){
+  if(!sayfaYetkisi(parentKey)) return false;
+  if(parentKey === 'gorev-yonetimi') return roleCfg().gorevSubs.includes(subKey);
+  if(parentKey === 'yonetim') return (roleCfg().yonetimSubs || []).includes(subKey);
+  return true;
+}
 function selectSub(parentKey, subKey){
+  if(!altSayfaYetkisi(parentKey, subKey)){ showToast('Bu ekran için yetkiniz yok.'); return; }
   if(!(currentPage===parentKey && SUB_STATE[parentKey].get()===subKey)) pushHistory();
   currentPage = parentKey;
   SUB_STATE[parentKey].set(subKey);
@@ -3255,6 +3356,7 @@ function selectSub(parentKey, subKey){
   tarayiciGecmisYaz();
 }
 function goTo(key){
+  if(!sayfaYetkisi(key)){ showToast('Bu ekran için yetkiniz yok.'); return; }
   if(key !== currentPage) pushHistory();
   if(key === 'ana-sayfa' && currentPage !== 'ana-sayfa' && sozSirasi !== null) sozSirasi++;
   currentPage = key; kisilerStep = 'list'; editingCustomerId = null; teklifStep = 'list'; boardFilterStage = null; gtAssigneeFilter = ''; gtSearchQuery = ''; if(key==='teklifler') teklifSub = 'liste'; if(!SUBMENUS[key]) openSubmenu = null; renderNav(); renderContent(); closeMobileSidebar();
@@ -3597,9 +3699,9 @@ function personelDepartmanSecenekleri(secili){
   return liste.map(x => `<option ${secili === x ? 'selected' : ''}>${notEsc(x)}</option>`).join('');
 }
 const PLAN_VARSAYILAN_SURE = 120;   // tepsiden bırakılan iş için dakika
-// düzenleme: yönetim/koordinatör + üretim sorumlusu; diğer roller yalnız görüntüler.
-// (2026-09-14s) SUNUM rolü de düzenleyebilir — canlı tanıtımda plan oluşturma/taşıma gösterilebilsin diye.
-function planYetkili(){ return CURRENT_ROLE === 'YONETICI' || CURRENT_ROLE === 'URETIM' || CURRENT_ROLE === 'SUNUM'; }
+// NOT (2026-09-15): planYetkili() artık rol kurgusunun başında (ROLE_CONFIG yanında) tanımlıdır —
+// rolün `plan` bayrağına bakar. Buradaki eski sabit listeli tanım kaldırıldı; aynı adla ikinci bir
+// tanım bırakılsaydı JS'te SONRAKİ tanım kazanacağı için yeni yetki kurgusu sessizce devre dışı kalırdı.
 function planSecim(){ return PLAN_DEPARTMANLAR[planDepartman] || PLAN_DEPARTMANLAR['Üretim + Montaj']; }
 // İşin mevcut aşaması için planlanmış bloğu
 function planBlogu(j){ return PLAN_TASKS.find(t => t.jobId === j.id && t.stage === j.stage) || null; }
@@ -4046,7 +4148,7 @@ function planUstBar(gunler, ekstra){
   return `
     <div class="list-page-head">
       <div><div class="page-title">${baslik}</div>
-        <div class="page-sub">Kimin elinde hangi iş var, hangi gün ne kadar yüklü — sürükleyerek değiştirin.</div></div>
+        <div class="page-sub">Kimin elinde hangi iş var, hangi gün ne kadar yüklü${planYetkili() ? ' — sürükleyerek değiştirin.' : ' — görüntüleme modu.'}</div></div>
       ${planYetkili() ? `<button class="primary-btn" onclick="openPlanTaskModal()">+ Serbest Blok</button>` : ''}
     </div>
     <div class="hp-bar">
@@ -4464,7 +4566,7 @@ function gorevlerimView(){
           </div>
           ${j.stage === 'TASARIM' && j.approval !== 'ONAYLANDI' ? `<div class="locked">🔒 ${j.approval === 'REVIZYON' ? 'Revizyon istendi' : 'Onay bekliyor'}</div>` : ''}
         </div>`).join('')}
-    </div>` : `<div class="note">Üzerinizde açık iş yok. Havuzdaki işleri <span style="cursor:pointer;text-decoration:underline;" onclick="selectSub('gorev-yonetimi','tum-isler')">Tüm İşler</span>'den üstlenebilirsiniz.</div>`}
+    </div>` : `<div class="note">Üzerinizde açık iş yok.${isListesiGorur() ? ` Havuzdaki işleri <span style="cursor:pointer;text-decoration:underline;" onclick="selectSub('gorev-yonetimi','tum-isler')">Tüm İşler</span>'den üstlenebilirsiniz.` : ''}</div>`}
 
     <div class="group-header" style="margin:18px 0 10px;"><span>— Genel Görevlerim (${acikGorevler.length})</span>
       <span style="cursor:pointer;text-decoration:underline;color:var(--ink-3);font-weight:400;" onclick="openGeneralBoard('Genel')">Genel panoya git →</span></div>
@@ -4482,7 +4584,7 @@ function gorevlerimView(){
     <div class="group-header" style="margin:18px 0 10px;"><span>— Dış Alımlarım (${alimlarim.length})</span></div>
     <table>
       <thead><tr><th>Malzeme / Sipariş</th><th>Tedarikçi</th><th>Tarih</th><th>Tür</th></tr></thead>
-      <tbody>${alimlarim.map(a => `<tr style="cursor:pointer;" onclick="openDisAlimModal('${a.id}')">
+      <tbody>${alimlarim.map(a => `<tr${disAlimDuzenleyebilir() ? ` style="cursor:pointer;" onclick="openDisAlimModal('${a.id}')"` : ''}>
         <td><b>${notEsc(a.malzeme || '—')}</b></td>
         <td>${notEsc(a.tedarikci || '—')}</td>
         <td>${a.tarih ? formatDate(a.tarih) : '—'}</td>
@@ -5567,7 +5669,7 @@ function teklifKirilimSec(k){ teklifKirilim = k; renderContent(); }
 // Temsilci bazlı özet: seçili tarih aralığındaki tüm teklifler üzerinden
 function teklifRaporuVerisi(){
   const map = new Map();
-  QUOTES.filter(q => rapTarihAralikta(q.date)).forEach(q => {
+  gorunurTeklifler().filter(q => rapTarihAralikta(q.date)).forEach(q => {
     const ad = q.repName || 'Belirtilmemiş';
     if(!map.has(ad)) map.set(ad, { ad, adet:0, tutar:0, iseDonusen:0, faturalandi:0, reddedildi:0 });
     const r = map.get(ad);
@@ -5580,7 +5682,7 @@ function teklifRaporuVerisi(){
 }
 // Seçili bir temsilcinin dönem kırılımlı (aylık/üç aylık/yıllık) teklif tutarı grafiği + özeti
 function teklifTemsilciDonemVerisi(ad){
-  const liste = QUOTES.filter(q => (q.repName || 'Belirtilmemiş') === ad && rapTarihAralikta(q.date));
+  const liste = gorunurTeklifler().filter(q => (q.repName || 'Belirtilmemiş') === ad && rapTarihAralikta(q.date));
   const yillar = [...new Set(liste.map(q => chTarihSira(q.date).slice(0, 4)).filter(Boolean))].sort();
   const sutunlar = teklifKirilim === 'aylik' ? RAP_AYLAR
     : teklifKirilim === 'ceyrek' ? ['1. Çeyrek', '2. Çeyrek', '3. Çeyrek', '4. Çeyrek']
@@ -6254,7 +6356,8 @@ function faturaListesi(){
 //  • Satış faturası: kaynağı Faturalandı durumundaki TEKLİF. Teklif "Kabul Edildi"e geri alınır — fatura listeden
 //    çıkar ama teklif, işi ve cari satış hareketi KORUNUR (yanlışlıkla faturalandırma bu şekilde geri alınır).
 //  • Alış faturası: kaynağı cariye bağlı GİDER kaydı. Gider silinir ve hesap bakiyesi geri alınır.
-function yoneticiMi(){ return CURRENT_ROLE === 'YONETICI'; }
+// Tam yetkili roller: Yönetici ve Koordinatör aynı haklara sahiptir; Sunum hesabı tanıtım için her yeri görür.
+function yoneticiMi(){ return ['YONETICI','KOORDINATOR','SUNUM'].includes(CURRENT_ROLE); }
 function faturaSil(tur, id, ad, tutarK){
   if(!yoneticiMi()){ showToast('Fatura silme yetkisi yalnızca yöneticide.'); return; }
   if(tur === 'satis'){
@@ -6373,7 +6476,7 @@ function tahsilatUstlen(id){
 function tahsilatBirak(id){
   const j = JOBS.find(x => x.id === id); if(!j) return;
   const p = benimPersonelim();
-  if(CURRENT_ROLE !== 'YONETICI' && (!p || j.tahsilatSorumlusu !== p.name)){ showToast('Yalnız üstlenen kişi veya yönetici bırakabilir.'); return; }
+  if(!yoneticiMi() && (!p || j.tahsilatSorumlusu !== p.name)){ showToast('Yalnız üstlenen kişi veya yönetici bırakabilir.'); return; }
   const eski = j.tahsilatSorumlusu;
   j.tahsilatSorumlusu = '';
   bildirimRole('MUHASEBE', `Tahsilat havuza geri bırakıldı: ${j.code} · ${j.client}`, { jobId: j.id });
@@ -6385,7 +6488,7 @@ function tahsilatSorumluHtml(j){
   if(!j.tahsilatSorumlusu)
     return `<button class="btn" style="height:26px;font-size:11.5px;padding:0 10px;color:var(--signal);border-color:var(--signal);" onclick="tahsilatUstlen('${j.id}')">🖐 Üstlen</button>`;
   const benim = p && j.tahsilatSorumlusu === p.name;
-  return `<span style="font-weight:600;">${notEsc(j.tahsilatSorumlusu)}</span>${(benim || CURRENT_ROLE === 'YONETICI')
+  return `<span style="font-weight:600;">${notEsc(j.tahsilatSorumlusu)}</span>${(benim || yoneticiMi())
     ? ` <span class="mini-islem" title="Havuza bırak" onclick="tahsilatBirak('${j.id}')" style="text-decoration:underline;font-size:11px;">bırak</span>` : ''}`;
 }
 function gorevdenTahsilat(customerId){
@@ -9217,21 +9320,24 @@ function zamanFarkiMetni(ms){
 // Bugünün öncelikleri — mevcut iş/teklif/görev verisinden türetilir (yeni hesap yok)
 function anaSayfaOncelikler(){
   const rows = [];
-  JOBS.forEach(j => {
+  // Satış-Pazarlama / Mimar gibi roller iş akışı ekranını görmez; onlara yalnız kendi teklifleri listelenir.
+  if(isListesiGorur()) JOBS.forEach(j => {
     if(!j.assignees || !j.assignees.length) rows.push({ sira:0, baslik:j.client, alt:`${j.desc} · ${STAGE_LABELS_TR[j.stage] || j.stage}`, etiket:'Atama bekliyor', renk:'red', onclick:`openJobDrawer('${j.id}')`, kim:'—' });
     else if(j.stage === 'TASARIM' && j.approval !== 'ONAYLANDI') rows.push({ sira:1, baslik:j.client, alt:`${j.desc} · Tasarım`, etiket:j.approval === 'REVIZYON' ? 'Revizyon' : 'Onay bekliyor', renk:'orange', onclick:`openJobDrawer('${j.id}')`, kim:(j.assignees||[])[0] || '—' });
     else if(j.stage === 'MONTAJ') rows.push({ sira:2, baslik:j.client, alt:`${j.desc} · Montaj`, etiket:'Sahada', renk:'blue', onclick:`openJobDrawer('${j.id}')`, kim:(j.assignees||[])[0] || '—' });
   });
-  QUOTES.filter(q => q.status === 'Gönderildi').forEach(q => rows.push({ sira:1, baslik:teklifMusteriAdi(q), alt:`Teklif ${q.no || ''}${finansGorebilir() ? ' · ' + CURRENCY_SYMBOLS[q.currency||'TL'] + Math.round(quoteTotal(q)).toLocaleString('tr-TR') : ''}`, etiket:'Karar bekliyor', renk:'orange', onclick:`goTo('teklifler'); openQuoteView('${q.id}')`, kim:q.repName || '—' }));
-  (GENERAL_TASKS || []).filter(t => t.overdue && t.status !== 'Tamamlandı').forEach(t => rows.push({ sira:0, baslik:t.title, alt:`${t.project || 'Genel'} · Termin ${t.due || '—'}`, etiket:'Gecikti', renk:'red', onclick:`openGeneralBoard('${(t.project||'Genel').replace(/'/g, "\\'")}')`, kim:(t.assignees||[])[0] || '—' }));
+  gorunurTeklifler().filter(q => q.status === 'Gönderildi').forEach(q => rows.push({ sira:1, baslik:teklifMusteriAdi(q), alt:`Teklif ${q.no || ''}${teklifTutariGorebilir() ? ' · ' + CURRENCY_SYMBOLS[q.currency||'TL'] + Math.round(quoteTotal(q)).toLocaleString('tr-TR') : ''}`, etiket:'Karar bekliyor', renk:'orange', onclick:`goTo('teklifler'); openQuoteView('${q.id}')`, kim:q.repName || '—' }));
+  if(gorevEkraniVar()) (GENERAL_TASKS || []).filter(t => t.overdue && t.status !== 'Tamamlandı').forEach(t => rows.push({ sira:0, baslik:t.title, alt:`${t.project || 'Genel'} · Termin ${t.due || '—'}`, etiket:'Gecikti', renk:'red', onclick:`openGeneralBoard('${(t.project||'Genel').replace(/'/g, "\\'")}')`, kim:(t.assignees||[])[0] || '—' }));
   return rows.sort((x, y) => x.sira - y.sira).slice(0, 7);
 }
 function anaSayfaView(){
   const openTasks = JOBS.filter(j => j.stage !== 'TAHSILAT').length;
-  const draftQuotes = QUOTES.filter(q => q.status==='Taslak').length;
+  const draftQuotes = gorunurTeklifler().filter(q => q.status==='Taslak').length;
   const inMontaj = JOBS.filter(j => j.stage==='MONTAJ').length;
   const waitingApproval = JOBS.filter(j => j.stage==='TASARIM' && j.approval!=='ONAYLANDI').length;
-  const gonderilen = QUOTES.filter(q => q.status === 'Gönderildi');
+  const gonderilen = gorunurTeklifler().filter(q => q.status === 'Gönderildi');
+  const benimTeklifSayisi = gorunurTeklifler().length;
+  const kabulEdilen = gorunurTeklifler().filter(q => q.status === 'Kabul Edildi' || q.status === 'Faturalandı').length;
   const gonderilenTutar = gonderilen.reduce((t, q) => t + quoteTotal(q), 0);
   const cariler = cariOzetListesi(true);
   const tahsilEdilecekK = cariler.reduce((t, c) => t + (c.bakiyeK > 0 ? c.bakiyeK : 0), 0);
@@ -9247,7 +9353,8 @@ function anaSayfaView(){
   const ad = adParcalar.length > 1 ? adParcalar.slice(0, -1).join(' ') : (adParcalar[0] || '');
   const oncelikler = anaSayfaOncelikler();
   const kararSayisi = waitingApproval + gonderilen.length;
-  const hareketKaynak = CURRENT_ROLE === 'YONETICI' ? BILDIRIMLER : benimBildirimlerim();
+  const kararBekleyen = isListesiGorur() ? kararSayisi : gonderilen.length;
+  const hareketKaynak = yoneticiMi() ? BILDIRIMLER : benimBildirimlerim();
   const hareketler = [...hareketKaynak].sort((x, y) => (y.tarih||0) - (x.tarih||0)).slice(0, 6);
   const kimBasHarf = b => { const p = PERSONELLER.find(x => x.kullanici && x.kullanici.email === b.alici); return p ? initialsOf(p.name) : '•'; };
   const tarihMetni = simdi.toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
@@ -9259,31 +9366,37 @@ function anaSayfaView(){
     </div>`;
   return `
     <div class="page-head">
-      <div><div class="eyebrow">YÖNETİM KOKPİTİ</div>
+      <div><div class="eyebrow">${isListesiGorur() ? 'YÖNETİM KOKPİTİ' : (gorevEkraniVar() ? 'ÇALIŞMA PANOM' : 'TEKLİF PANOM')}</div>
         <div class="page-title">${selam}${ad ? ', ' + notEsc(ad) : ''}</div>
         <div class="gunun-sozu"><span class="tirnak">“</span>${gununSozu()}<span class="tirnak kapa">”</span></div></div>
       <div class="date-chip">${tarihMetni} <strong>${gunMetni}</strong></div>
     </div>
     <div class="metric-grid">
       ${finansGorebilir() ? `
-      ${metric('Açık işler', openTasks, waitingApproval ? `${waitingApproval} iş onay bekliyor` : `${inMontaj} iş sahada`, waitingApproval ? 'risk' : '', NAV_SVG.tasks, 'orange', "selectSub('gorev-yonetimi','tum-isler')")}
+      ${metric('Açık işler', openTasks, waitingApproval ? `${waitingApproval} iş onay bekliyor` : `${inMontaj} iş sahada`, waitingApproval ? 'risk' : '', NAV_SVG.tasks, 'orange', isListesiGorur() ? "selectSub('gorev-yonetimi','tum-isler')" : '')}
       ${metric('Bekleyen teklifler', CURRENCY_SYMBOLS.TL + ' ' + Math.round(gonderilenTutar).toLocaleString('tr-TR'), `${gonderilen.length} teklif karar bekliyor · ${draftQuotes} taslak`, '', NAV_SVG.file, 'blue', "goTo('teklifler')")}
       ${metric('Beklenen tahsilat', chTL(tahsilEdilecekK), `${tahsilCari} caride açık bakiye`, '', NAV_SVG.wallet, 'green', "selectSub('on-muhasebe','cari-hareketleri')")}
       ${metric('Bu ay tahsilat', tl(buAyTutar), `${buAy.length} tahsilat kaydı`, buAy.length ? 'trend' : '', NAV_SVG.chart, '', "selectSub('on-muhasebe','gelirler')")}`
+      : (!gorevEkraniVar() ? `
+      ${metric('Tekliflerim', benimTeklifSayisi, 'toplam kayıt', '', NAV_SVG.file, 'blue', "goTo('teklifler')")}
+      ${metric('Karar bekleyen', gonderilen.length, 'gönderildi, yanıt bekliyor', gonderilen.length ? 'risk' : '', '!', gonderilen.length ? 'orange' : '', "goTo('teklifler')")}
+      ${metric('Taslak', draftQuotes, 'henüz gönderilmedi', '', NAV_SVG.tasks, 'orange', "goTo('teklifler')")}
+      ${metric('Kabul edilen', kabulEdilen, 'onaylanan teklif', kabulEdilen ? 'trend' : '', NAV_SVG.chart, 'green', "goTo('teklifler')")}`
       : `
-      ${metric('Açık işler', openTasks, 'tahsilata gelmemiş', '', NAV_SVG.tasks, 'orange', roleCfg().gorevSubs.includes('tum-isler') ? "selectSub('gorev-yonetimi','tum-isler')" : "selectSub('gorev-yonetimi','gorevlerim')")}
+      ${metric('Açık işler', openTasks, 'tahsilata gelmemiş', '', NAV_SVG.tasks, 'orange', isListesiGorur() ? "selectSub('gorev-yonetimi','tum-isler')" : (roleCfg().gorevSubs.includes('gorevlerim') ? "selectSub('gorev-yonetimi','gorevlerim')" : ''))}
       ${metric('Onay bekleyen', waitingApproval, 'üretime geçemiyor', waitingApproval ? 'risk' : '', '!', waitingApproval ? 'red' : '', '')}
       ${metric('Sahada', inMontaj, 'montaj aşamasında', '', NAV_SVG.box, 'blue', '')}
       ${roleCfg().tabs.includes('teklifler')
         ? metric('Bekleyen teklifler', gonderilen.length, `${draftQuotes} taslak`, '', NAV_SVG.file, 'green', "goTo('teklifler')")
-        : metric('Planlı işler', PLAN_TASKS.length, 'haftalık planda', '', NAV_SVG.home, 'green', roleCfg().gorevSubs.includes('haftalik-plan') ? "selectSub('gorev-yonetimi','haftalik-plan')" : '')}`}
+        : metric('Planlı işler', PLAN_TASKS.length, 'haftalık planda', '', NAV_SVG.home, 'green', roleCfg().gorevSubs.includes('haftalik-plan') ? "selectSub('gorev-yonetimi','haftalik-plan')" : '')}`)}
     </div>
     ${homeVehicleAlertsHtml()}
     <div class="dashboard-grid">
       <div>
         <section class="panel">
-          <div class="panel-head"><div><h3>Bugünün öncelikleri</h3><p>Atama, onay ve karar bekleyen işler önce listelenir</p></div>
-            <button class="ghost" onclick="selectSub('gorev-yonetimi','tum-isler')">Tüm işler →</button></div>
+          <div class="panel-head"><div><h3>Bugünün öncelikleri</h3><p>${isListesiGorur() ? 'Atama, onay ve karar bekleyen işler önce listelenir' : 'Sizi bekleyen işler'}</p></div>
+            ${isListesiGorur() ? `<button class="ghost" onclick="selectSub('gorev-yonetimi','tum-isler')">Tüm işler →</button>`
+              : (roleCfg().tabs.includes('teklifler') ? `<button class="ghost" onclick="goTo('teklifler')">Teklifler →</button>` : '')}</div>
           <div class="task-list">
             ${oncelikler.length ? oncelikler.map(o => `
               <div class="task-row" onclick="${o.onclick}">
@@ -9295,10 +9408,11 @@ function anaSayfaView(){
         </section>
         <div class="attention">
           <span>!</span>
-          <div><h4>${kararSayisi ? `Kararınızı bekleyen ${kararSayisi} konu var` : 'Kararınızı bekleyen konu yok'}</h4>
-            <p>${kararSayisi ? `${waitingApproval} tasarım onayı ve ${gonderilen.length} teklif kararı iş akışını bekliyor.` : 'Onay bekleyen iş veya karar bekleyen teklif bulunmuyor.'}</p></div>
-          <button class="beyaz" onclick="${waitingApproval ? "selectSub('gorev-yonetimi','tum-isler')" : "goTo('teklifler')"}">İncele</button>
+          <div><h4>${kararBekleyen ? `Kararınızı bekleyen ${kararBekleyen} konu var` : 'Kararınızı bekleyen konu yok'}</h4>
+            <p>${kararBekleyen ? (isListesiGorur() ? `${waitingApproval} tasarım onayı ve ${gonderilen.length} teklif kararı iş akışını bekliyor.` : `${gonderilen.length} teklif karşı taraftan yanıt bekliyor.`) : 'Onay bekleyen iş veya karar bekleyen teklif bulunmuyor.'}</p></div>
+          <button class="beyaz" onclick="${isListesiGorur() && waitingApproval ? "selectSub('gorev-yonetimi','tum-isler')" : (roleCfg().tabs.includes('teklifler') ? "goTo('teklifler')" : (roleCfg().gorevSubs.includes('haftalik-plan') ? "selectSub('gorev-yonetimi','haftalik-plan')" : "goTo('ana-sayfa')"))}">İncele</button>
         </div>
+        ${!isListesiGorur() ? '' : `
         <section class="panel" style="margin-top:16px;">
           <div class="panel-head"><div><h3>Departmanlara göre dağılım</h3><p>Tıklayın, o aşamaya gidin</p></div></div>
           ${departmentDonut()}
@@ -9314,7 +9428,7 @@ function anaSayfaView(){
               <div style="width:180px;">${railHtml(j.stage)}</div>
               <div class="ledger-amount" style="font-weight:500;color:var(--ink-3);">${j.due||'—'}</div>
             </div>`).join('') : '<div class="empty-state">Kayıt yok.</div>'}
-        </section>
+        </section>`}
       </div>
       <section class="panel">
         <div class="panel-head"><div><h3>Son hareketler</h3><p>Ekipteki güncel gelişmeler</p></div></div>
@@ -9348,11 +9462,14 @@ function yonetimView(){
 function kullanicilarView(){
   return `
     <div class="list-page-head"><div class="page-title">Kullanıcılar</div><button class="primary-btn" onclick="openUserModal()">+ Giriş Hesabı Aç</button></div>
-    <div class="note">Her kullanıcının rolü, sol menüde hangi sekmeleri göreceğini belirler.</div>
+    <div class="note">Her kullanıcının rolü, sol menüde hangi sekmeleri ve hangi işlemleri yapabileceğini belirler.
+      <b>Yönetici / Koordinatör</b> her şeyi görür · <b>Muhasebe</b> her şeyi görür, haftalık planı yalnız görüntüler, dış alıma ekleme yapabilir ·
+      <b>Üretim Müdürü</b> haftalık plan, dış alımlar ve araçlar · <b>Tasarımcı</b> planı görüntüler, dış alıma ekler, kendi tekliflerini yönetir ·
+      <b>Satış-Pazarlama / Mimar</b> yalnız kendi teklif ve maliyetleri.</div>
     <table>
       <thead><tr><th>Ad</th><th>Unvan</th><th>E-posta</th><th>Rol</th><th></th></tr></thead>
       <tbody>
-        ${USERS.map(u => `<tr><td><b>${u.name}</b></td><td>${u.unvan || '—'}</td><td>${u.email}</td><td>${ROLE_CONFIG[u.role].label}</td>
+        ${USERS.map(u => `<tr><td><b>${u.name}</b></td><td>${u.unvan || '—'}</td><td>${u.email}</td><td>${(ROLE_CONFIG[rolNormalle(u.role)] || {}).label || notEsc(u.role || '—')}</td>
           <td style="text-align:right;width:120px;white-space:nowrap;">
             <span style="cursor:pointer;color:var(--ink-3);margin-right:12px;" title="Şifre belirle" onclick="openPasswordModal('${u.id}')">Şifre</span>
             <span style="cursor:pointer;color:var(--ink-3);" title="Hesabı kaldır" onclick="removeUser('${u.id}')">✕</span></td></tr>`).join('')}
@@ -9361,8 +9478,9 @@ function kullanicilarView(){
   `;
 }
 function openUserModal(){
-  // SUNUM listede GÖSTERİLMEZ — sunucu bu rolü kabul etmez ("Geçersiz rol"). Sunum hesabı, Yönetici rolüyle
-  // açılıp e-postasından tanınır (bkz. SUNUM_HESAPLARI / rolCozumle).
+  // SUNUM listede GÖSTERİLMEZ — sunum hesabı e-postasından tanınır (bkz. SUNUM_HESAPLARI / rolCozumle).
+  // Diğer roller serbestçe seçilebilir: sunucuya ROL_DB_ESLEME ile geçerli bir veritabanı rolü gönderilir,
+  // ayrıntılı rol uygulama verisine (personel kaydına) yazılır.
   const roleOptions = Object.keys(ROLE_CONFIG).filter(r => r !== 'SUNUM')
     .map(r => `<option value="${r}">${ROLE_CONFIG[r].label}</option>`).join('');
   const adaylar = PERSONELLER.filter(p => !p.arsiv && !p.kullanici);
@@ -9389,7 +9507,8 @@ async function submitUser(){
   if(!email){ showToast('E-posta girin.'); return; }
   if(pass.length < 6){ showToast('Şifre en az 6 karakter olmalı.'); return; }
   const btn = document.getElementById('uSubmitBtn'); btn.disabled = true; btn.textContent = 'Açılıyor…';
-  const r = await liveApi('POST', '/api/users', { email, name:p.name, password:pass, role:rol });
+  // (2026-09-15) Sunucu yalnız sabit veritabanı rollerini kabul eder; ayrıntılı rol uygulama verisinde tutulur.
+  const r = await liveApi('POST', '/api/users', { email, name:p.name, password:pass, role:rolDbKarsiligi(rol) });
   if(!r.ok){ btn.disabled = false; btn.textContent = 'Hesabı Aç'; showToast(r.error); return; }
   p.kullanici = { email:email, rol:rol };
   closeModal(); renderContent();
@@ -9398,8 +9517,9 @@ async function submitUser(){
 async function removeUser(pid){
   const p = PERSONELLER.find(x => x.id === pid);
   if(!p || !p.kullanici) return;
-  if(p.kullanici.rol === 'YONETICI' && USERS.filter(u => u.role === 'YONETICI').length <= 1){
-    showToast('Son yönetici hesabı kaldırılamaz.'); return;
+  const tamYetkili = r => ['YONETICI','KOORDINATOR'].includes(rolNormalle(r));
+  if(tamYetkili(p.kullanici.rol) && USERS.filter(u => tamYetkili(u.role)).length <= 1){
+    showToast('Son yönetici/koordinatör hesabı kaldırılamaz.'); return;
   }
   if(LIVE.user && p.kullanici.email === LIVE.user.email){ showToast('Kendi hesabınızı kaldıramazsınız.'); return; }
   const r = await liveApi('DELETE', '/api/users', { email:p.kullanici.email });
@@ -10132,7 +10252,7 @@ function panoFiltreUygula(j){
 }
 function panoKartHtml(j){
   return `
-    <div class="kcard" style="cursor:pointer;" draggable="${CURRENT_ROLE==='YONETICI'}"
+    <div class="kcard" style="cursor:pointer;" draggable="${yoneticiMi()}"
       title="${CURRENT_ROLE==='YONETICI' ? 'Başka aşamaya sürükleyebilirsiniz' : ''}"
       ondragstart="isSurukleBasla(event,'${j.id}')" ondragend="isSurukleBitir(event)"
       onclick="openJobDrawer('${j.id}')">
@@ -10258,7 +10378,7 @@ function openJobDrawer(id){
   if(idx > 0){
     actionHtml += `<div class="drawer-footer"><button onclick="revertJobStage('${j.id}')">← Bir Önceki Aşamaya Al</button></div>`;
   }
-  if(CURRENT_ROLE === 'YONETICI'){
+  if(yoneticiMi()){
     actionHtml += `<div class="drawer-footer"><button style="color:var(--risk);border-color:var(--risk);" onclick="deleteJob('${j.id}')">🗑️ İşi Sil</button></div>`;
   }
 
@@ -10401,7 +10521,7 @@ function openIsEmri(id){
   window.__ieAcikJob = id;
   ieRender(id);
 }
-function ieKoordinator(){ return typeof CURRENT_ROLE === 'undefined' || CURRENT_ROLE === 'YONETICI'; }
+function ieKoordinator(){ return typeof CURRENT_ROLE === 'undefined' || yoneticiMi(); }
 function ieKapat(){
   const id = window.__ieAcikJob;
   window.__ieAcikJob = null;
@@ -10879,7 +10999,7 @@ function submitReassign(id){
 // ---- Pano sürükle-bırak: kartı başka aşamaya taşı (yalnız yönetici) ----
 let surukluIsId = null;
 function isSurukleBasla(e, id){
-  if(CURRENT_ROLE !== 'YONETICI'){ e.preventDefault(); return; }
+  if(!yoneticiMi()){ e.preventDefault(); return; }
   surukluIsId = id;
   e.dataTransfer.effectAllowed = 'move';
   try { e.dataTransfer.setData('text/plain', id); } catch(err) {}
@@ -10938,7 +11058,7 @@ function jobAsamaAyarla(j, yeniStage){
   }
 }
 function deleteJob(id){
-  if(CURRENT_ROLE !== 'YONETICI'){ showToast('İş silme yalnızca yönetici yetkisindedir.'); return; }
+  if(!yoneticiMi()){ showToast('İş silme yalnızca yönetici yetkisindedir.'); return; }
   const j = JOBS.find(x => x.id === id); if(!j) return;
   if(!confirm(`${j.code} · ${j.client} işini plan kayıtlarıyla birlikte silmek istediğinize emin misiniz?`)) return;
   PLAN_TASKS = PLAN_TASKS.filter(t => t.jobId !== id);
@@ -11437,7 +11557,8 @@ function teklifGecerlilikDurumu(q){
 function teklifleriFiltrele(){
   const f = teklifFiltre;
   const ara = (f.q || '').toLocaleLowerCase('tr');
-  return QUOTES.filter(q => {
+  // (2026-09-15) Rol kapsamı: Tasarımcı/Satış/Mimar yalnız temsilcisi olduğu teklifleri görür
+  return gorunurTeklifler().filter(q => {
     const cust = CUSTOMERS.find(c => c.id === q.customerId);
     const ad = cust ? cust.name : '';
     if(ara){
@@ -11470,18 +11591,19 @@ function teklifListView(){
   const liste = teklifleriFiltrele();
   const f = teklifFiltre;
   const aktifFiltre = Object.keys(f).some(k => f[k]);
-  const temsilciler = [...new Set(QUOTES.map(q => q.repName).filter(Boolean))];
+  const QUOTES_K = gorunurTeklifler();   // rol kapsamı
+  const temsilciler = [...new Set(QUOTES_K.map(q => q.repName).filter(Boolean))];
   // Metrikler — mevcut durum/hesap fonksiyonlarından
-  const acik = QUOTES.filter(q => q.status === 'Taslak' || q.status === 'Gönderildi');
+  const acik = QUOTES_K.filter(q => q.status === 'Taslak' || q.status === 'Gönderildi');
   const acikTutar = acik.reduce((t, q) => t + quoteTotal(q), 0);
-  const sonuclanan = QUOTES.filter(q => ['Kabul Edildi','Faturalandı','Reddedildi'].includes(q.status));
-  const kabul = QUOTES.filter(q => q.status === 'Kabul Edildi' || q.status === 'Faturalandı');
+  const sonuclanan = QUOTES_K.filter(q => ['Kabul Edildi','Faturalandı','Reddedildi'].includes(q.status));
+  const kabul = QUOTES_K.filter(q => q.status === 'Kabul Edildi' || q.status === 'Faturalandı');
   const kabulOrani = sonuclanan.length ? Math.round(kabul.length / sonuclanan.length * 100) : 0;
-  const kararBekleyen = QUOTES.filter(q => q.status === 'Gönderildi');
+  const kararBekleyen = QUOTES_K.filter(q => q.status === 'Gönderildi');
   const kararTutar = kararBekleyen.reduce((t, q) => t + quoteTotal(q), 0);
-  const suresiDolacak = QUOTES.filter(q => { const g = teklifGecerlilikDurumu(q); return g && g !== 'Hala Geçerli' && g !== 'Süresi Geçmiş'; });
-  const suresiGecmis = QUOTES.filter(q => teklifGecerlilikDurumu(q) === 'Süresi Geçmiş' && (q.status === 'Gönderildi' || q.status === 'Taslak'));
-  const finans = finansGorebilir();
+  const suresiDolacak = QUOTES_K.filter(q => { const g = teklifGecerlilikDurumu(q); return g && g !== 'Hala Geçerli' && g !== 'Süresi Geçmiş'; });
+  const suresiGecmis = QUOTES_K.filter(q => teklifGecerlilikDurumu(q) === 'Süresi Geçmiş' && (q.status === 'Gönderildi' || q.status === 'Taslak'));
+  const finans = teklifTutariGorebilir();   // (2026-09-15) kendi tekliflerinin tutarını gören roller de görsün
   const durumTag = st => { const slug = statusSlug(st); const renk = slug === 'st-kabul-edildi' || slug === 'st-faturalandi' ? 'green' : slug === 'st-reddedildi' ? 'red' : slug === 'st-gonderildi' ? 'orange' : 'gray'; return `<span class="tag ${renk}"><i class="tk-durum-ikon"></i>${st}</span>`; };
   return `
     <div class="page-head">
@@ -11572,7 +11694,14 @@ function yeniTeklifNo(){
   }, 4);
   return 'P' + String(maks + 1).padStart(3, '0');
 }
-function openQuoteView(id){ teklifViewId = id; teklifStep = 'view'; renderContent(); tarayiciGecmisYaz(); }
+function teklifErisimVar(id){
+  const q = QUOTES.find(x => x.id === id);
+  return !q || teklifBenimMi(q);
+}
+function openQuoteView(id){
+  if(!teklifErisimVar(id)){ showToast('Bu teklif için yetkiniz yok.'); return; }
+  teklifViewId = id; teklifStep = 'view'; renderContent(); tarayiciGecmisYaz();
+}
 // Tek tık: hızlı önizleme paneli · Çift tık: düzenleme
 let __teklifTiklaZaman = null;
 function teklifTikla(id){
@@ -11658,7 +11787,7 @@ function teklifEkleForm(){
           <div class="section-title"><span>01</span><div><h3>Müşteri ve teklif bilgileri</h3><p>Teklifin muhatabını, temsilcisini ve KDV ayarını belirleyin.</p></div></div>
           <div class="form-grid">
             <div class="field span-2"><label>Müşteri</label><select id="qCustomer" onchange="handleQCustomerChange(this)">${customerSelectOptions(editing?.customerId)}</select></div>
-            <div class="field"><label>Temsilci</label><select id="qRep">${STAFF.map(s=>`<option value="${s}" ${editing?.repName===s?'selected':''}>${s}</option>`).join('')}</select></div>
+            <div class="field"><label>Temsilci</label><select id="qRep" ${tumTeklifleriGorur() ? '' : 'disabled title="Yalnız kendi tekliflerinizi oluşturabilirsiniz"'}>${teklifTemsilciOptionlari(editing?.repName)}</select></div>
             <div class="field"><label>KDV</label><select id="qKdvMode" onchange="qKdvNotuYaz(this.value); updateGrandTotals();"><option ${(editing?.kdvMode||'Dahil')==='Dahil'?'selected':''}>Dahil</option><option ${editing?.kdvMode==='Hariç'?'selected':''}>Hariç</option></select></div>
             <div class="field"><label>Para Birimi</label>
               <select id="qCurrency" onchange="quoteCurrency=this.value; renderLineItems();">
@@ -12157,7 +12286,7 @@ function removeLine(idx){ quoteLineItems.splice(idx,1); if(quoteLineItems.length
 function submitQuote(){
   const customerId = document.getElementById('qCustomer').value;
   if(!customerId){ alert('Lütfen bir müşteri seçin'); return; }
-  const repName = document.getElementById('qRep').value;
+  const repName = (document.getElementById('qRep').value || '').trim() || benimTemsilciAdim();
   const girisMetni = document.getElementById('qGiris').value;
   const notlar = document.getElementById('qNotlar') ? document.getElementById('qNotlar').value : DEFAULT_NOTES;
   const kdvMode = document.getElementById('qKdvMode') ? document.getElementById('qKdvMode').value : 'Dahil';
@@ -12506,7 +12635,8 @@ function mxGecmisYaz(q, islem, kalem, eski, yeni){
 // ---- Sayfa ----
 function mxAktifTeklif(){ return QUOTES.find(x => x.id === teklifViewId); }
 function openMaliyet(id){
-  if(typeof finansGorebilir === 'function' && !finansGorebilir()){ showToast('Maliyet bilgileri için yetkiniz yok.'); return; }
+  if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()){ showToast('Maliyet bilgileri için yetkiniz yok.'); return; }
+  if(!teklifErisimVar(id)){ showToast('Bu teklif için yetkiniz yok.'); return; }
   pushHistory();
   teklifViewId = id; teklifStep = 'maliyet'; maliyetTab = 'kalemler';
   mxDurum.adim = 'maliyetler'; mxDurum.ara = ''; mxDurum.grup = ''; mxDurum.filtre = ''; mxDurum.filtreAcik = false; mxDurum.sadeceSorunlu = false; mxDurum.menu = null; mxDurum.drawerAra = '';
@@ -12545,7 +12675,7 @@ window.addEventListener('beforeunload', e => {
 function maliyetView(id){
   const q = QUOTES.find(x => x.id === id);
   if(!q) return teklifListView();
-  if(typeof finansGorebilir === 'function' && !finansGorebilir()) return `<div class="empty-state">Maliyet bilgileri için yetkiniz yok.</div>`;
+  if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()) return `<div class="empty-state">Maliyet bilgileri için yetkiniz yok.</div>`;
   const m = ensureMaliyet(q);
   const kur = mxKur(q);
   const kaydet = mxKaydetDurum();
@@ -15368,6 +15498,7 @@ function teklifBelgesiHtml(q, c){
 function quoteViewPage(id){
   const q = QUOTES.find(x=>x.id===id);
   if(!q) return `<div class="note">Teklif bulunamadı.</div>`;
+  if(!teklifBenimMi(q)) return `<div class="note">Bu teklifi görüntüleme yetkiniz yok.</div>`;
   const c = CUSTOMERS.find(x=>x.id===q.customerId);
 
   return `
@@ -15384,7 +15515,7 @@ function quoteViewPage(id){
             <button onclick="openQuoteEdit('${q.id}')" class="islem-item">✏️ Düzenle</button>
             <button onclick="duplicateQuote('${q.id}')" class="islem-item">📄 Kopyala</button>
             <button onclick="reviseQuote('${q.id}')" class="islem-item">📝 Revize Et</button>
-            ${finansGorebilir() ? `<button onclick="hideIslemlerMenu(); openMaliyet('${q.id}')" class="islem-item">🧮 Maliyet</button>` : ''}
+            ${teklifTutariGorebilir() ? `<button onclick="hideIslemlerMenu(); openMaliyet('${q.id}')" class="islem-item">🧮 Maliyet</button>` : ''}
             <button onclick="deleteQuote('${q.id}')" class="islem-item" style="color:var(--risk);">🗑️ Sil</button>
             <div style="border-top:1px solid var(--line);"></div>
             <button onclick="exportQuotePdf()" class="islem-item">⬇️ Pdf'ye aktar</button>
@@ -15418,7 +15549,7 @@ function quoteViewPage(id){
             ? `<button class="primary full" style="margin:0;" onclick="openJobFromQuote('${q.id}')">📋 İşe Git — ${(JOBS.find(j=>j.id===q.jobId)||{}).code || ''}</button>`
             : `<button class="primary full" style="margin:0;" onclick="changeQuoteStatus('${q.id}','Kabul Edildi')">✅ Kabul Et ve İş Aç</button>`}
           <button class="ghost" style="justify-content:center;" onclick="exportQuotePdf()">⬇ PDF Önizleme</button>
-          ${finansGorebilir() ? `<button class="ghost" style="justify-content:center;" onclick="openMaliyet('${q.id}')">🧮 Maliyet Hesabı${(q.maliyet && q.maliyet.items && q.maliyet.items.filter(r => r.aktif !== false).length) ? ` — ${tl(maliyetToplam(q))}` : ''}</button>` : ''}
+          ${teklifTutariGorebilir() ? `<button class="ghost" style="justify-content:center;" onclick="openMaliyet('${q.id}')">🧮 Maliyet Hesabı${(q.maliyet && q.maliyet.items && q.maliyet.items.filter(r => r.aktif !== false).length) ? ` — ${tl(maliyetToplam(q))}` : ''}</button>` : ''}
           <button class="ghost" style="justify-content:center;" onclick="showToast('Fırsatlar modülü henüz kurulmadı')">🔗 Fırsata Bağla</button>
           <button class="ghost" style="justify-content:center;" onclick="showToast('Siparişler modülü henüz kurulmadı')">🛒 Siparişe Dönüştür</button>
           <button class="ghost" style="justify-content:center;" onclick="showToast('Faturalandırma muhasebe programınızdan yapılır')">📤 Faturalandır</button>
@@ -15531,7 +15662,7 @@ function isiUstlen(id){
 function isiHavuzaBirak(id){
   const j = JOBS.find(x => x.id === id); if(!j) return;
   const p = benimPersonelim();
-  const yetkili = CURRENT_ROLE === 'YONETICI' || (p && (j.assignees || []).includes(p.name));
+  const yetkili = yoneticiMi() || (p && (j.assignees || []).includes(p.name));
   if(!yetkili){ showToast('İşi yalnız sorumlusu veya yönetici havuza bırakabilir.'); return; }
   const eski = (j.assignees || []).join(', ');
   j.assignees = [];
@@ -15602,7 +15733,7 @@ function teklifSilUygula(id){
 function deleteQuote(id){
   const q = QUOTES.find(x => x.id === id); if(!q) return;
   hideIslemlerMenu();
-  if(CURRENT_ROLE !== 'YONETICI'){
+  if(!yoneticiMi()){
     if(BILDIRIMLER.some(b => b.tip === 'silme-istegi' && b.quoteId === id && !b.sonuc)){
       showToast('Bu teklif için silme isteği zaten yönetici onayında bekliyor.'); return;
     }
@@ -15740,8 +15871,8 @@ function daSatirHtml(a){
   const v = VEHICLES.find(x => x.id === a.aracId);
   const j = JOBS.find(x => x.id === a.jobId);
   return `
-    <div class="da-row ${a.durum === 'tamam' ? 'tamam' : ''}" onclick="openDisAlimModal('${a.id}')">
-      <button class="da-check" title="${a.durum === 'tamam' ? 'Geri al' : 'Teslim alındı işaretle'}"
+    <div class="da-row ${a.durum === 'tamam' ? 'tamam' : ''}"${disAlimDuzenleyebilir() ? ` onclick="openDisAlimModal('${a.id}')"` : ' style="cursor:default;"'}>
+      <button class="da-check" title="${disAlimDuzenleyebilir() ? (a.durum === 'tamam' ? 'Geri al' : 'Teslim alındı işaretle') : 'Bu işlem için yetkiniz yok'}"${disAlimDuzenleyebilir() ? '' : ' style="cursor:default;opacity:.55;"'}
         onclick="event.stopPropagation(); daToggle('${a.id}')">${a.durum === 'tamam' ? '✓' : ''}</button>
       <div class="da-ana">
         <div class="da-malzeme">${notEsc(a.malzeme || '—')}</div>
@@ -15774,7 +15905,7 @@ function disAlimlarView(){
     <div class="list-page-head">
       <div><div class="page-title">Dış Alımlar</div>
         <div class="page-sub">Tedarikçiden toplanacak malzemeler ve gelişi beklenen siparişler. Teslim alınca ✓ ile kapatın.</div></div>
-      <button class="primary-btn" onclick="openDisAlimModal()">+ Dış Alım Ekle</button>
+      ${disAlimEkleyebilir() ? `<button class="primary-btn" onclick="openDisAlimModal()">+ Dış Alım Ekle</button>` : ''}
     </div>
     ${bolum('toplama')}
     ${bolum('teslimat')}
@@ -15782,13 +15913,14 @@ function disAlimlarView(){
       <div class="da-liste">
         <div class="da-baslik" style="cursor:pointer;" onclick="daTamamAcik=!daTamamAcik; renderContent();">
           ${daTamamAcik ? '▾' : '▸'} Tamamlananlar<span class="adet">${tamam.length}</span>
-          <button class="mx-chip" style="margin-left:auto;" onclick="event.stopPropagation(); daTamamTemizle()">Temizle</button></div>
+          ${disAlimDuzenleyebilir() ? `<button class="mx-chip" style="margin-left:auto;" onclick="event.stopPropagation(); daTamamTemizle()">Temizle</button>` : ''}</div>
         ${daTamamAcik ? tamam.map(daSatirHtml).join('') : ''}
       </div>` : ''}
     ${daHareketPaneliHtml()}
   `;
 }
 function openDisAlimModal(id){
+  if(id ? !disAlimDuzenleyebilir() : !disAlimEkleyebilir()){ showToast('Bu işlem için yetkiniz yok.'); return; }
   const a = id ? DIS_ALIMLAR.find(x => x.id === id) : null;
   const per = PERSONELLER.filter(p => !p.arsiv);
   const isler = JOBS.filter(j => j.stage !== 'TAHSILAT');
@@ -15821,6 +15953,7 @@ function openDisAlimModal(id){
   showModal();
 }
 function submitDisAlim(id){
+  if(id ? !disAlimDuzenleyebilir() : !disAlimEkleyebilir()){ showToast('Bu işlem için yetkiniz yok.'); return; }
   const malzeme = document.getElementById('daMalzeme').value.trim();
   if(!malzeme){ showToast('Malzeme / sipariş açıklaması girin.'); return; }
   const veri = {
@@ -15854,6 +15987,7 @@ function submitDisAlim(id){
   showToast(id ? 'Dış alım güncellendi.' : 'Dış alım eklendi.');
 }
 function daToggle(id){
+  if(!disAlimDuzenleyebilir()){ showToast('Bu işlem için yetkiniz yok.'); return; }
   const a = DIS_ALIMLAR.find(x => x.id === id);
   if(!a) return;
   a.durum = a.durum === 'tamam' ? 'bekliyor' : 'tamam';
@@ -15862,6 +15996,7 @@ function daToggle(id){
   renderContent();
 }
 function daSil(id){
+  if(!disAlimDuzenleyebilir()){ showToast('Bu işlem için yetkiniz yok.'); return; }
   const i = DIS_ALIMLAR.findIndex(x => x.id === id);
   if(i >= 0){
     const a = DIS_ALIMLAR[i];
@@ -15873,6 +16008,7 @@ function daSil(id){
   }
 }
 function daTamamTemizle(){
+  if(!disAlimDuzenleyebilir()){ showToast('Bu işlem için yetkiniz yok.'); return; }
   const silinen = DIS_ALIMLAR.filter(a => a.durum === 'tamam');
   if(!silinen.length) return;
   DIS_ALIMLAR = DIS_ALIMLAR.filter(a => a.durum !== 'tamam');
@@ -15955,7 +16091,7 @@ function bildirimTemizle(){
 function bildirimSatirHtml(b){
   const IKON = { atama:'📋', 'silme-istegi':'🗑️', bilgi:'ℹ️' };
   let aksiyon = '';
-  if(b.tip === 'silme-istegi' && CURRENT_ROLE === 'YONETICI'){
+  if(b.tip === 'silme-istegi' && yoneticiMi()){
     if(b.sonuc === 'silindi') aksiyon = '<div class="bildirim-sonuc">✓ Teklif silindi</div>';
     else if(b.sonuc === 'red') aksiyon = '<div class="bildirim-sonuc">✕ Reddedildi</div>';
     else if(b.sonuc === 'yok') aksiyon = '<div class="bildirim-sonuc">Teklif zaten silinmiş</div>';
