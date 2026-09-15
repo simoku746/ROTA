@@ -2556,7 +2556,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14s';
+window.ROTA_SURUM = 'v2026-09-14t';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -2784,6 +2784,17 @@ function veriOnar(){
       degisti = true;
     }
   });
+  // (2026-09-14t) Sunum hesabı için hazır personel kaydı. Giriş hesapları bir personele bağlandığı için
+  // ("Giriş Hesabı Aç" ekranı personel ister), sunum hesabının bağlanacağı kayıt burada hazır getiriliyor.
+  // Sunum bittiğinde Personeller ekranından arşivlenebilir/silinebilir. Maaşı 0 — bordroya etki etmez.
+  if(Array.isArray(PERSONELLER) && !PERSONELLER.some(p => String(p.name || '').trim().toLowerCase() === 'demo kullanıcı')){
+    PERSONELLER.push({ id: benzersizId('pr'), name:'Demo Kullanıcı', unvan:'Sunum / tanıtım hesabı',
+      departman:'Ofis', brut:0, arsiv:false, cinsiyet:'Seç', dogumTarihi:'', dogumYeri:'',
+      iletisim:[{ tur:'İş Telefon No', deger:'' }],
+      adres:{ tur:'İş Adresi', ulke:'Türkiye', postaKodu:'', ilce:'', sehir:'', eyalet:'', adres:'' },
+      hareketler:[] });
+    degisti = true;
+  }
   const gorulen = new Set();
   QUOTES.forEach(q => {
     if(gorulen.has(q.id)){
@@ -2986,6 +2997,13 @@ const ROLE_CONFIG = {
 };
 let CURRENT_ROLE = 'YONETICI';
 function roleCfg(){ return ROLE_CONFIG[CURRENT_ROLE] || ROLE_CONFIG.YONETICI; }
+// (2026-09-14t) SUNUM rolü veritabanında YOKTUR ve olamaz: sunucudaki rol listesi (lib/roles.ts) ve Postgres
+// enum'u sabittir; SUNUM seçilerek hesap açılmaya çalışıldığında API "Geçersiz rol" döndürür.
+// Bu yüzden sunum hesabı veritabanında NORMAL YÖNETİCİ olarak açılır; uygulama, e-postasına bakarak onu
+// giriş anında SUNUM moduna alır (tüm ekranlar açık, rakamlar maskeli). Şema/göç gerekmez, yalnız rota.html değişir.
+const SUNUM_HESAPLARI = ['demo@dekant.com'];
+function sunumHesabiMi(email){ return SUNUM_HESAPLARI.includes(String(email || '').trim().toLowerCase()); }
+function rolCozumle(email, rol){ return sunumHesabiMi(email) ? 'SUNUM' : rol; }
 // Finansal rakamları (tahsilat, gelir-gider, tutar/toplam, satış raporları) yalnız Ön Muhasebe erişimi olan roller görür.
 // finans:false olan rol (SUNUM) Ön Muhasebe ekranlarını AÇABİLİR ama rakam göremez.
 function finansGorebilir(){ const c = roleCfg(); return c.finans === false ? false : c.tabs.includes('on-muhasebe'); }
@@ -9334,7 +9352,10 @@ function kullanicilarView(){
   `;
 }
 function openUserModal(){
-  const roleOptions = Object.keys(ROLE_CONFIG).map(r => `<option value="${r}">${ROLE_CONFIG[r].label}</option>`).join('');
+  // SUNUM listede GÖSTERİLMEZ — sunucu bu rolü kabul etmez ("Geçersiz rol"). Sunum hesabı, Yönetici rolüyle
+  // açılıp e-postasından tanınır (bkz. SUNUM_HESAPLARI / rolCozumle).
+  const roleOptions = Object.keys(ROLE_CONFIG).filter(r => r !== 'SUNUM')
+    .map(r => `<option value="${r}">${ROLE_CONFIG[r].label}</option>`).join('');
   const adaylar = PERSONELLER.filter(p => !p.arsiv && !p.kullanici);
   document.getElementById('modalBox').innerHTML = `
     <div class="modal-head"><h2>Giriş Hesabı Aç</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
@@ -16300,7 +16321,9 @@ async function liveBoot(){
     if(window.__onarimYapildi){ LIVE.lastSaved = ''; liveSave(); }   // temizlenen veri sunucuya da yazılsın
 
     document.getElementById('bootScreen').style.display = 'none';
-    doLogin(LIVE.user.role);
+    // (2026-09-14t) Sunum/demo hesapları veritabanında normal YÖNETİCİ'dir; e-postasından tanınıp
+    // rakamların gizlendiği SUNUM moduna alınır (bkz. rota-v8.html → SUNUM_HESAPLARI / rolCozumle).
+    doLogin(typeof rolCozumle === 'function' ? rolCozumle(LIVE.user.email, LIVE.user.role) : LIVE.user.role);
     liveSetStatus('ok', 'Kaydedildi');
     setInterval(liveTick, 15000);
   }catch(e){
