@@ -2556,7 +2556,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-14t';
+window.ROTA_SURUM = 'v2026-09-15a';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3285,6 +3285,8 @@ function renderContent(){
   else if(currentPage==='yonetim') el.innerHTML = yonetimView();
   else if(currentPage==='destek') el.innerHTML = destekView();
   else el.innerHTML = placeholderView();
+  // Ekran yeniden çizildiğinde body'de asılı kalan plan ipucu/süre etiketi kapatılır (bkz. planKayanKutulariGizle)
+  if(typeof planKayanKutulariGizle === 'function') planKayanKutulariGizle();
   sunumGovdeSinifi();
   sunumMaskele(el);
 }
@@ -3868,6 +3870,13 @@ function planTipGoster(e, id){
   tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.display = 'block';
 }
 function planTipGizle(){ const t = document.getElementById('hpTip'); if(t) t.style.display = 'none'; }
+// (2026-09-15) Haftalık plan ipucu (#hpTip) ve süre etiketi (#hpResizeTag) `document.body`'ye eklenir, yani
+// `#content` yeniden çizilince SİLİNMEZ. Fare bir blok kartının üzerindeyken kart DOM'dan kalkarsa
+// (bloğu havuza geri alma, sürükle-bırak, silme, hafta değiştirme...) `mouseleave` hiç tetiklenmez ve kutu
+// ekranda asılı kalır — başka sayfaya geçilince bile (kullanıcı bunu Ana Sayfa'da gördü).
+// Çözüm: her yeniden çizimde ve kaydırmada tek noktadan kapat.
+function planKayanKutulariGizle(){ planTipGizle(); planResizeEtiketGizle(); }
+window.addEventListener('scroll', planKayanKutulariGizle, true);
 
 // ---- Yazdırma: alan seç, A4/A3 yatay, tek sayfaya otomatik sığdır ----
 function openPlanYazdir(){
