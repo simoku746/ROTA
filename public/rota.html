@@ -1693,6 +1693,13 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
 .login-tam-logo{height:46px;width:auto;display:block;}
 .login-brand{margin-bottom:6px;}
 /* --- Kişiye özel yetki penceresi (Yönetim > Kullanıcılar) --- */
+.si-panel{border:1px solid var(--signal);background:var(--signal-soft);border-radius:10px;padding:12px 14px;margin:0 0 12px;}
+.si-bas{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.si-adet{display:inline-block;padding:1px 7px;border-radius:99px;background:var(--signal);color:#fff;font-size:11px;font-weight:700;}
+.si-satir{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line);}
+.si-kisi{flex:1;min-width:180px;display:flex;flex-direction:column;}
+.si-kisi b{font-size:13px;font-weight:600;color:var(--ink);}
+.si-kisi span{font-size:11px;color:var(--ink-3);}
 .k-islem{cursor:pointer;color:var(--ink-3);margin-left:14px;font-size:12px;font-weight:600;}
 .k-islem:hover{color:var(--signal);}
 .yt-rozet{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:99px;background:var(--signal);color:#fff;
@@ -2654,7 +2661,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16g';
+window.ROTA_SURUM = 'v2026-09-16h';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3164,6 +3171,47 @@ async function rolSunucuyaYaz(email, rol){
   const r = await liveApi('PATCH', '/api/users', { email: email, role: rolDbKarsiligi(rol) });
   if(!r.ok && r.status !== 404) showToast('Sunucudaki rol güncellenemedi: ' + r.error);
   return r;
+}
+
+// ---- ŞİFRE SIFIRLAMA TALEPLERİ (yönetici onaylı akış) ----------------------------------------
+// Kullanıcı giriş ekranındaki "Şifremi unuttum" ile talep bırakır; talepler sunucuda AYRI bir
+// kayıtta durur (AppState id='sifre_istekleri'), uygulama verisine karışmaz ve kaydetme sürümünü
+// etkilemez. Aşağıdaki iki gövde canlı sürümde make_live.py tarafından gerçek API çağrılarıyla
+// değiştirilir; prototipte boş kalır.
+let SIFRE_ISTEKLERI = [];
+let _sifreIstekBildirilen = [];
+async function sifreIstekleriGetir(){
+  if(!yoneticiMi()) { SIFRE_ISTEKLERI = []; return SIFRE_ISTEKLERI; }
+  const r = await liveApi('GET', '/api/sifre-istek');
+  if(r.ok && r.data && Array.isArray(r.data.liste)){
+    const oncekiSayi = SIFRE_ISTEKLERI.length;
+    SIFRE_ISTEKLERI = r.data.liste;
+    sifreIstekBildir();
+    if(SIFRE_ISTEKLERI.length !== oncekiSayi && currentPage === 'yonetim' && yonetimSub === 'kullanicilar') renderContent();
+  }
+  return SIFRE_ISTEKLERI;
+}
+async function sifreIstekKapat(id, email){
+  const r = await liveApi('DELETE', '/api/sifre-istek', id ? { id: id } : { email: email });
+  if(!r.ok){ showToast(r.error || 'Talep kapatılamadı.'); return; }
+  SIFRE_ISTEKLERI = (r.data && Array.isArray(r.data.liste)) ? r.data.liste : SIFRE_ISTEKLERI.filter(x => x.id !== id);
+  renderContent();
+  if(id) showToast('Şifre talebi kapatıldı.');
+}
+function sifreIstekTarih(t){
+  const d = new Date(t);
+  return isNaN(d) ? '' : d.toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+// Yeni talepler için yöneticiye zil bildirimi (aynı talep için bir kez)
+function sifreIstekBildir(){
+  if(!yoneticiMi()) return;
+  const benim = typeof notKullanici === 'function' ? notKullanici() : '';
+  SIFRE_ISTEKLERI.forEach(t => {
+    if(_sifreIstekBildirilen.includes(t.id)) return;
+    _sifreIstekBildirilen.push(t.id);
+    if(BILDIRIMLER.some(b => b.sifreIstekId === t.id)) return;
+    if(benim) bildirimEkle(benim, `${t.ad || t.email} şifre sıfırlama talebinde bulundu.`, 'uyari', { sifreIstekId: t.id });
+  });
 }
 // (2026-09-14t) SUNUM rolü veritabanında YOKTUR ve olamaz: sunucudaki rol listesi (lib/roles.ts) ve Postgres
 // enum'u sabittir; SUNUM seçilerek hesap açılmaya çalışıldığında API "Geçersiz rol" döndürür.
@@ -9631,6 +9679,19 @@ function kullanicilarView(){
   const duzenleyebilir = yoneticiMi();
   return `
     <div class="list-page-head"><div class="page-title">Kullanıcılar</div>${duzenleyebilir ? `<button class="primary-btn" onclick="openUserModal()">+ Giriş Hesabı Aç</button>` : ''}</div>
+    ${duzenleyebilir && SIFRE_ISTEKLERI.length ? `
+    <div class="si-panel">
+      <div class="si-bas">🔑 Bekleyen şifre talepleri<span class="si-adet">${SIFRE_ISTEKLERI.length}</span></div>
+      ${SIFRE_ISTEKLERI.map(t => {
+        const p = PERSONELLER.find(x => x.kullanici && String(x.kullanici.email || '').toLowerCase() === String(t.email || '').toLowerCase());
+        return `<div class="si-satir">
+          <div class="si-kisi"><b>${notEsc(t.ad || '—')}</b><span>${notEsc(t.email)} · ${sifreIstekTarih(t.tarih)}</span></div>
+          ${p ? `<button class="mx-chip" onclick="openPasswordModal('${p.id}')">Yeni şifre belirle</button>` : `<span class="hint" style="margin:0;">Bu e-postaya bağlı personel kartı yok</span>`}
+          <button class="mx-chip" onclick="sifreIstekKapat('${t.id}','${notEsc(t.email)}')">Talebi kapat</button>
+        </div>`;
+      }).join('')}
+      <div class="hint" style="margin:8px 0 0;">Kişinin kimliğinden emin olun (telefonla teyit edin), yeni şifreyi belirleyip kendisine iletin. Şifre belirlendiğinde talep kendiliğinden kapanır.</div>
+    </div>` : ''}
     <div class="note">Rol bir <b>şablondur</b>: seçtiğiniz rol kişiye hazır bir yetki seti verir.
       Dilediğiniz kişide <b>Yetkiler</b>'e basıp hangi ekranları göreceğini ve ne yapabileceğini tek tek açıp kapatabilir,
       istediğiniz an <b>Rol şablonuna dön</b> ile geri alabilirsiniz. Özel ayar yapılmış kişiler listede <span class="yt-rozet">özel</span> rozetiyle işaretlenir.</div>
@@ -9832,6 +9893,8 @@ async function submitPassword(pid){
   const r = await liveApi('PATCH', '/api/users', { email:p.kullanici.email, password:pass });
   if(!r.ok){ btn.disabled = false; showToast(r.error); return; }
   closeModal(); showToast(`${p.name} — şifre güncellendi.`);
+  if(SIFRE_ISTEKLERI.some(x => String(x.email||'').toLowerCase() === String(p.kullanici.email||'').toLowerCase()))
+    sifreIstekKapat(null, p.kullanici.email);
 }
 
 const ICON_WEB = `<svg viewBox="0 0 24 24" aria-hidden="true">
@@ -17280,6 +17343,8 @@ function liveFormdaMi(){
 
 async function liveTick(){
   if(!LIVE.booted || LIVE.conflict) return;
+  // Bekleyen şifre sıfırlama talepleri (yalnız yönetici; ayrı kayıtta durur, uygulama verisine karışmaz)
+  if(typeof sifreIstekleriGetir === 'function') sifreIstekleriGetir();
   const json = JSON.stringify(collectState());
   if(json !== LIVE.lastSaved){ liveSave(); return; }
   if(LIVE.saving) return;
@@ -17324,6 +17389,7 @@ async function liveBoot(){
     // rakamların gizlendiği SUNUM moduna alınır (bkz. rota-v8.html → SUNUM_HESAPLARI / rolCozumle).
     doLogin(typeof rolCozumle === 'function' ? rolCozumle(LIVE.user.email, LIVE.user.role) : LIVE.user.role);
     liveSetStatus('ok', 'Kaydedildi');
+    if(typeof sifreIstekleriGetir === 'function') sifreIstekleriGetir();   // bekleyen şifre talepleri
     setInterval(liveTick, 15000);
   }catch(e){
     msg.innerHTML = 'Veriler yüklenemedi. <a href="#" onclick="location.reload();return false;" style="color:var(--ink);">Yeniden dene</a>'
