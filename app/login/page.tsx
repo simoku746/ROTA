@@ -29,6 +29,28 @@ export default function LoginPage() {
     } catch {}
   }, []);
 
+  // Şifre göster/gizle + "Şifremi unuttum" paneli
+  const [sifreAcik, setSifreAcik] = useState(false);
+  const [unuttumAcik, setUnuttumAcik] = useState(false);
+  const [unuttumMail, setUnuttumMail] = useState('');
+  const [unuttumDurum, setUnuttumDurum] = useState<'' | 'gonderiliyor' | 'tamam'>('');
+
+  async function sifremiUnuttum(e: React.FormEvent) {
+    e.preventDefault();
+    const mail = (unuttumMail || emailRef.current?.value || '').trim();
+    if (!mail) return;
+    setUnuttumDurum('gonderiliyor');
+    try {
+      await fetch('/api/sifre-istek', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: mail }),
+      });
+    } catch {}
+    // Hesabın var olup olmadığı bilgisi dışarıya verilmez: yanıt her durumda aynıdır.
+    setUnuttumDurum('tamam');
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -73,8 +95,42 @@ export default function LoginPage() {
             <input ref={emailRef} type="email" name="email" autoComplete="username" required autoFocus />
           </div>
           <div className="field">
-            <label>Şifre</label>
-            <input ref={passRef} type="password" name="password" autoComplete="current-password" required />
+            <label htmlFor="sifreAlani">Şifre</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="sifreAlani"
+                ref={passRef}
+                type={sifreAcik ? 'text' : 'password'}
+                name="password"
+                autoComplete="current-password"
+                required
+                style={{ paddingRight: 44 }}
+              />
+              <button
+                type="button"
+                onClick={() => setSifreAcik(v => !v)}
+                title={sifreAcik ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                aria-label={sifreAcik ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                aria-pressed={sifreAcik}
+                style={{
+                  position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 0, background: 'transparent', cursor: 'pointer', padding: 0, color: '#6B778C',
+                }}
+              >
+                {sifreAcik ? (
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
           <label className="hatirla-satir">
             <input type="checkbox" checked={hatirla} onChange={(e) => setHatirla(e.target.checked)} />
@@ -85,7 +141,52 @@ export default function LoginPage() {
           </button>
           {error && <div className="error">{error}</div>}
         </form>
-        <div className="auth-foot">Şifrenizi yöneticiniz sıfırlayabilir.</div>
+        {!unuttumAcik ? (
+          <div className="auth-foot">
+            <button
+              type="button"
+              onClick={() => { setUnuttumAcik(true); setUnuttumMail(emailRef.current?.value || ''); setUnuttumDurum(''); }}
+              style={{ border: 0, background: 'transparent', padding: 0, cursor: 'pointer',
+                       color: 'inherit', font: 'inherit', textDecoration: 'underline' }}
+            >
+              Şifremi unuttum
+            </button>
+          </div>
+        ) : (
+          <div className="auth-foot" style={{ textAlign: 'left' }}>
+            {unuttumDurum === 'tamam' ? (
+              <div>
+                Talebiniz yöneticinize iletildi. Yöneticiniz ROTA’dan yeni şifrenizi belirleyip size bildirecek.
+                <br />
+                <button type="button" onClick={() => { setUnuttumAcik(false); setUnuttumDurum(''); }}
+                  style={{ border: 0, background: 'transparent', padding: 0, marginTop: 6, cursor: 'pointer',
+                           color: 'inherit', font: 'inherit', textDecoration: 'underline' }}>
+                  Giriş ekranına dön
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={sifremiUnuttum}>
+                <label htmlFor="unuttumMail" style={{ display: 'block', marginBottom: 4 }}>
+                  Hesabınızın e-postasını yazın; yöneticinize şifre sıfırlama talebi iletilsin.
+                </label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input id="unuttumMail" type="email" required value={unuttumMail}
+                    onChange={(e) => setUnuttumMail(e.target.value)}
+                    placeholder="ornek@firma.com" style={{ flex: 1 }} />
+                  <button type="submit" className="submit-btn" disabled={unuttumDurum === 'gonderiliyor'}
+                    style={{ width: 'auto', padding: '0 14px', marginTop: 0 }}>
+                    {unuttumDurum === 'gonderiliyor' ? 'Gönderiliyor…' : 'Gönder'}
+                  </button>
+                </div>
+                <button type="button" onClick={() => setUnuttumAcik(false)}
+                  style={{ border: 0, background: 'transparent', padding: 0, marginTop: 6, cursor: 'pointer',
+                           color: 'inherit', font: 'inherit', textDecoration: 'underline' }}>
+                  Vazgeç
+                </button>
+              </form>
+            )}
+          </div>
+        )}
         <div className="imza">Fikir &amp; Tasarım — <b>Seyit Can KARATEPE</b></div>
       </div>
     </div>
