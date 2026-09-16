@@ -1403,6 +1403,189 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
 .v-chip.crit{background:var(--signal-soft);color:var(--signal);}
 .v-chip.late{background:var(--risk-soft);color:var(--risk);}
 .v-chip.none{background:var(--surface-sunk);color:var(--ink-3);}
+/* ===== ARAÇ DETAY EKRANI (v2026-09-16k) — mockup düzeni =====
+   Beyaz kartlar, ince çerçeve, kontrollü gölge; turuncu YALNIZ ana aksiyonda.
+   Gradient / glassmorphism yok. Finans rakamları tabular (var(--font-mono)). */
+.ad-ust{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 14px;}
+.ad-ust-sol{display:flex;align-items:center;gap:14px;min-width:0;}
+.ad-ust-bilgi{min-width:0;border-left:1px solid var(--line);padding-left:14px;}
+.ad-baslik{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.2px;
+  text-transform:uppercase;color:var(--ink);line-height:1.15;}
+.ad-altbilgi{font-size:12px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.ad-ayrac{color:var(--line-strong);}
+.ad-nokta{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:middle;}
+.ad-ust-sag{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ad-btn{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:0 0 auto;}
+.ad-btn-ana{white-space:nowrap;flex:0 0 auto;}
+.ad-ikon{flex:0 0 auto;color:var(--ink-3);}
+
+/* --- Özet kartları --- */
+.ad-ozet-sira{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 16px;}
+.ad-ozet{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border:1px solid var(--line);
+  border-radius:9px;padding:14px;box-shadow:var(--shadow-sm);}
+.ad-ozet-ikon{flex:0 0 auto;width:38px;height:38px;border-radius:8px;background:var(--surface-sunk);
+  display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
+.ad-ozet-govde{min-width:0;flex:1;}
+.ad-ozet-etiket{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--ink-3);text-transform:uppercase;}
+.ad-ozet-deger{margin-top:5px;line-height:1.2;}
+.ad-para{font-family:var(--font-mono);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;color:var(--ink);}
+.ad-ozet-ad{font-weight:700;font-size:15px;color:var(--ink);}
+.ad-ozet-bos{font-weight:600;font-size:15px;color:var(--ink-3);}
+.ad-ozet-alt{font-size:11.5px;margin-top:3px;color:var(--ink-3);}
+.ad-ozet-alt.ok{color:var(--ok);} .ad-ozet-alt.soon{color:var(--hold);}
+.ad-ozet-alt.crit{color:var(--signal-ink);} .ad-ozet-alt.late{color:var(--risk);}
+.ad-gizli{font-family:var(--font-mono);font-size:20px;color:var(--ink-3);letter-spacing:2px;}
+
+/* --- İlerleme çubuğu: ince, sade --- */
+.ad-cubuk-sira{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.ad-cubuk{display:block;flex:1;min-width:52px;max-width:150px;height:5px;border-radius:999px;
+  background:var(--surface-sunk);overflow:hidden;}
+.ad-cubuk i{display:block;height:100%;border-radius:999px;background:var(--ink-3);}
+.ad-cubuk i.ok{background:var(--ok);} .ad-cubuk i.soon{background:var(--hold);}
+.ad-cubuk i.crit{background:var(--signal);} .ad-cubuk i.late{background:var(--risk);}
+.ad-cubuk-yuzde{font-family:var(--font-mono);font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink-3);white-space:nowrap;}
+
+/* --- Panel --- */
+.ad-panel{background:var(--surface);border:1px solid var(--line);border-radius:9px;
+  box-shadow:var(--shadow-sm);margin:0 0 16px;overflow:hidden;}
+.ad-panel-bas{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:14px 16px;border-bottom:1px solid var(--line);}
+.ad-panel-baslik{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:700;
+  font-size:16px;color:var(--ink);}
+.ad-panel-baslik svg{color:var(--ink-2);}
+.ad-panel-govde{padding:14px 16px;}
+.ad-sekmeler{display:flex;gap:6px;flex-wrap:wrap;}
+.ad-sekme{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:7px;
+  padding:6px 12px;font-size:12px;font-weight:600;font-family:var(--font-body);cursor:pointer;white-space:nowrap;
+  transition:background .12s,color .12s,border-color .12s;}
+.ad-sekme:hover{border-color:var(--ink-3);}
+.ad-sekme.aktif{background:var(--ink);border-color:var(--ink);color:var(--canvas);}
+
+/* --- Tablolar --- */
+.ad-tablo-sarmal{overflow-x:auto;}
+.ad-tablo{width:100%;border-collapse:collapse;font-size:12.5px;}
+.ad-tablo thead th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--ink-3);
+  text-transform:uppercase;padding:10px 16px;background:var(--surface-muted);border-bottom:1px solid var(--line);white-space:nowrap;}
+.ad-tablo td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--ink-2);}
+.ad-tablo tbody tr:last-child td{border-bottom:none;}
+.ad-tablo tbody tr:hover{background:var(--surface-muted);}
+.ad-tablo tfoot td{padding:11px 16px;border-top:1px solid var(--line-strong);background:var(--surface-muted);color:var(--ink);}
+.ad-tablo .sag{text-align:right;}
+.ad-islem{display:inline-flex;align-items:center;gap:8px;color:var(--ink);}
+.ad-islem b{font-weight:600;}
+.ad-detay,.ad-aciklama{color:var(--ink-3);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ad-hedef,.ad-tarih{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap;}
+.ad-say{font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.ad-tutar{color:var(--ink);font-weight:650;}
+.ad-belge{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2);font-size:12px;cursor:default;}
+.ad-belge .ad-ikon{color:var(--ink-3);}
+.ad-bos-hucre{color:var(--ink-3);}
+.ad-pasif-satir td{opacity:.62;}
+.ad-islem-hucre{position:relative;white-space:nowrap;}
+.ad-tamalla,.ad-tamamla{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
+  border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;font-family:var(--font-body);cursor:pointer;
+  transition:border-color .12s,background .12s;}
+.ad-tamamla:hover{border-color:var(--signal);color:var(--signal-ink);}
+.ad-uc-nokta{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-left:4px;
+  border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:15px;vertical-align:middle;}
+.ad-uc-nokta:hover{background:var(--surface-sunk);color:var(--ink);}
+.ad-uc-nokta:focus-visible{outline:2px solid var(--signal);outline-offset:1px;}
+
+/* --- ⋮ menü --- */
+.ad-menu{position:fixed;z-index:80;width:190px;background:var(--surface);
+  border:1px solid var(--line-strong);border-radius:8px;box-shadow:var(--shadow-md);padding:5px;text-align:left;}
+.ad-menu-sat{padding:8px 10px;border-radius:6px;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap;}
+.ad-menu-sat:hover{background:var(--surface-sunk);color:var(--ink);}
+.ad-menu-sil{color:var(--risk);font-weight:600;}
+
+/* --- Filtre satırı --- */
+.ad-filtre-sira{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);}
+.ad-filtre-bosluk{flex:1;}
+.ad-ara{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);border-radius:7px;
+  padding:0 10px;background:var(--input-bg);min-width:210px;color:var(--ink-3);}
+.ad-ara input{border:none;background:transparent;padding:8px 0;font-size:12.5px;width:100%;color:var(--text);outline:none;}
+.ad-filtre-sira select{border:1px solid var(--line-strong);border-radius:7px;padding:8px 10px;font-size:12.5px;
+  background:var(--input-bg);color:var(--text);}
+.ad-filtre-btn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);border-radius:7px;
+  padding:8px 12px;font-size:12.5px;font-weight:600;font-family:var(--font-body);cursor:pointer;}
+.ad-filtre-btn.aktif{border-color:var(--ink);color:var(--ink);}
+.ad-filtre-ek{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding:12px 16px;
+  border-bottom:1px solid var(--line);background:var(--surface-muted);}
+.ad-filtre-ek label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--ink-3);}
+.ad-filtre-ek label span{font-weight:600;}
+.ad-filtre-ek input[type=text],.ad-filtre-ek input[type=number],.ad-filtre-ek select{
+  border:1px solid var(--line-strong);border-radius:7px;padding:7px 9px;font-size:12.5px;
+  background:var(--input-bg);color:var(--text);min-width:130px;}
+.ad-filtre-ek .btn{flex:0 0 auto;}
+.ad-filtre-kutu{flex-direction:row !important;align-items:center;gap:6px !important;color:var(--ink-2) !important;font-size:12.5px !important;}
+.ad-ekle-link{border:none;background:transparent;color:var(--signal);font-weight:700;font-size:13px;
+  font-family:var(--font-body);cursor:pointer;padding:4px 2px;}
+.ad-ekle-link:hover{text-decoration:underline;}
+
+/* --- Boş durumlar --- */
+.ad-bos{padding:30px 16px;text-align:center;}
+.ad-bos-metin{font-size:13px;color:var(--ink-3);margin-bottom:12px;}
+
+/* --- Modal parçaları --- */
+.ad-modal-bolum{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);
+  border-top:1px solid var(--line);margin:16px 0 11px;padding-top:12px;}
+.ad-anahtar,.ad-anahtar-sat{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2);
+  padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-muted);cursor:pointer;margin:6px 0 10px;}
+.ad-anahtar input,.ad-anahtar-sat input{flex:0 0 auto;}
+.ad-kutucuklar{display:flex;gap:16px;flex-wrap:wrap;margin:4px 0 6px;}
+.ad-kutucuklar label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);cursor:pointer;}
+.ad-secenekler{display:grid;gap:8px;}
+.ad-secenek{display:block;width:100%;text-align:left;border:1px solid var(--line-strong);background:var(--surface);
+  border-radius:8px;padding:12px 14px;cursor:pointer;font-family:var(--font-body);transition:border-color .12s,background .12s;}
+.ad-secenek:hover{border-color:var(--signal);background:var(--signal-soft);}
+.ad-secenek-ad{display:block;font-weight:700;font-size:13.5px;color:var(--ink);}
+.ad-secenek-not{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px;}
+.ad-ikincil{font-size:12px;color:var(--ink-3);text-decoration:underline;cursor:pointer;}
+.ad-ikincil:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+.ad-gor-sat{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
+.ad-gor-sat span{color:var(--ink-3);}
+.ad-gecmis{max-height:420px;overflow:auto;}
+.ad-gecmis-donem{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:9px;}
+.ad-gecmis-bas{display:flex;align-items:center;gap:9px;font-family:var(--font-mono);font-weight:650;
+  font-size:12.5px;color:var(--ink);margin-bottom:7px;}
+.ad-gecmis-sat{display:grid;grid-template-columns:130px 1fr auto;gap:9px;font-size:11.5px;color:var(--ink-2);padding:3px 0;}
+.ad-gecmis-tarih,.ad-gecmis-kim{color:var(--ink-3);font-size:11px;}
+
+/* --- Responsive (madde 17) --- */
+@media (max-width:1180px){ .ad-ozet-sira{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:760px){
+  .ad-ozet-sira{grid-template-columns:1fr;}
+  .ad-ust{align-items:flex-start;}
+  .ad-ust-sag{width:100%;}
+  .ad-ust-sag .ad-btn,.ad-ust-sag .ad-btn-ana{flex:1 1 auto;justify-content:center;}
+  .ad-ust-bilgi{border-left:none;padding-left:0;}
+  .ad-panel-bas{align-items:flex-start;}
+  .ad-sekmeler{width:100%;}
+  .ad-sekme{flex:1 1 auto;text-align:center;}
+  .ad-filtre-sira{gap:7px;}
+  .ad-ara{min-width:100%;}
+  .ad-filtre-bosluk{display:none;}
+  .ad-menu{width:180px;}
+  /* Dar ekranda tablo satırları KARTA dönüşür — durum rozeti ve tutar yatay kaydırmada kaybolmasın. */
+  .ad-tablo-sarmal{overflow-x:visible;}
+  .ad-tablo,.ad-tablo tbody,.ad-tablo tfoot,.ad-tablo tr,.ad-tablo td{display:block;width:auto;}
+  .ad-tablo thead{display:none;}
+  .ad-tablo tbody tr{border:1px solid var(--line);border-radius:9px;margin:10px 12px;padding:4px 0;position:relative;}
+  .ad-tablo tbody tr:hover{background:transparent;}
+  .ad-tablo td{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    border:none;padding:6px 12px;text-align:left !important;}
+  .ad-tablo td[data-etiket]::before{content:attr(data-etiket);flex:0 0 auto;font-size:10.5px;font-weight:700;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3);}
+  .ad-tablo td[data-etiket=""]{justify-content:flex-end;padding-top:2px;}
+  .ad-tablo td[data-etiket=""]::before{content:none;}
+  .ad-tablo .ad-ana-hucre{border-bottom:1px solid var(--line);padding:9px 12px;margin-bottom:3px;}
+  .ad-detay,.ad-aciklama{max-width:none;text-align:right;}
+  .ad-tablo tfoot tr{border-top:1px solid var(--line-strong);}
+  .ad-tablo tfoot td{padding:10px 12px;}
+  .ad-tablo tfoot td[colspan]{justify-content:flex-start;}
+  .ad-islem-hucre{white-space:normal;}
+  .ad-tamamla{width:100%;padding:9px 13px;}
+}
 .v-card{background:var(--surface);border:1px solid var(--line-strong);border-radius:7px;
   padding:11px;box-shadow:var(--shadow-sm);cursor:pointer;transition:border-color .12s,box-shadow .12s;}
 .v-card:hover{border-color:var(--ink-3);box-shadow:var(--shadow-md);}
@@ -2667,7 +2850,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16j';
+window.ROTA_SURUM = 'v2026-09-16k';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3104,12 +3287,12 @@ const SUB_STATE = {
 //   teklifTutari:false  → teklif ve maliyet rakamlarını da göremez (üretim tarafı)
 //   ozet:false          → ana sayfadaki şirket geneli özet kartları (açık işler, onay bekleyen…) gizlenir
 const ROLE_CONFIG = {
-  YONETICI:      { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
-  KOORDINATOR:   { label:'Koordinatör', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
-  MUHASEBE:      { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'goruntule', disAlim:'ekle', teklif:'hepsi' },
+  YONETICI:      { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi', arac:'tam' },
+  KOORDINATOR:   { label:'Koordinatör', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi', arac:'tam' },
+  MUHASEBE:      { label:'Muhasebe', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'goruntule', disAlim:'ekle', teklif:'hepsi', arac:'tam' },
   // Üretim Müdürü: haftalık plan + dış alım (tam düzenleme) + araçlar. Başka hiçbir şey görmez, teklif/finans yok.
   // (Eski "Montaj (Saha)" rolü kullanıcı kararıyla bu rolle birleştirildi.)
-  URETIM_MUDURU: { label:'Üretim Müdürü', tabs:['ana-sayfa','gorev-yonetimi','yonetim','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], yonetimSubs:['araclarim'], finans:false, teklifTutari:false, plan:'duzen', disAlim:'duzen', teklif:null },
+  URETIM_MUDURU: { label:'Üretim Müdürü', tabs:['ana-sayfa','gorev-yonetimi','yonetim','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], yonetimSubs:['araclarim'], finans:false, teklifTutari:false, plan:'duzen', disAlim:'duzen', teklif:null, arac:'islem' },
   // Tasarımcı: planı yalnız GÖRÜNTÜLER, dış alıma yeni kayıt EKLER, kendi tekliflerini ve maliyetlerini yönetir.
   TASARIM:       { label:'Tasarımcı', tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], finans:false, plan:'goruntule', disAlim:'ekle', teklif:'kendi', ozet:false },
   // Satış-Pazarlama ve Mimar: yalnız kendi teklifleri + maliyetleri. Plan ve dış alıma hiç dokunmaz.
@@ -3118,7 +3301,7 @@ const ROLE_CONFIG = {
   // (2026-09-14s) SUNUM/DEMO rolü — personele canlı tanıtım için. Yöneticiyle AYNI ekranlara erişir (her yer açık,
   // cariler dahil) ama finansal rakamlar gizlenir: finans:false hem mevcut finansGorebilir() kontrollerini kapatır
   // hem de ekrana basılan para tutarlarını maskeleyen sunumMaskele() katmanını devreye sokar.
-  SUNUM:    { label:'Sunum / Demo (rakamsız)', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], finans:false, plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
+  SUNUM:    { label:'Sunum / Demo (rakamsız)', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], finans:false, plan:'duzen', disAlim:'duzen', teklif:'hepsi', arac:'gor' },
 };
 // Eski rol anahtarları → yeni karşılıkları. Veritabanındaki hesaplar hâlâ eski adları taşıyabilir
 // (URETIM, MONTAJ); rol çözümlemesi bunları yeni role çevirir. Montaj, kullanıcı kararıyla Üretim Müdürü'ne katıldı.
@@ -3139,7 +3322,7 @@ const YETKI_SABIT_SEKMELER  = ['ana-sayfa','destek'];   // kimse tamamen kilitle
 const YETKI_PLAN_SECENEK    = [['','Göremez'],['goruntule','Yalnız görüntüler'],['duzen','Düzenler']];
 const YETKI_DISALIM_SECENEK = [['','Göremez'],['ekle','Ekleyebilir (düzeltemez)'],['duzen','Tam düzenler']];
 const YETKI_TEKLIF_SECENEK  = [['','Göremez'],['kendi','Yalnız kendi teklifleri'],['hepsi','Tüm teklifler']];
-const YETKI_ALANLARI = ['tabs','gorevSubs','yonetimSubs','plan','disAlim','teklif','finans','teklifTutari'];
+const YETKI_ALANLARI = ['tabs','gorevSubs','yonetimSubs','plan','disAlim','teklif','finans','teklifTutari','arac'];
 
 let YETKI_SURUM = 0;                                     // yetki değişince artar
 let _rolCfgOnbellek = { rol:null, surum:-1, cfg:null };   // roleCfg çok sık çağrılıyor, sonucu önbelleğe alıyoruz
@@ -9758,6 +9941,7 @@ function openYetkiModal(pid, rolSecim){
     <div class="yt-satir"><span>Haftalık plan</span>${secim('ytPlan', YETKI_PLAN_SECENEK, c.plan)}</div>
     <div class="yt-satir"><span>Dış alımlar</span>${secim('ytDisAlim', YETKI_DISALIM_SECENEK, c.disAlim)}</div>
     <div class="yt-satir"><span>Teklifler</span>${secim('ytTeklif', YETKI_TEKLIF_SECENEK, c.teklif)}</div>
+    <div class="yt-satir"><span>Araçlar</span>${secim('ytArac', YETKI_ARAC_SECENEK, c.arac === undefined ? 'tam' : c.arac)}</div>
     <div class="yt-grid" style="margin-top:8px;">
       ${kutu('ytFinans', 'Şirket finans rakamlarını görür', c.finans !== false)}
       ${kutu('ytTeklifTutar', 'Teklif ve maliyet tutarlarını görür', c.teklifTutari !== false)}
@@ -9787,6 +9971,7 @@ function submitYetki(pid){
     plan: document.getElementById('ytPlan').value || null,
     disAlim: document.getElementById('ytDisAlim').value || null,
     teklif: document.getElementById('ytTeklif').value || null,
+    arac: document.getElementById('ytArac').value || '',
     finans: isar('ytFinans'),
     teklifTutari: isar('ytTeklifTutar'),
     ozet: isar('ytOzet'),
@@ -9795,6 +9980,8 @@ function submitYetki(pid){
   if(!yetki.gorevSubs.includes('haftalik-plan')) yetki.plan = null;
   if(!yetki.gorevSubs.includes('dis-alimlar')) yetki.disAlim = null;
   if(!yetki.tabs.includes('teklifler')) yetki.teklif = null;
+  // Araçlarım alt ekranı kapalıysa araç kademesi anlamsız kalmasın
+  if(!yetki.yonetimSubs.includes('araclarim')) yetki.arac = '';
 
   const benim = benimPersonelim();
   const kendim = !!(benim && benim.id === p.id);
@@ -10211,43 +10398,6 @@ function vehicleLabel(v){ return [v.brand, v.model, v.year].filter(Boolean).join
 function money(n){ return '₺'+(Number(n)||0).toLocaleString('tr-TR'); }
 function canSeeVehicles(){ return (roleCfg().yonetimSubs||[]).includes('araclarim'); }
 
-function vehicleAlerts(){
-  const out = [];
-  VEHICLES.forEach(v => DATE_FIELDS.forEach(f => {
-    const n = daysLeft(v.dates[f.key]);
-    if(n === null || n > VEHICLE_ALERT_WINDOW) return;
-    if(tarihOdendiMi(v, f.key)) return;          // ödendi işaretlenmiş kayıtlar hatırlatma üretmez
-    out.push({ v:v, f:f, n:n, st:dueStatus(n) });
-  }));
-  return out.sort((a,b) => a.n - b.n);
-}
-function alertRowHtml(a){
-  return `
-    <div class="alert-row ${a.st.cls}" onclick="openVehicle('${a.v.id}')">
-      ${plateHtml(a.v.plate, true)}
-      <div class="alert-row-main">
-        <div class="alert-row-title">${a.f.label}</div>
-        <div class="alert-row-sub">${vehicleLabel(a.v)} · ${formatDate(a.v.dates[a.f.key])}</div>
-      </div>
-      <span class="v-chip ${a.st.cls}">${a.st.text}</span>
-    </div>`;
-}
-function homeVehicleAlertsHtml(){
-  if(!canSeeVehicles()) return '';
-  const list = vehicleAlerts();
-  if(!list.length) return '';
-  const late = list.filter(a => a.st.cls === 'late').length;
-  return `
-    <div class="alert-strip">
-      <div class="alert-strip-head">
-        <span>🚗</span> Araç Hatırlatmaları
-        <span style="color:${late?'var(--risk)':'var(--signal)'};">${list.length}</span>
-        ${late ? `<span style="color:var(--risk);font-weight:600;">· ${late} gecikmiş</span>` : ''}
-      </div>
-      ${list.slice(0,5).map(alertRowHtml).join('')}
-      ${list.length > 5 ? `<div class="due" style="padding:2px 2px 0;cursor:pointer;text-decoration:underline;" onclick="goToAraclarim()">+ ${list.length-5} hatırlatma daha — Araçlarım'a git ›</div>` : ''}
-    </div>`;
-}
 function goToAraclarim(){
   pushHistory(); currentPage='yonetim'; yonetimSub='araclarim'; openSubmenu='yonetim';
   aracStep='list'; renderNav(); renderContent();
@@ -10258,8 +10408,1435 @@ function openVehicle(id){
 }
 function backToVehicleList(){ aracStep='list'; editingVehicleId=null; renderContent(); }
 
+// ===================== ARAÇ TAKİP VE GİDER MODÜLÜ (v2026-09-16k) =====================
+// TEMEL AYRIM — eskiden bu ikisi tek yerde karışıyordu:
+//   ARAÇ GİDERİ   = GERÇEKLEŞMİŞ, parasal sonucu olan hareket.
+//                   İki kaynakta durur: v.expenses[] (araç ekranından girilen) ve
+//                   GIDERLER[] (Ön Muhasebe'den bu araca bağlananlar). aracGiderKayitlari() ikisini birleştirir.
+//   ARAÇ TAKİBİ   = GELECEKTE yapılacak iş (hatırlatma). ARAC_TAKIP[] — yeni, üst düzey dizi.
+// İkisi AYRI kayıttır. "İşlemi Tamamla" ikisini birbirine bağlar: takip.giderId ↔ gider.takipId.
+//
+// ESKİ YAPI SİLİNMEZ: v.dates / v.kms / v.odendi olduğu gibi kalır. Göç (aracTakipGocu) bunları
+// OKUYUP ARAC_TAKIP üretir; araç başına bir kez çalışır (v.takipMig bayrağı). Böylece göç yarıda
+// kalsa ya da iki kez çalışsa bile mükerrer kayıt oluşmaz ve eski veri geri alınabilir durumda kalır.
+//
+// NOT (belge yükleme): Kullanıcı kararıyla dosya YÜKLEME bu sürümde YOK. Sebebi teknik: ROTA'nın tüm
+// verisi tek JSON olarak saklanıyor ve sunucu sınırı 3,5 MB. Dosyalar base64 olarak buraya gömülseydi
+// 4-5 belgeden sonra UYGULAMANIN TAMAMI kayıt yapamaz hale gelirdi. Bunun yerine belge NUMARASI/ADI
+// metin olarak tutuluyor ve tabloda gösteriliyor; gerçek dosya deposu (Vercel Blob) ayrı bir iş kalemi.
+
+let ARAC_TAKIP = [];        // hatırlatma / yapılacak işlem kayıtları
+let ARAC_KM_GECMIS = [];    // kilometre okuma geçmişi (en yeni başta)
+
+// Takip türleri. mod: 'tarih' | 'km' | 'tarih-km' — kaydın hangi hedefe göre izleneceği.
+const TAKIP_TURLERI = [
+  { key:'trafik',  label:'Trafik Sigortası', mod:'tarih',    tekrar:'yillik', gider:true,  eski:'trafik'  },
+  { key:'kasko',   label:'Kasko',            mod:'tarih',    tekrar:'yillik', gider:true,  eski:'kasko'   },
+  { key:'muayene', label:'Araç Muayenesi',   mod:'tarih',    tekrar:'ozel',   gider:true,  eski:'muayene' },
+  { key:'mtv1',    label:'MTV 1. Taksit',    mod:'tarih',    tekrar:'ozel',   gider:true,  eski:'mtv1'    },
+  { key:'mtv2',    label:'MTV 2. Taksit',    mod:'tarih',    tekrar:'ozel',   gider:true,  eski:'mtv2'    },
+  { key:'egzoz',   label:'Egzoz Emisyon',    mod:'tarih',    tekrar:'yillik', gider:true,  eski:'egzoz'   },
+  { key:'bakim',   label:'Periyodik Bakım',  mod:'tarih-km', tekrar:'ozel',   gider:true,  eski:'bakim'   },
+  { key:'lastik',  label:'Lastik',           mod:'tarih-km', tekrar:'ozel',   gider:true },
+  { key:'tamir',   label:'Tamir / Servis',   mod:'tarih',    tekrar:'tek',    gider:true },
+  { key:'diger',   label:'Diğer İşlem',      mod:'tarih',    tekrar:'tek',    gider:false },
+];
+
+// Gider türleri ve türe göre açılan ek alanlar. takip: tamamlanınca önerilecek takip türü.
+const GIDER_TURLERI = [
+  { key:'yakit',   label:'Yakıt',            alanlar:['litre','birimFiyat','tamDepo'],             hatirlatma:false },
+  { key:'kasko',   label:'Kasko',            alanlar:['police','baslangic','bitis','taksit'],      hatirlatma:true, takip:'kasko'   },
+  { key:'trafik',  label:'Trafik Sigortası', alanlar:['police','baslangic','bitis'],               hatirlatma:true, takip:'trafik'  },
+  { key:'mtv',     label:'MTV',              alanlar:['donem','taksit2'],                          hatirlatma:true, takip:'mtv1'    },
+  { key:'muayene', label:'Araç Muayenesi',   alanlar:['sonuc','gecerlilik'],                       hatirlatma:true, takip:'muayene' },
+  { key:'egzoz',   label:'Egzoz Emisyon',    alanlar:['gecerlilik'],                               hatirlatma:true, takip:'egzoz'   },
+  { key:'bakim',   label:'Periyodik Bakım',  alanlar:['bakimTuru','yapilanlar'],                   hatirlatma:true, takip:'bakim'   },
+  { key:'lastik',  label:'Lastik',           alanlar:['lastikTuru','markaModel','adet'],           hatirlatma:true, takip:'lastik'  },
+  { key:'tamir',   label:'Tamir',            alanlar:['ariza','teslim','garanti'],                 hatirlatma:false, takip:'tamir'  },
+  { key:'hgs',     label:'HGS',              alanlar:[], hatirlatma:false },
+  { key:'otopark', label:'Otopark',          alanlar:[], hatirlatma:false },
+  { key:'yikama',  label:'Yıkama',           alanlar:[], hatirlatma:false },
+  { key:'ceza',    label:'Ceza',             alanlar:[], hatirlatma:false },
+  { key:'diger',   label:'Diğer',            alanlar:[], hatirlatma:false },
+];
+
+// Eşikler tek yerde — ileride araç/tür bazında yapılandırılabilir olsun diye sabit gömülmedi.
+const TAKIP_ESIK = { gunKrit:7, gunUyari:30, kmKrit:500, kmUyari:1000 };
+const TEKRAR_SECENEK = [['tek','Tek sefer'],['aylik','Aylık'],['3aylik','3 aylık'],['6aylik','6 aylık'],
+  ['yillik','Yıllık'],['km','Kilometre bazlı'],['ozel','Özel']];
+const UYARI_SECENEK = [[7,'7 gün önce'],[15,'15 gün önce'],[30,'30 gün önce'],[60,'60 gün önce']];
+
+function takipTuru(k){ return TAKIP_TURLERI.find(t => t.key === k) ||
+  { key:k, label:k || 'İşlem', mod:'tarih', tekrar:'tek', gider:true }; }
+function giderTuruTanim(k){ return GIDER_TURLERI.find(t => t.key === k) ||
+  { key:k, label:k || 'Gider', alanlar:[], hatirlatma:false }; }
+function aracBul(id){ return (VEHICLES || []).find(x => x.id === id) || null; }
+// Bir aracın takip kayıtları. durum verilirse ('aktif' | 'tamam' | 'pasif') ona göre süzülür.
+function aracTakipleri(aracId, durum){
+  if(!Array.isArray(ARAC_TAKIP)) return [];
+  let l = ARAC_TAKIP.filter(t => t.aracId === aracId);
+  if(durum) l = l.filter(t => (t.durum || 'aktif') === durum);
+  return l;
+}
+
+// ---- Küçük satır ikonları (mockup'taki çizgi ikonlar; emoji değil, tema rengini alır) ----
+const TAKIP_IKON = {
+  trafik:'<path d="M4 2h8l1 3v9H3V5z"/><path d="M6 8h4M6 11h4"/>',
+  kasko:'<path d="M8 1.5 2.5 4v4c0 3.2 2.3 5.6 5.5 6.5 3.2-.9 5.5-3.3 5.5-6.5V4z"/>',
+  muayene:'<rect x="3" y="2.5" width="10" height="12" rx="1.5"/><path d="M6 1.5h4v2H6z"/><path d="M6 7.5h4M6 10.5h4"/>',
+  mtv1:'<path d="M2 13.5h12M3.5 13.5V7M12.5 13.5V7M6 13.5V7M10 13.5V7"/><path d="M8 1.5 14 5H2z"/>',
+  mtv2:'<path d="M2 13.5h12M3.5 13.5V7M12.5 13.5V7M6 13.5V7M10 13.5V7"/><path d="M8 1.5 14 5H2z"/>',
+  egzoz:'<rect x="1.8" y="8.5" width="8.4" height="3.4" rx="1.7"/><path d="M12.2 10.2h2"/><path d="M11 6.6c0-1.2 1-1.2 1-2.4M13.6 6.6c0-1.2 1-1.2 1-2.4"/>',
+  bakim:'<path d="M10.8 2.4a3.5 3.5 0 0 0-4.3 4.4L2 11.3l2.7 2.7 4.5-4.5a3.5 3.5 0 0 0 4.4-4.3l-2 2-1.8-1.8z"/>',
+  lastik:'<circle cx="8" cy="8" r="6.2"/><circle cx="8" cy="8" r="2.4"/>',
+  tamir:'<path d="M4.5 11.5 2 14M11 2.5l2.5 2.5-7 7-2.5-2.5z"/><circle cx="12" cy="12" r="2"/>',
+  diger:'<circle cx="8" cy="8" r="6.2"/><path d="M8 5v3.5l2 1.5"/>',
+  yakit:'<path d="M3 14V3.5A1.5 1.5 0 0 1 4.5 2h4A1.5 1.5 0 0 1 10 3.5V14"/><path d="M2 14h9"/><path d="M10 6h1.8L13 7.2v4.3a1.2 1.2 0 0 1-2.4 0V9"/><path d="M4.5 5.5h4"/>',
+  para:'<ellipse cx="8" cy="4" rx="5.5" ry="2.2"/><path d="M2.5 4v4c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2V4"/><path d="M2.5 8v4c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2V8"/>',
+  takvim:'<rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5.5 1.6v2.8M10.5 1.6v2.8"/>',
+  belge:'<path d="M9 1.8H4.5A1.5 1.5 0 0 0 3 3.3v9.4a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5V5.8z"/><path d="M9 1.8v4h4"/>',
+};
+function takipIkonHtml(k, boyut){
+  const p = TAKIP_IKON[k] || TAKIP_IKON.diger;
+  const s = boyut || 16;
+  return '<svg class="ad-ikon" width="'+s+'" height="'+s+'" viewBox="0 0 16 16" fill="none" stroke="currentColor" '
+    + 'stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+}
+
+// ---- Biçimlendirme (tek kaynak — ekranın her yerinde aynı sonucu versin) ----
+function paraTR(n){ return '₺' + (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+function paraKisaTR(n){ return '₺' + Math.round(Number(n) || 0).toLocaleString('tr-TR'); }
+function kmTR(n){ const v = Number(n); return (v || v === 0) ? v.toLocaleString('tr-TR') + ' km' : '—'; }
+function sayiTR(n){ return (Number(n) || 0).toLocaleString('tr-TR'); }
+function bugunIso(){ return isoPlus(0); }
+function isoYap(y, m, g){ return y + '-' + String(m).padStart(2,'0') + '-' + String(g).padStart(2,'0'); }
+function dateIso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+// ---- DURUM VE GERİ SAYIM ----------------------------------------------------
+// Tek kural kümesi: hem tablo, hem özet kartları, hem ana sayfa şeridi buradan beslenir;
+// frontend'in iki ayrı yerde farklı sonuç göstermesi mümkün olmasın diye.
+const DURUM_SIRA = { none:0, ok:1, soon:2, crit:3, late:4 };
+function durumSirasi(c){ return DURUM_SIRA[c] === undefined ? 0 : DURUM_SIRA[c]; }
+
+function takipGunDurumu(n){
+  if(n === null || n === undefined)   return { cls:'none', text:'Tarih girilmedi', tip:'gun' };
+  if(n < 0)                           return { cls:'late', text:Math.abs(n) + ' gün gecikti', tip:'gun' };
+  if(n === 0)                         return { cls:'late', text:'Bugün', tip:'gun' };
+  if(n <= TAKIP_ESIK.gunKrit)         return { cls:'crit', text:n + ' gün kaldı', tip:'gun' };
+  if(n <= TAKIP_ESIK.gunUyari)        return { cls:'soon', text:n + ' gün kaldı', tip:'gun' };
+  return { cls:'ok', text:n + ' gün kaldı', tip:'gun' };
+}
+function takipKmDurumu(n){
+  if(n === null || n === undefined)   return { cls:'none', text:'Kilometre girilmedi', tip:'km' };
+  if(n < 0)                           return { cls:'late', text:sayiTR(Math.abs(n)) + ' km geçildi', tip:'km' };
+  if(n <= TAKIP_ESIK.kmKrit)          return { cls:'crit', text:sayiTR(n) + ' km kaldı', tip:'km' };
+  if(n <= TAKIP_ESIK.kmUyari)         return { cls:'soon', text:sayiTR(n) + ' km kaldı', tip:'km' };
+  return { cls:'ok', text:sayiTR(n) + ' km kaldı', tip:'km' };
+}
+// Kalan gün / kalan km. Bilgi yoksa null döner — 0 ile karıştırılmasın diye asla 0'a düşürülmez.
+function takipKalan(t, v){
+  v = v || aracBul(t.aracId);
+  const gun = t.hedefTarih ? daysLeft(t.hedefTarih) : null;
+  const aracKm = v && Number(v.km) ? Number(v.km) : null;
+  const km = (t.hedefKm && aracKm !== null) ? (Number(t.hedefKm) - aracKm) : null;
+  return { gun:gun, km:km };
+}
+// Kaydın gösterilecek durumu. 'tarih-km' modunda HANGİSİ ÖNCE KRİTİKLEŞİYORSA o gösterilir.
+function takipDurum(t, v){
+  const d = t.durum || 'aktif';
+  if(d === 'tamam') return { cls:'done',  text:'Tamamlandı', tip:'', bitti:true };
+  if(d === 'pasif') return { cls:'pasif', text:'Pasif',      tip:'', bitti:true };
+  const k = takipKalan(t, v);
+  const mod = t.mod || 'tarih';
+  const aday = [];
+  if(mod !== 'km')    aday.push(takipGunDurumu(k.gun));
+  if(mod !== 'tarih') aday.push(takipKmDurumu(k.km));
+  const dolu = aday.filter(a => a.cls !== 'none');
+  if(!dolu.length) return { cls:'none', text:(mod === 'km' ? 'Kilometre girilmedi' : 'Tarih girilmedi'), tip:'', eksik:true };
+  dolu.sort((a, b) => durumSirasi(b.cls) - durumSirasi(a.cls));
+  return dolu[0];
+}
+// İlerleme yüzdesi. Başlangıç bilinmiyorsa YANILTICI YÜZDE ÜRETİLMEZ — null döner, ekranda "—" çıkar.
+function takipIlerleme(t, v){
+  v = v || aracBul(t.aracId);
+  const mod = t.mod || 'tarih';
+  if(mod !== 'km' && t.baslangicTarih && t.hedefTarih){
+    const b = isoToMs(t.baslangicTarih), h = isoToMs(t.hedefTarih);
+    if(b && h && h > b) return Math.max(0, Math.min(100, Math.round((Date.now() - b) / (h - b) * 100)));
+  }
+  if(mod !== 'tarih' && t.baslangicKm && t.hedefKm && v && Number(v.km)){
+    const b = Number(t.baslangicKm), h = Number(t.hedefKm), s = Number(v.km);
+    if(h > b) return Math.max(0, Math.min(100, Math.round((s - b) / (h - b) * 100)));
+  }
+  return null;
+}
+// Sıralama anahtarı: gecikenler önce, sonra en yakın olan. Bilgi eksik kayıtlar en sona.
+function takipSiraAnahtari(t, v){
+  const st = takipDurum(t, v);
+  if(st.eksik) return 9e9;
+  const k = takipKalan(t, v);
+  const gun = (k.gun === null) ? 9e8 : k.gun;
+  // km'yi kabaca güne çevirmiyoruz (günlük ortalama km bilinmiyor); km modunda km'yi ikincil anahtar yapıyoruz.
+  const km = (k.km === null) ? 9e8 : k.km;
+  return Math.min(gun, km === 9e8 ? 9e8 : km / 50);
+}
+
+// ---- MTV özel kuralı --------------------------------------------------------
+// Türkiye'de MTV iki taksittir (1. taksit Ocak, 2. taksit Temmuz). Resmî son gün yıllara göre
+// değişebildiği için bu değerler SABİT KURAL DEĞİL, yalnızca ÖNERİDİR; kullanıcı modalda değiştirir.
+const MTV_VARSAYILAN = { mtv1:{ ay:1, gun:31 }, mtv2:{ ay:7, gun:31 } };
+function mtvSonrakiDonem(tur, hedefTarih){
+  const d = hedefTarih ? new Date(hedefTarih + 'T00:00:00') : new Date();
+  const yil = isNaN(d) ? new Date().getFullYear() : d.getFullYear();
+  if(tur === 'mtv1') return { tur:'mtv2', tarih:isoYap(yil,     MTV_VARSAYILAN.mtv2.ay, MTV_VARSAYILAN.mtv2.gun) };
+  if(tur === 'mtv2') return { tur:'mtv1', tarih:isoYap(yil + 1, MTV_VARSAYILAN.mtv1.ay, MTV_VARSAYILAN.mtv1.gun) };
+  return null;
+}
+// Aynı araç + aynı taksit + aynı yıl için ikinci bir AKTİF kayıt açılmasın.
+function mtvMukerrerMi(aracId, tur, tarih, hariçId){
+  if(tur !== 'mtv1' && tur !== 'mtv2') return false;
+  const yil = String(tarih || '').slice(0, 4);
+  if(!yil) return false;
+  return ARAC_TAKIP.some(t => t.aracId === aracId && t.tur === tur && t.id !== hariçId
+    && (t.durum || 'aktif') === 'aktif' && String(t.hedefTarih || '').slice(0, 4) === yil);
+}
+// Tekrar şekline göre bir sonraki tarih. 31 Ocak + 1 ay = 28/29 Şubat (ay taşması düzeltilir).
+function tekrarSonrakiTarih(tekrar, tarih){
+  if(!tarih || tekrar === 'tek' || tekrar === 'km' || tekrar === 'ozel') return '';
+  const ay = { aylik:1, '3aylik':3, '6aylik':6, yillik:12 }[tekrar];
+  if(!ay) return '';
+  const d = new Date(tarih + 'T00:00:00');
+  if(isNaN(d)) return '';
+  const gun = d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth() + ay);
+  const sonGun = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(gun, sonGun));
+  return dateIso(d);
+}
+
+// ---- YETKİ ------------------------------------------------------------------
+// Şartnamedeki 9 ayrı yetki (görüntüleme, gider ekle/düzenle/sil, hatırlatma ekle/tamamla,
+// belge görüntüleme, dışa aktarma) üç kademeye indirildi: her kademe bir öncekini kapsar.
+//   gor   → görüntüler, belgeyi açar, dışa aktarır
+//   islem → + gider ekler, hatırlatma ekler, işlem tamamlar, kilometre günceller
+//   tam   → + kayıtları düzenler ve siler, aracı düzenler/siler
+const ARAC_YETKI_SIRA = { '':0, gor:1, islem:2, tam:3 };
+const YETKI_ARAC_SECENEK = [['','Göremez'],['gor','Yalnız görüntüler'],
+  ['islem','Gider/hatırlatma ekler, işlem tamamlar'],['tam','Tam yetki (düzenler ve siler)']];
+function aracYetkiSeviye(){
+  const c = roleCfg();
+  if(!(c.yonetimSubs || []).includes('araclarim')) return '';
+  // Bu sürümden ÖNCE kaydedilmiş kişiye özel yetkilerde 'arac' alanı yoktur; o kayıtlar
+  // eskiden tam yetkiliydi, davranış sessizce daraltılmasın diye 'tam' kabul edilir.
+  return (c.arac === undefined || c.arac === null) ? 'tam' : c.arac;
+}
+function aracYetki(enAz){ return ARAC_YETKI_SIRA[aracYetkiSeviye()] >= ARAC_YETKI_SIRA[enAz]; }
+
+// ---- GÖÇ (v2026-09-16k) -----------------------------------------------------
+// Eski "Resmî Tarihler ve Kilometreler" tablosundaki her dolu tarih için bir takip kaydı üretir.
+// ÖNEMLİ: eski v.kms[key] değeri HEDEF kilometre DEĞİL, işlemin YAPILDIĞI kilometredir. Bu yüzden
+// hedefKm olarak değil BAŞLANGIÇ kilometresi olarak taşınır; hedef boş bırakılır ve kayıt
+// "Kilometre girilmedi" durumunda görünür. Uydurma bir hedef üretmek yanlış geri sayım demek olurdu.
+let _takipSayac = 0;
+function yeniTakipId(){ return 'at' + Date.now().toString(36) + (_takipSayac++).toString(36) + Math.random().toString(36).slice(2, 6); }
+function aracTakipGocu(){
+  if(!Array.isArray(VEHICLES) || !Array.isArray(ARAC_TAKIP)) return 0;
+  let n = 0;
+  VEHICLES.forEach(v => {
+    if(v.takipMig === '16k') return;
+    DATE_FIELDS.forEach(f => {
+      const tarih = (v.dates || {})[f.key];
+      if(!tarih) return;
+      if(ARAC_TAKIP.some(t => t.aracId === v.id && t.tur === f.key && t.hedefTarih === tarih)) return;
+      const odendi = tarihOdendiMi(v, f.key);
+      const tt = takipTuru(f.key);
+      ARAC_TAKIP.push({
+        id: yeniTakipId(), aracId: v.id, tur: f.key, baslik: tt.label, detay: '',
+        mod: 'tarih', hedefTarih: tarih, hedefKm: null,
+        baslangicTarih: '', baslangicKm: (v.kms || {})[f.key] || null,
+        uyariGun: TAKIP_ESIK.gunUyari, uyariKm: TAKIP_ESIK.kmUyari,
+        tekrar: tt.tekrar || 'tek',
+        durum: odendi ? 'tamam' : 'aktif',
+        tamamTarih: odendi ? tarih : '', tamamKm: null, tamamlayan: odendi ? '(eski “ödendi” işareti)' : '',
+        giderId: null, oncekiId: null, sorumlu: '', anaEkran: true, bildirim: true,
+        olusturan: '(göç 16k)', olusturmaTarihi: new Date().toISOString(),
+        gecmis: [{ ne: odendi ? 'Eski kayıttan aktarıldı — “ödendi” işaretliydi, tamamlanmış sayıldı'
+                              : 'Eski “Resmî Tarihler” kaydından aktarıldı',
+                   tarih: new Date().toISOString(), kim: '(göç)' }],
+      });
+      n++;
+    });
+    v.takipMig = '16k';
+  });
+  return n;
+}
+
+// ---- GİDER KAYITLARI --------------------------------------------------------
+// Bir aracın gider dökümü = araç ekranından elle girilenler (v.expenses) + Ön Muhasebe'den bu araca
+// bağlananlar (GIDERLER[].aracId). Bağlı kayıtlar KOPYALANMAZ, okunur — gider düzenlenince burası da
+// kendiliğinden güncellenir ve aynı kayıt iki kez listelenmez.
+function aracGiderKayitlari(v){
+  if(!v) return [];
+  const manuel = (v.expenses || []).map(e => ({
+    id: e.id, ms: isoToMs(e.date), tarih: e.date || '', tarihMetni: formatDate(e.date),
+    turKey: e.turKey || '', tur: e.type || 'Gider', aciklama: e.desc || '',
+    firma: e.firma || '', km: (e.km === 0 || e.km) ? Number(e.km) : null,
+    tutar: Number(e.amount) || 0, belge: e.belgeNo || '', takipId: e.takipId || null,
+    sorumlu: e.sorumlu || '', kaynak: 'arac', ek: e.ek || null,
+  }));
+  const bagli = (GIDERLER || []).filter(g => g.aracId === v.id).map(g => ({
+    id: g.id, ms: kayitTarihMs(g), tarih: g.tarih || '', tarihMetni: g.tarih || '—',
+    turKey: '', tur: kategoriAdi(g.kategoriId), aciklama: [g.client, g.tur].filter(Boolean).join(' — '),
+    firma: g.client || '', km: null, tutar: Number(g.tutar) || 0, belge: g.belgeNo || '',
+    takipId: null, sorumlu: '', kaynak: 'gider', ek: null,
+  }));
+  return manuel.concat(bagli).sort((a, b) => b.ms - a.ms);
+}
+function aracGiderToplam(v){ return aracGiderKayitlari(v).reduce((s, e) => s + e.tutar, 0); }
+// Araç ekranından bağlantıyı kaldırır — gider kaydının kendisi Giderler'de DURMAYA DEVAM EDER, silinmez.
+function aracGiderBaginiKaldir(vid, gid){
+  if(!aracYetki('tam')){ showToast('Bu işlem için yetkiniz yok.'); return; }
+  const g = (GIDERLER || []).find(x => x.id === gid);
+  if(!g) return;
+  g.aracId = null;
+  renderContent();
+  showToast('Gider bu araçtan ayrıldı — kayıt Giderler\'de duruyor.');
+}
+// Yıl bazlı toplamlar — özet kartları buradan beslenir, ekrana sabit rakam yazılmaz.
+function aracYilToplami(v, yil, sadeceYakit){
+  const y = String(yil);
+  return aracGiderKayitlari(v)
+    .filter(e => String(e.tarih || '').slice(0, 4) === y)
+    .filter(e => !sadeceYakit || e.turKey === 'yakit' || /yak[ıi]t|akaryak[ıi]t/i.test(e.tur))
+    .reduce((s, e) => s + e.tutar, 0);
+}
+
+// ---- EKRAN DURUMU -----------------------------------------------------------
+let aracTakipSekme = 'yaklasan';                       // 'yaklasan' | 'geciken' | 'tamam' | 'tum'
+let aracGiderFiltre = { q:'', tur:'', don:'', firma:'', min:'', max:'', belge:false, sorumlu:'' };
+let aracFiltreAcik = false;
+let aracTakipMenuId = null;                            // açık ⋮ menüsü (takip tablosu)
+let aracGiderMenuId = null;                            // açık ⋮ menüsü (gider tablosu)
+let aracMenuKonum = { x:0, y:0 };                      // menü ekran koordinatı (fixed konumlandırma)
+let _takipKilit = {};                                  // çift gönderim koruması (madde 9)
+
+function aracTakipSekmeSec(s){ aracTakipSekme = s; aracTakipMenuId = null; renderContent(); }
+function aracFiltreDegis(alan, deger){
+  aracGiderFiltre[alan] = deger;
+  renderContent();
+}
+function aracFiltreTemizle(){
+  aracGiderFiltre = { q:'', tur:'', don:'', firma:'', min:'', max:'', belge:false, sorumlu:'' };
+  renderContent();
+}
+function aracFiltrePanel(){ aracFiltreAcik = !aracFiltreAcik; renderContent(); }
+function aracFiltreSayisi(){
+  const f = aracGiderFiltre;
+  return ['q','tur','don','firma','min','max','sorumlu'].filter(k => f[k]).length + (f.belge ? 1 : 0);
+}
+function aracGiderleriFiltrele(liste){
+  const f = aracGiderFiltre;
+  const q = (f.q || '').toLocaleLowerCase('tr');
+  let out = liste;
+  if(q) out = out.filter(e => (e.aciklama + ' ' + e.tur + ' ' + e.firma + ' ' + e.belge).toLocaleLowerCase('tr').includes(q));
+  if(f.tur) out = out.filter(e => e.turKey === f.tur || e.tur === giderTuruTanim(f.tur).label);
+  if(f.firma) out = out.filter(e => (e.firma || '').toLocaleLowerCase('tr').includes(f.firma.toLocaleLowerCase('tr')));
+  if(f.min) out = out.filter(e => e.tutar >= Number(f.min));
+  if(f.max) out = out.filter(e => e.tutar <= Number(f.max));
+  if(f.belge) out = out.filter(e => !!e.belge);
+  if(f.sorumlu) out = out.filter(e => e.sorumlu === f.sorumlu);
+  if(f.don){
+    const bugun = new Date(); bugun.setHours(0,0,0,0);
+    const sinir = new Date(bugun);
+    if(f.don === 'buay'){ sinir.setDate(1); }
+    else if(f.don === '3ay'){ sinir.setMonth(sinir.getMonth() - 3); }
+    else if(f.don === 'buyil'){ sinir.setMonth(0); sinir.setDate(1); }
+    else if(f.don === 'gecenyil'){
+      const y = bugun.getFullYear() - 1;
+      return out.filter(e => String(e.tarih || '').slice(0, 4) === String(y));
+    }
+    const ms = sinir.getTime();
+    out = out.filter(e => e.ms >= ms);
+  }
+  return out;
+}
+
+// ---- ARAÇ DETAY EKRANI (mockup) --------------------------------------------
+function aracDetailView(){
+  aracTakipGocu();                               // göç bayrak korumalı — her açılışta güvenle çağrılabilir
+  const v = VEHICLES.find(x => x.id === viewingVehicleId);
+  if(!v){ aracStep = 'list'; return aracListView(); }
+  if(!aracYetki('gor')) return `<div class="empty-state">Bu ekranı görme yetkiniz yok.</div>`;
+  const altBilgi = [v.fuel, (Number(v.km) ? kmTR(v.km) : ''),
+    `<span class="ad-nokta"></span>${v.arsiv ? 'Pasif' : 'Aktif'}`].filter(Boolean).join(' <span class="ad-ayrac">•</span> ');
+  return `
+    <div class="ad-ust">
+      <div class="ad-ust-sol">
+        ${plateHtml(v.plate)}
+        <div class="ad-ust-bilgi">
+          <div class="ad-baslik">${notEsc(vehicleLabel(v))}</div>
+          <div class="ad-altbilgi">${altBilgi || 'Araç bilgileri girilmedi'}</div>
+        </div>
+      </div>
+      <div class="ad-ust-sag">
+        <button class="btn ad-btn" onclick="backToVehicleList()" aria-label="Araç listesine dön">‹ Liste</button>
+        ${aracYetki('islem') ? `<button class="btn ad-btn" onclick="openKmGuncelle('${v.id}')" aria-label="Kilometre güncelle">
+          ${takipIkonHtml('lastik',15)} Kilometre Güncelle</button>` : ''}
+        ${aracYetki('tam') ? `<button class="btn ad-btn" onclick="openVehicleForm('${v.id}')" aria-label="Aracı düzenle">
+          ${takipIkonHtml('tamir',15)} Düzenle</button>` : ''}
+        ${aracYetki('islem') ? `<button class="primary-btn ad-btn-ana" onclick="openYeniIslem('${v.id}')">+ Yeni İşlem</button>` : ''}
+      </div>
+    </div>
+    ${aracOzetKartlari(v)}
+    ${aracTakipPaneli(v)}
+    ${aracGiderPaneli(v)}
+    ${v.note ? `<div class="ad-panel"><div class="ad-panel-bas"><div class="ad-panel-baslik">Not</div></div>
+      <div class="ad-panel-govde"><div class="hint" style="margin:0;">${notEsc(v.note)}</div></div></div>` : ''}
+  `;
+}
+
+// Dört özet kartı — hepsi gerçek kayıtlardan hesaplanır, hiçbir rakam ekrana sabit yazılmaz.
+function aracOzetKartlari(v){
+  const yil = new Date().getFullYear();
+  const toplam = aracYilToplami(v, yil, false);
+  const yakit  = aracYilToplami(v, yil, true);
+  const finansGizli = roleCfg().finans === false;
+
+  const aktifler = aracTakipleri(v.id, 'aktif')
+    .filter(t => !takipDurum(t, v).eksik)
+    .sort((a, b) => takipSiraAnahtari(a, v) - takipSiraAnahtari(b, v));
+  const yakin = aktifler[0] || null;
+  const yakinSt = yakin ? takipDurum(yakin, v) : null;
+
+  const bakim = aracTakipleri(v.id, 'aktif').filter(t => t.tur === 'bakim')
+    .sort((a, b) => takipSiraAnahtari(a, v) - takipSiraAnahtari(b, v))[0] || null;
+  const bakimSt = bakim ? takipDurum(bakim, v) : null;
+  const bakimYuzde = bakim ? takipIlerleme(bakim, v) : null;
+
+  const kart = (ikon, etiket, deger, ek) => `
+    <div class="ad-ozet">
+      <div class="ad-ozet-ikon">${ikon}</div>
+      <div class="ad-ozet-govde">
+        <div class="ad-ozet-etiket">${etiket}</div>
+        <div class="ad-ozet-deger">${deger}</div>
+        ${ek || ''}
+      </div>
+    </div>`;
+
+  return `<div class="ad-ozet-sira">
+    ${kart(takipIkonHtml('para', 20), 'BU YIL TOPLAM GİDER',
+        finansGizli ? '<span class="ad-gizli">•••</span>' : `<span class="ad-para">${paraKisaTR(toplam)}</span>`)}
+    ${kart(takipIkonHtml('yakit', 20), 'YAKIT GİDERİ',
+        finansGizli ? '<span class="ad-gizli">•••</span>' : `<span class="ad-para">${paraKisaTR(yakit)}</span>`)}
+    ${kart(takipIkonHtml('takvim', 20), 'YAKLAŞAN İŞLEM',
+        yakin ? `<span class="ad-ozet-ad">${notEsc(yakin.baslik || takipTuru(yakin.tur).label)}</span>` : '<span class="ad-ozet-bos">Yok</span>',
+        yakin ? `<div class="ad-ozet-alt ${yakinSt.cls}">${yakinSt.text}</div>` : '<div class="ad-ozet-alt">Aktif takip kaydı yok</div>')}
+    ${kart(takipIkonHtml('bakim', 20), 'BAKIM DURUMU',
+        bakim ? `<span class="ad-ozet-ad">${bakimSt.text}</span>` : '<span class="ad-ozet-bos">Kayıt yok</span>',
+        bakimYuzde !== null
+          ? `<div class="ad-cubuk-sira"><div class="ad-cubuk"><i class="${bakimSt.cls}" style="width:${bakimYuzde}%"></i></div>
+             <span class="ad-cubuk-yuzde">%${bakimYuzde} tamamlandı</span></div>`
+          : `<div class="ad-ozet-alt">${bakim ? 'İlerleme için başlangıç bilgisi gerekli' : 'Bakım takibi ekleyin'}</div>`)}
+  </div>`;
+}
+
+// ---- YAKLAŞAN İŞLEMLER VE HATIRLATMALAR PANELİ ------------------------------
+function aracTakipSekmeListesi(v){
+  const hepsi = aracTakipleri(v.id);
+  const aktif = hepsi.filter(t => (t.durum || 'aktif') === 'aktif');
+  const geciken = aktif.filter(t => takipDurum(t, v).cls === 'late');
+  const yaklasan = aktif.filter(t => takipDurum(t, v).cls !== 'late');
+  const tamam = hepsi.filter(t => t.durum === 'tamam');
+  return { hepsi, yaklasan, geciken, tamam };
+}
+function aracTakipPaneli(v){
+  const g = aracTakipSekmeListesi(v);
+  const secili = { yaklasan:g.yaklasan, geciken:g.geciken, tamam:g.tamam, tum:g.hepsi }[aracTakipSekme] || g.yaklasan;
+  const sirali = secili.slice().sort((a, b) =>
+    (aracTakipSekme === 'tamam' ? (isoToMs(b.tamamTarih) - isoToMs(a.tamamTarih))
+                                : (takipSiraAnahtari(a, v) - takipSiraAnahtari(b, v))));
+  const sekme = (k, ad, n) => `<button class="ad-sekme${aracTakipSekme === k ? ' aktif' : ''}"
+    onclick="aracTakipSekmeSec('${k}')" aria-pressed="${aracTakipSekme === k}">${ad}${n === null ? '' : ' (' + n + ')'}</button>`;
+
+  return `
+    <div class="ad-panel">
+      <div class="ad-panel-bas">
+        <div class="ad-panel-baslik">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 1.8a4 4 0 0 0-4 4c0 3.2-1.2 4.4-1.2 4.4h10.4S12 9 12 5.8a4 4 0 0 0-4-4z"/><path d="M6.6 12.7a1.6 1.6 0 0 0 2.8 0"/>
+          </svg>
+          Yaklaşan İşlemler ve Hatırlatmalar
+        </div>
+        <div class="ad-sekmeler" role="group" aria-label="Takip kayıtları süzgeci">
+          ${sekme('yaklasan','Yaklaşanlar', g.yaklasan.length)}
+          ${sekme('geciken','Gecikenler', g.geciken.length)}
+          ${sekme('tamam','Tamamlananlar', null)}
+          ${sekme('tum','Tüm Kayıtlar', null)}
+        </div>
+      </div>
+      ${sirali.length ? `
+      <div class="ad-tablo-sarmal">
+        <table class="ad-tablo">
+          <thead><tr>
+            <th>İŞLEM</th><th>DETAY</th><th>TARİH / HEDEF</th><th>KALAN</th><th>İLERLEME</th><th class="sag">İŞLEM</th>
+          </tr></thead>
+          <tbody>${sirali.map(t => takipSatirHtml(t, v)).join('')}</tbody>
+        </table>
+      </div>` : `
+      <div class="ad-bos">
+        <div class="ad-bos-metin">${{
+          yaklasan:'Bu araç için henüz yaklaşan işlem bulunmuyor.',
+          geciken:'Gecikmiş işlem yok — her şey zamanında. 👍',
+          tamam:'Henüz tamamlanmış bir işlem kaydı yok.',
+          tum:'Bu araç için henüz takip kaydı oluşturulmamış.'
+        }[aracTakipSekme]}</div>
+        ${aracYetki('islem') && aracTakipSekme !== 'geciken'
+          ? `<button class="btn" onclick="openTakipForm('${v.id}', null)">Yeni Hatırlatma Ekle</button>` : ''}
+      </div>`}
+    </div>`;
+}
+function takipSatirHtml(t, v){
+  const st = takipDurum(t, v);
+  const tt = takipTuru(t.tur);
+  const yuzde = takipIlerleme(t, v);
+  const bitti = (t.durum || 'aktif') !== 'aktif';
+  const hedef = [];
+  if(t.hedefTarih) hedef.push(formatDate(t.hedefTarih));
+  if(t.hedefKm)    hedef.push(kmTR(t.hedefKm));
+  const detay = t.detay || (t.baslangicTarih ? 'Son işlem: ' + formatDate(t.baslangicTarih)
+                          : (t.baslangicKm ? 'Son işlem: ' + kmTR(t.baslangicKm) : ''));
+  return `
+    <tr class="${bitti ? 'ad-pasif-satir' : ''}">
+      <td class="ad-ana-hucre"><span class="ad-islem">${takipIkonHtml(t.tur)}<b>${notEsc(t.baslik || tt.label)}</b></span></td>
+      <td class="ad-detay" data-etiket="Detay">${notEsc(detay) || '—'}</td>
+      <td class="ad-hedef" data-etiket="Tarih / hedef">${hedef.join(' · ') || '<span class="ad-bos-hucre">Girilmedi</span>'}</td>
+      <td data-etiket="Kalan"><span class="v-chip ${st.cls}">${st.text}</span></td>
+      <td data-etiket="İlerleme">${yuzde !== null
+          ? `<span class="ad-cubuk-sira"><span class="ad-cubuk"><i class="${st.cls}" style="width:${yuzde}%"></i></span>
+             <span class="ad-cubuk-yuzde">%${yuzde}</span></span>`
+          : '<span class="ad-bos-hucre">—</span>'}</td>
+      <td class="sag ad-islem-hucre" data-etiket="">
+        ${(!bitti && aracYetki('islem'))
+          ? `<button class="ad-tamamla" onclick="openIslemTamamla('${t.id}')">İşlemi Tamamla</button>` : ''}
+        <span class="ad-uc-nokta" role="button" tabindex="0" aria-label="İşlem menüsü"
+          onclick="takipMenuAc(event,'${t.id}')" onkeydown="if(event.key==='Enter')takipMenuAc(event,'${t.id}')">⋮</span>
+        ${aracTakipMenuId === t.id ? takipMenuHtml(t) : ''}
+      </td>
+    </tr>`;
+}
+function aracMenuKonumAl(e){
+  const el = e.currentTarget || e.target;
+  const r = el.getBoundingClientRect();
+  // Menü sağa taşarsa sola yaslanır; alta sığmazsa düğmenin üstünde açılır.
+  const gen = 190, yuk = 250;
+  aracMenuKonum = {
+    x: Math.max(8, Math.min(r.right - gen, window.innerWidth - gen - 8)),
+    y: (r.bottom + yuk > window.innerHeight) ? Math.max(8, r.top - yuk) : r.bottom + 4,
+  };
+}
+function takipMenuAc(e, id){
+  e.stopPropagation();
+  aracMenuKonumAl(e);
+  aracTakipMenuId = (aracTakipMenuId === id) ? null : id;
+  aracGiderMenuId = null;
+  renderContent();
+}
+function takipMenuHtml(t){
+  const bitti = (t.durum || 'aktif') !== 'aktif';
+  const sat = (ad, fn, kapali) => kapali ? '' : `<div class="ad-menu-sat" onclick="${fn}">${ad}</div>`;
+  return `<div class="ad-menu" style="left:${aracMenuKonum.x}px;top:${aracMenuKonum.y}px;" onclick="event.stopPropagation()">
+    ${sat('Görüntüle', `takipGoruntule('${t.id}')`)}
+    ${sat('Düzenle', `openTakipForm('${t.aracId}','${t.id}')`, !aracYetki('tam'))}
+    ${sat('İşlemi tamamla', `openIslemTamamla('${t.id}')`, bitti || !aracYetki('islem'))}
+    ${sat('Tarihi güncelle', `takipTarihGuncelle('${t.id}')`, bitti || !aracYetki('islem'))}
+    ${sat('Geçmişi görüntüle', `takipGecmisi('${t.id}')`)}
+    ${sat(t.durum === 'pasif' ? 'Hatırlatmayı etkinleştir' : 'Hatırlatmayı pasife al',
+        `takipPasifDegistir('${t.id}')`, t.durum === 'tamam' || !aracYetki('islem'))}
+    ${sat('<span class="ad-menu-sil">Sil</span>', `takipSil('${t.id}')`, !aracYetki('tam'))}
+  </div>`;
+}
+
+// ---- GİDER GEÇMİŞİ PANELİ ---------------------------------------------------
+function aracGiderPaneli(v){
+  const hepsi = aracGiderKayitlari(v);
+  const liste = aracGiderleriFiltrele(hepsi);
+  const toplam = liste.reduce((s, e) => s + e.tutar, 0);
+  const finansGizli = roleCfg().finans === false;
+  const f = aracGiderFiltre;
+  const sorumlular = Array.from(new Set(hepsi.map(e => e.sorumlu).filter(Boolean)));
+  const secenek = (deger, liste2, bos) =>
+    `<option value="">${bos}</option>` + liste2.map(([k, ad]) =>
+      `<option value="${k}" ${String(deger) === String(k) ? 'selected' : ''}>${ad}</option>`).join('');
+
+  return `
+    <div class="ad-panel">
+      <div class="ad-panel-bas">
+        <div class="ad-panel-baslik">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 14h12"/><path d="M4 14V8M7.3 14V4M10.6 14V10M13.9 14V6"/>
+          </svg>
+          Gider Geçmişi
+        </div>
+        ${aracYetki('islem') ? `<button class="ad-ekle-link" onclick="openAracGiderForm('${v.id}', null)">+ Gider Ekle</button>` : ''}
+      </div>
+
+      <div class="ad-filtre-sira">
+        <label class="ad-ara">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"
+            stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+          <input type="search" id="adAra" placeholder="Açıklama ile ara…" value="${notEsc(f.q)}"
+            aria-label="Giderlerde ara" oninput="aracFiltreGecikmeli(this.value)">
+        </label>
+        <select aria-label="Gider türü" onchange="aracFiltreDegis('tur', this.value)">
+          ${secenek(f.tur, GIDER_TURLERI.map(t => [t.key, t.label]), 'Tüm Türler')}
+        </select>
+        <select aria-label="Tarih aralığı" onchange="aracFiltreDegis('don', this.value)">
+          ${secenek(f.don, [['buay','Bu ay'],['3ay','Son 3 ay'],['buyil','Bu yıl'],['gecenyil','Geçen yıl']], 'Tüm Tarihler')}
+        </select>
+        <button class="ad-filtre-btn${aracFiltreAcik ? ' aktif' : ''}" onclick="aracFiltrePanel()"
+          aria-expanded="${aracFiltreAcik}">Filtreler${aracFiltreSayisi() ? ' (' + aracFiltreSayisi() + ')' : ''}</button>
+        <div class="ad-filtre-bosluk"></div>
+        ${aracYetki('gor') ? `<button class="btn ad-btn" onclick="aracGiderDisaAktar('${v.id}')">⤓ Dışa Aktar</button>` : ''}
+      </div>
+
+      ${aracFiltreAcik ? `
+      <div class="ad-filtre-ek">
+        <label><span>Firma</span><input type="text" value="${notEsc(f.firma)}" placeholder="Firma / tedarikçi"
+          onchange="aracFiltreDegis('firma', this.value)"></label>
+        <label><span>En az tutar</span><input type="number" value="${notEsc(f.min)}" placeholder="0"
+          onchange="aracFiltreDegis('min', this.value)"></label>
+        <label><span>En çok tutar</span><input type="number" value="${notEsc(f.max)}" placeholder="—"
+          onchange="aracFiltreDegis('max', this.value)"></label>
+        ${sorumlular.length ? `<label><span>Sorumlu</span><select onchange="aracFiltreDegis('sorumlu', this.value)">
+          ${secenek(f.sorumlu, sorumlular.map(s => [s, s]), 'Herkes')}</select></label>` : ''}
+        <label class="ad-filtre-kutu"><input type="checkbox" ${f.belge ? 'checked' : ''}
+          onchange="aracFiltreDegis('belge', this.checked)"><span>Yalnız belgesi olanlar</span></label>
+        <button class="btn" onclick="aracFiltreTemizle()">Temizle</button>
+      </div>` : ''}
+
+      ${liste.length ? `
+      <div class="ad-tablo-sarmal">
+        <table class="ad-tablo">
+          <thead><tr>
+            <th>TÜR</th><th>TARİH</th><th>AÇIKLAMA</th><th class="sag">KİLOMETRE</th>
+            <th class="sag">TUTAR</th><th>BELGE</th><th class="sag"></th>
+          </tr></thead>
+          <tbody>
+            ${liste.map(e => `
+            <tr>
+              <td class="ad-ana-hucre"><span class="ad-islem">${takipIkonHtml(e.turKey || 'diger', 15)}${notEsc(e.tur)}${
+                  e.kaynak === 'gider' ? ' <span class="tag blue" style="margin-left:4px;">Giderler</span>' : ''}</span></td>
+              <td class="ad-tarih" data-etiket="Tarih">${e.tarihMetni}</td>
+              <td class="ad-aciklama" data-etiket="Açıklama" title="${notEsc(e.aciklama)}">${notEsc(e.aciklama) || '—'}</td>
+              <td class="sag ad-say" data-etiket="Kilometre">${e.km !== null ? kmTR(e.km) : '<span class="ad-bos-hucre">—</span>'}</td>
+              <td class="sag ad-say ad-tutar" data-etiket="Tutar">${finansGizli ? '•••' : paraTR(e.tutar)}</td>
+              <td data-etiket="Belge">${e.belge
+                ? `<span class="ad-belge" title="Belge numarası — dosya yükleme bu sürümde yok">${takipIkonHtml('belge',14)}${notEsc(e.belge)}</span>`
+                : '<span class="ad-bos-hucre">—</span>'}</td>
+              <td class="sag ad-islem-hucre" data-etiket="">
+                <span class="ad-uc-nokta" role="button" tabindex="0" aria-label="Gider işlem menüsü"
+                  onclick="aracGiderMenuAc(event,'${e.id}')"
+                  onkeydown="if(event.key==='Enter')aracGiderMenuAc(event,'${e.id}')">⋮</span>
+                ${aracGiderMenuId === e.id ? aracGiderMenuHtml(v, e) : ''}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr>
+            <td colspan="4"><b>${liste.length === hepsi.length ? 'Toplam' : 'Filtre toplamı (' + liste.length + ' kayıt)'}</b></td>
+            <td class="sag ad-say ad-tutar"><b>${finansGizli ? '•••' : paraTR(toplam)}</b></td><td colspan="2"></td>
+          </tr></tfoot>
+        </table>
+      </div>` : `
+      <div class="ad-bos">
+        <div class="ad-bos-metin">${hepsi.length
+          ? 'Bu filtreye uyan gider kaydı bulunamadı.'
+          : 'Bu araç için henüz gider kaydı oluşturulmamış.'}</div>
+        ${hepsi.length
+          ? `<button class="btn" onclick="aracFiltreTemizle()">Filtreleri Temizle</button>`
+          : (aracYetki('islem') ? `<button class="btn" onclick="openAracGiderForm('${v.id}', null)">İlk Gideri Ekle</button>` : '')}
+      </div>`}
+    </div>`;
+}
+// Arama kutusu her tuşta yeniden render etmesin (odak kaybı ve gereksiz kayıt olur).
+let _adAraZaman = null;
+function aracFiltreGecikmeli(deger){
+  clearTimeout(_adAraZaman);
+  _adAraZaman = setTimeout(() => {
+    aracGiderFiltre.q = deger;
+    renderContent();
+    const el = document.getElementById('adAra');
+    if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }, 350);
+}
+function aracGiderDisaAktar(vid){
+  const v = aracBul(vid); if(!v) return;
+  if(!aracYetki('gor')){ showToast('Dışa aktarma yetkiniz yok.'); return; }
+  const liste = aracGiderleriFiltrele(aracGiderKayitlari(v));
+  const say = n => Number(n).toLocaleString('tr-TR', { minimumFractionDigits:2 });
+  const satir = [['Tarih','Tür','Açıklama','Firma','Kilometre','Tutar','Belge','Kaynak']];
+  liste.forEach(e => satir.push([e.tarihMetni, e.tur, e.aciklama, e.firma,
+    e.km !== null ? e.km : '', say(e.tutar), e.belge, e.kaynak === 'gider' ? 'Ön Muhasebe' : 'Araç ekranı']));
+  satir.push([], ['Toplam', '', '', '', '', say(liste.reduce((s, e) => s + e.tutar, 0))]);
+  const csv = '﻿' + satir.map(s => s.map(x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  a.download = 'arac-gider-' + String(v.plate || '').replace(/\s+/g, '') + '-' + bugunIso() + '.csv';
+  a.click();
+  showToast('CSV indirildi — Excel ile açabilirsiniz.');
+}
+function aracGiderMenuAc(e, id){
+  e.stopPropagation();
+  aracMenuKonumAl(e);
+  aracGiderMenuId = (aracGiderMenuId === id) ? null : id;
+  aracTakipMenuId = null;
+  renderContent();
+}
+function aracGiderMenuHtml(v, e){
+  const sat = (ad, fn, kapali) => kapali ? '' : `<div class="ad-menu-sat" onclick="${fn}">${ad}</div>`;
+  if(e.kaynak === 'gider'){
+    // Ön Muhasebe'den bağlanan kayıt burada DÜZENLENMEZ; tek kaynak Giderler ekranıdır.
+    return `<div class="ad-menu" style="left:${aracMenuKonum.x}px;top:${aracMenuKonum.y}px;" onclick="event.stopPropagation()">
+      ${sat('Giderler ekranında aç', `aracGiderdeAc('${e.id}')`)}
+      ${sat('Araç bağlantısını kaldır', `aracGiderBaginiKaldir('${v.id}','${e.id}')`, !aracYetki('tam'))}
+    </div>`;
+  }
+  return `<div class="ad-menu" style="left:${aracMenuKonum.x}px;top:${aracMenuKonum.y}px;" onclick="event.stopPropagation()">
+    ${sat('Düzenle', `openAracGiderForm('${v.id}','${e.id}')`, !aracYetki('tam'))}
+    ${sat('<span class="ad-menu-sil">Sil</span>', `aracGiderSil('${v.id}','${e.id}')`, !aracYetki('tam'))}
+  </div>`;
+}
+function aracGiderdeAc(gid){
+  aracGiderMenuId = null;
+  if(typeof selectSub === 'function'){ pushHistory(); selectSub('on-muhasebe','giderler'); }
+  showToast('Bu kayıt Ön Muhasebe > Giderler ekranında düzenlenir.');
+}
+function aracGiderSil(vid, gid){
+  if(!aracYetki('tam')){ showToast('Gider silme yetkiniz yok.'); return; }
+  const v = aracBul(vid); if(!v) return;
+  aracGiderMenuId = null;
+  const e = (v.expenses || []).find(x => x.id === gid);
+  if(!e){
+    // Kayıt başka bir yoldan silinmişse (ör. Giderler ekranından) sarkan bağlantıyı yine de temizle.
+    ARAC_TAKIP.forEach(t => { if(t.giderId === gid) t.giderId = null; });
+    return;
+  }
+  if(!confirm('Bu gider kaydı silinecek:\n\n' + (e.type || '') + ' — ' + paraTR(e.amount) + '\n' + (e.desc || '') + '\n\nOnaylıyor musunuz?')) return;
+  // Bağlı takip kaydının gider bağlantısı da düşsün ki "mükerrer gider" koruması yanlış çalışmasın.
+  ARAC_TAKIP.forEach(t => { if(t.giderId === gid) t.giderId = null; });
+  v.expenses = (v.expenses || []).filter(x => x.id !== gid);
+  renderContent();
+  showToast('Gider kaydı silindi.');
+}
+
+// ---- KAYIT GEÇMİŞİ (audit) --------------------------------------------------
+// Şartname madde 15: kim oluşturdu / düzenledi / tamamladı, önceki ve yeni tarih/kilometre.
+function simdiKim(){
+  const p = (typeof benimPersonelim === 'function') ? benimPersonelim() : null;
+  return (p && p.name) ? p.name : notKullanici();
+}
+function takipGecmisEkle(t, ne, eski, yeni){
+  t.gecmis = t.gecmis || [];
+  t.gecmis.push({ ne:ne, eski:eski || '', yeni:yeni || '', tarih:new Date().toISOString(), kim:simdiKim() });
+  if(t.gecmis.length > 40) t.gecmis.splice(0, t.gecmis.length - 40);
+  t.guncelleyen = simdiKim();
+  t.guncellemeTarihi = new Date().toISOString();
+}
+function personelSecenekHtml(secili){
+  return '<option value="">Seçilmedi</option>' + PERSONELLER.filter(p => !p.arsiv)
+    .map(p => `<option value="${p.id}" ${secili === p.id ? 'selected' : ''}>${notEsc(p.name)}</option>`).join('');
+}
+function personelAdiById(id){ const p = PERSONELLER.find(x => x.id === id); return p ? p.name : ''; }
+function deger(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function sayiDeger(id){ const s = deger(id).replace(/\./g, '').replace(',', '.'); const n = Number(s); return isFinite(n) ? n : 0; }
+function isaretli(id){ const el = document.getElementById(id); return !!(el && el.checked); }
+
+// ---- KİLOMETRE GÜNCELLEME ---------------------------------------------------
+function openKmGuncelle(vid){
+  if(!aracYetki('islem')){ showToast('Kilometre güncelleme yetkiniz yok.'); return; }
+  const v = aracBul(vid); if(!v) return;
+  const gecmis = ARAC_KM_GECMIS.filter(k => k.aracId === vid).slice(0, 5);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">ARAÇ</div><h2>Kilometre Güncelle</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    <div class="hint" style="margin:0 0 12px;">${notEsc(v.plate)} — kayıtlı kilometre: <b>${kmTR(v.km)}</b>.
+      Yeni kilometre kaydedildiğinde kilometre bazlı tüm takipler yeniden hesaplanır.</div>
+    <div class="field"><label for="kmYeni">Güncel kilometre</label>
+      <input type="number" id="kmYeni" value="${Number(v.km) || ''}" min="0" step="1" autofocus></div>
+    <div class="field"><label for="kmTarih">Kayıt tarihi</label>
+      <input type="date" id="kmTarih" value="${bugunIso()}"></div>
+    <div class="field"><label for="kmNot">Açıklama</label>
+      <input type="text" id="kmNot" placeholder="örn. bakım öncesi okuma"></div>
+    ${gecmis.length ? `<div class="hint" style="margin:10px 0 0;"><b>Son okumalar:</b><br>
+      ${gecmis.map(k => `${formatDate(k.tarih)} — ${kmTR(k.km)}${k.not ? ' · ' + notEsc(k.not) : ''}`).join('<br>')}</div>` : ''}
+    <button class="modal-submit" onclick="submitKmGuncelle('${v.id}')">Kaydet</button>`;
+  showModal();
+}
+function submitKmGuncelle(vid){
+  const v = aracBul(vid); if(!v) return;
+  const yeni = Number(deger('kmYeni'));
+  const eski = Number(v.km) || 0;
+  if(!yeni || yeni < 0){ showToast('Geçerli bir kilometre girin.'); return; }
+  if(yeni < eski){
+    // Geriye doğru kilometre yalnız tam yetkilide ve onayla — yanlış okuma düzeltmesi meşru bir durumdur.
+    if(!aracYetki('tam')){ showToast('Kilometre düşürülemez. Mevcut kayıt: ' + kmTR(eski)); return; }
+    if(!confirm('Yeni kilometre mevcut kayıttan DÜŞÜK:\n\n' + kmTR(eski) + '  →  ' + kmTR(yeni)
+      + '\n\nBu genellikle bir yazım hatasıdır. Yine de kaydedilsin mi?')) return;
+  }
+  ARAC_KM_GECMIS.unshift({ id:'km' + Date.now().toString(36), aracId:vid, km:yeni,
+    tarih:deger('kmTarih') || bugunIso(), not:deger('kmNot'), kim:simdiKim(), olusturmaTarihi:new Date().toISOString() });
+  if(ARAC_KM_GECMIS.length > 500) ARAC_KM_GECMIS.length = 500;
+  v.km = yeni;
+  // Kilometre bazlı takiplerin durumu takipDurum() ile ANLIK hesaplandığı için ayrıca yeniden
+  // hesaplama gerekmez; hedefi aşan kayıtlar bir sonraki render'da kendiliğinden "geçildi" olur.
+  const asan = aracTakipleri(vid, 'aktif').filter(t => t.hedefKm && yeni >= Number(t.hedefKm));
+  closeModal(); renderContent();
+  showToast('Kilometre güncellendi: ' + kmTR(yeni)
+    + (asan.length ? ` — ${asan.length} takip hedefi aşıldı.` : ''));
+}
+
+// ---- YENİ İŞLEM (tür seçimi) ------------------------------------------------
+function openYeniIslem(vid){
+  if(!aracYetki('islem')){ showToast('Yeni işlem ekleme yetkiniz yok.'); return; }
+  const v = aracBul(vid); if(!v) return;
+  const secenek = (baslik, aciklama, fn) => `
+    <button class="ad-secenek" onclick="${fn}">
+      <span class="ad-secenek-ad">${baslik}</span>
+      <span class="ad-secenek-not">${aciklama}</span>
+    </button>`;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">${notEsc(v.plate)}</div><h2>Yeni İşlem</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    <div class="hint" style="margin:0 0 12px;">Ne yapmak istiyorsunuz?</div>
+    <div class="ad-secenekler">
+      ${secenek('Yalnızca gider ekle', 'Gerçekleşmiş bir ödeme — yakıt, ceza, otopark…', `openAracGiderForm('${v.id}', null, false)`)}
+      ${secenek('Gider ve hatırlatma ekle', 'Ödeme kaydedilir, sonraki dönem için hatırlatma kurulur', `openAracGiderForm('${v.id}', null, true)`)}
+      ${secenek('Yalnızca hatırlatma ekle', 'Parasal kaydı olmayan bir takip — tarih veya kilometre', `openTakipForm('${v.id}', null)`)}
+      ${secenek('Kilometre güncelle', 'Güncel kilometreyi kaydet, takipleri yenile', `openKmGuncelle('${v.id}')`)}
+    </div>`;
+  showModal();
+}
+
+// ---- GİDER FORMU (türe göre dinamik alanlar) --------------------------------
+// Ek alanlar HTML'de hep vardır, türe göre GÖSTERİLİR/GİZLENİR (aracGiderAlanlariTazele).
+// Böylece her tür için ayrı form kopyalamak gerekmez ve kod tekrarı oluşmaz.
+function aracGiderEkAlanHtml(){
+  const a = (key, ic) => `<div class="ad-ek" data-alan="${key}" style="display:none;">${ic}</div>`;
+  return `
+    ${a('litre',      `<div class="field"><label for="gfLitre">Litre</label><input type="number" id="gfLitre" step="0.01" min="0"></div>`)}
+    ${a('birimFiyat', `<div class="field"><label for="gfBirim">Litre fiyatı (₺)</label><input type="number" id="gfBirim" step="0.01" min="0"></div>`)}
+    ${a('tamDepo',    `<label class="ad-anahtar-sat"><input type="checkbox" id="gfTamDepo"><span>Tam depo</span></label>`)}
+    ${a('police',     `<div class="field"><label for="gfPolice">Poliçe numarası</label><input type="text" id="gfPolice"></div>`)}
+    ${a('baslangic',  `<div class="field"><label for="gfBas">Başlangıç tarihi</label><input type="date" id="gfBas"></div>`)}
+    ${a('bitis',      `<div class="field"><label for="gfBit">Bitiş tarihi</label><input type="date" id="gfBit"></div>`)}
+    ${a('taksit',     `<div class="field"><label for="gfTaksit">Taksit bilgisi</label><input type="text" id="gfTaksit" placeholder="örn. 6 taksit"></div>`)}
+    ${a('donem',      `<div class="field"><label for="gfDonem">Dönem / yıl</label><input type="number" id="gfDonem" min="2000" max="2100" placeholder="${new Date().getFullYear()}"></div>`)}
+    ${a('taksit2',    `<div class="field"><label for="gfTaksitNo">Taksit</label><select id="gfTaksitNo"><option value="mtv1">1. Taksit</option><option value="mtv2">2. Taksit</option></select></div>`)}
+    ${a('sonuc',      `<div class="field"><label for="gfSonuc">Muayene sonucu</label><select id="gfSonuc"><option value="">Seçilmedi</option><option>Geçti</option><option>Kusurlu — tekrar</option><option>Ağır kusur</option></select></div>`)}
+    ${a('gecerlilik', `<div class="field"><label for="gfGecerli">Geçerlilik tarihi</label><input type="date" id="gfGecerli"></div>`)}
+    ${a('bakimTuru',  `<div class="field"><label for="gfBakimTur">Bakım türü</label><input type="text" id="gfBakimTur" placeholder="örn. periyodik, büyük bakım"></div>`)}
+    ${a('yapilanlar', `<div class="field"><label for="gfYapilan">Yapılan işlemler</label><input type="text" id="gfYapilan" placeholder="yağ, filtre, balata…"></div>`)}
+    ${a('lastikTuru', `<div class="field"><label for="gfLastikTur">Lastik türü</label><select id="gfLastikTur"><option value="">Seçilmedi</option><option>Yaz</option><option>Kış</option><option>4 Mevsim</option></select></div>`)}
+    ${a('markaModel', `<div class="field"><label for="gfMarka">Marka / model</label><input type="text" id="gfMarka"></div>`)}
+    ${a('adet',       `<div class="field"><label for="gfAdet">Adet</label><input type="number" id="gfAdet" min="1" step="1"></div>`)}
+    ${a('ariza',      `<div class="field"><label for="gfAriza">Arıza / işlem türü</label><input type="text" id="gfAriza"></div>`)}
+    ${a('teslim',     `<div class="field"><label for="gfTeslim">Teslim tarihi</label><input type="date" id="gfTeslim"></div>`)}
+    ${a('garanti',    `<div class="field"><label for="gfGaranti">Garanti bitiş tarihi</label><input type="date" id="gfGaranti"></div>`)}`;
+}
+function aracGiderAlanlariTazele(){
+  const tur = deger('gfTur');
+  const tanim = giderTuruTanim(tur);
+  document.querySelectorAll('#modalBox .ad-ek').forEach(el => {
+    el.style.display = tanim.alanlar.includes(el.getAttribute('data-alan')) ? '' : 'none';
+  });
+  // Yakıtta varsayılan olarak hatırlatma AÇILMAZ (şartname madde 8 / kabul kriteri 5).
+  const sw = document.getElementById('gfHatirlat');
+  if(sw && !sw.dataset.elle) sw.checked = !!tanim.hatirlatma;
+  aracGiderHatirlatmaTazele();
+}
+function aracGiderHatirlatmaTazele(){
+  const sw = document.getElementById('gfHatirlat');
+  const blok = document.getElementById('gfHatirlatBlok');
+  if(blok) blok.style.display = (sw && sw.checked) ? '' : 'none';
+}
+function openAracGiderForm(vid, gid, hatirlatmaAcik){
+  if(!aracYetki(gid ? 'tam' : 'islem')){ showToast('Bu işlem için yetkiniz yok.'); return; }
+  const v = aracBul(vid); if(!v) return;
+  const e = gid ? (v.expenses || []).find(x => x.id === gid) : null;
+  if(gid && !e){ showToast('Bu kayıt Ön Muhasebe > Giderler ekranından düzenlenir.'); return; }
+  const ek = (e && e.ek) || {};
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">${notEsc(v.plate)}</div><h2>${e ? 'Gideri Düzenle' : 'Gider Ekle'}</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+
+    <div class="field"><label for="gfTur">İşlem türü</label>
+      <select id="gfTur" onchange="aracGiderAlanlariTazele()">
+        ${GIDER_TURLERI.map(t => `<option value="${t.key}" ${((e && e.turKey) || 'yakit') === t.key ? 'selected' : ''}>${t.label}</option>`).join('')}
+      </select></div>
+    <div class="field-row">
+      <div class="field"><label for="gfTarih">İşlem tarihi</label>
+        <input type="date" id="gfTarih" value="${(e && e.date) || bugunIso()}"></div>
+      <div class="field"><label for="gfTutar">Tutar (₺)</label>
+        <input type="number" id="gfTutar" step="0.01" min="0" value="${e ? (Number(e.amount) || '') : ''}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="gfKm">Güncel kilometre</label>
+        <input type="number" id="gfKm" min="0" step="1" value="${e && e.km ? Number(e.km) : (Number(v.km) || '')}"></div>
+      <div class="field"><label for="gfFirma">Firma / tedarikçi</label>
+        <input type="text" id="gfFirma" value="${e ? notEsc(e.firma || '') : ''}"></div>
+    </div>
+    ${aracGiderEkAlanHtml()}
+    <div class="field-row">
+      <div class="field"><label for="gfBelge">Belge / makbuz no</label>
+        <input type="text" id="gfBelge" value="${e ? notEsc(e.belgeNo || '') : ''}" placeholder="fatura veya poliçe numarası"></div>
+      <div class="field"><label for="gfSorumlu">Sorumlu personel</label>
+        <select id="gfSorumlu">${personelSecenekHtml(e ? e.sorumluId : '')}</select></div>
+    </div>
+    <div class="field"><label for="gfAciklama">Açıklama</label>
+      <input type="text" id="gfAciklama" value="${e ? notEsc(e.desc || '') : ''}"></div>
+    <div class="hint" style="margin:-2px 0 10px;">Belge <b>dosyası</b> yüklenemiyor — numara/ad olarak kaydedilir.
+      Dosya deposu ayrı bir geliştirme olarak planlandı.</div>
+
+    ${e ? '' : `
+    <label class="ad-anahtar" for="gfHatirlat">
+      <input type="checkbox" id="gfHatirlat" ${hatirlatmaAcik ? 'checked' : ''}
+        onchange="this.dataset.elle=1; aracGiderHatirlatmaTazele()">
+      <span>Bu işlem için sonraki tarih veya kilometre hatırlatması oluştur</span>
+    </label>
+    <div id="gfHatirlatBlok" style="display:none;">
+      ${takipAlanlariHtml('gf', null, v)}
+    </div>`}
+
+    <button class="modal-submit" onclick="submitAracGiderForm('${v.id}','${gid || ''}')">${e ? 'Kaydet' : 'Gideri Kaydet'}</button>`;
+  showModal();
+  // Kayıtlı ek alan değerlerini yerleştir
+  Object.keys(ek).forEach(k => { const el = document.getElementById(k); if(el){ if(el.type === 'checkbox') el.checked = !!ek[k]; else el.value = ek[k]; } });
+  aracGiderAlanlariTazele();
+}
+function aracGiderEkTopla(tur){
+  const tanim = giderTuruTanim(tur);
+  const eslesme = { litre:['gfLitre'], birimFiyat:['gfBirim'], tamDepo:['gfTamDepo'], police:['gfPolice'],
+    baslangic:['gfBas'], bitis:['gfBit'], taksit:['gfTaksit'], donem:['gfDonem'], taksit2:['gfTaksitNo'],
+    sonuc:['gfSonuc'], gecerlilik:['gfGecerli'], bakimTuru:['gfBakimTur'], yapilanlar:['gfYapilan'],
+    lastikTuru:['gfLastikTur'], markaModel:['gfMarka'], adet:['gfAdet'], ariza:['gfAriza'],
+    teslim:['gfTeslim'], garanti:['gfGaranti'] };
+  const out = {};
+  tanim.alanlar.forEach(a => (eslesme[a] || []).forEach(id => {
+    const el = document.getElementById(id); if(!el) return;
+    const d = (el.type === 'checkbox') ? el.checked : el.value.trim();
+    if(d !== '' && d !== false) out[id] = d;
+  }));
+  return out;
+}
+function submitAracGiderForm(vid, gid){
+  const v = aracBul(vid); if(!v) return;
+  const tur = deger('gfTur');
+  const tanim = giderTuruTanim(tur);
+  const tarih = deger('gfTarih');
+  const tutar = Number(deger('gfTutar')) || 0;
+  if(!tarih){ showToast('İşlem tarihi gerekli.'); return; }
+  if(tutar <= 0){ showToast('Tutar 0’dan büyük olmalı.'); return; }
+  const km = deger('gfKm') ? Number(deger('gfKm')) : null;
+  const sorumluId = deger('gfSorumlu');
+  const ortak = {
+    date: tarih, turKey: tur, type: tanim.label, amount: tutar,
+    km: km, firma: deger('gfFirma'), belgeNo: deger('gfBelge'),
+    desc: deger('gfAciklama'), sorumluId: sorumluId, sorumlu: personelAdiById(sorumluId),
+    ek: aracGiderEkTopla(tur),
+  };
+  v.expenses = v.expenses || [];
+  let kayit;
+  if(gid){
+    kayit = v.expenses.find(x => x.id === gid);
+    if(!kayit){ showToast('Kayıt bulunamadı.'); return; }
+    Object.assign(kayit, ortak, { guncelleyen: simdiKim(), guncellemeTarihi: new Date().toISOString() });
+  } else {
+    kayit = Object.assign({ id: 'ag' + Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+      takipId: null, olusturan: simdiKim(), olusturmaTarihi: new Date().toISOString() }, ortak);
+    v.expenses.push(kayit);
+  }
+  // Kilometre girildiyse aracın güncel kilometresi de ilerlesin (geriye gitmez).
+  if(km && km > (Number(v.km) || 0)) v.km = km;
+
+  let takipBilgi = '';
+  if(!gid && isaretli('gfHatirlat')){
+    const t = takipAlanlariniOku('gf', vid, tanim.takip || 'diger');
+    if(t){ t.giderId = kayit.id; ARAC_TAKIP.push(t); kayit.takipId = t.id;
+      takipBilgi = ' Hatırlatma kuruldu: ' + (t.hedefTarih ? formatDate(t.hedefTarih) : kmTR(t.hedefKm)) + '.'; }
+  }
+  closeModal(); renderContent();
+  showToast((gid ? 'Gider güncellendi.' : 'Gider kaydedildi.') + takipBilgi);
+}
+
+// ---- ORTAK HATIRLATMA ALANLARI ---------------------------------------------
+// Üç yerde kullanılır: gider formundaki anahtar, bağımsız hatırlatma formu ve "İşlemi Tamamla"
+// penceresindeki "sonraki kayıt" bölümü. Tek tanım — alanlar üç yerde ayrışmasın.
+function takipAlanlariHtml(p, t, v, turSecimi){
+  const mod = (t && t.mod) || 'tarih';
+  return `
+    ${turSecimi ? `<div class="field"><label for="${p}TTur">Takip türü</label>
+      <select id="${p}TTur" onchange="takipModTazele('${p}')">
+        ${TAKIP_TURLERI.map(x => `<option value="${x.key}" ${(t && t.tur) === x.key ? 'selected' : ''}>${x.label}</option>`).join('')}
+      </select></div>` : ''}
+    <div class="field"><label for="${p}TMod">Takip şekli</label>
+      <select id="${p}TMod" onchange="takipModTazele('${p}')">
+        <option value="tarih"    ${mod === 'tarih'    ? 'selected' : ''}>Tarih bazlı</option>
+        <option value="km"       ${mod === 'km'       ? 'selected' : ''}>Kilometre bazlı</option>
+        <option value="tarih-km" ${mod === 'tarih-km' ? 'selected' : ''}>Tarih veya kilometre (hangisi önce gelirse)</option>
+      </select></div>
+    <div class="field-row">
+      <div class="field" id="${p}TTarihAlan"><label for="${p}THedef">Sonraki işlem tarihi</label>
+        <input type="date" id="${p}THedef" value="${(t && t.hedefTarih) || ''}"></div>
+      <div class="field" id="${p}TKmAlan"><label for="${p}THedefKm">Sonraki işlem kilometresi</label>
+        <input type="number" id="${p}THedefKm" min="0" step="1" value="${(t && t.hedefKm) || ''}"
+          placeholder="${v && Number(v.km) ? sayiTR(Number(v.km) + 15000) : ''}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="${p}TTekrar">Tekrar şekli</label>
+        <select id="${p}TTekrar">${TEKRAR_SECENEK.map(([k, ad]) =>
+          `<option value="${k}" ${(t && t.tekrar) === k ? 'selected' : ''}>${ad}</option>`).join('')}</select></div>
+      <div class="field"><label for="${p}TUyari">Hatırlatma süresi</label>
+        <select id="${p}TUyari">${UYARI_SECENEK.map(([k, ad]) =>
+          `<option value="${k}" ${String((t && t.uyariGun) || TAKIP_ESIK.gunUyari) === String(k) ? 'selected' : ''}>${ad}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label for="${p}TSorumlu">Sorumlu personel</label>
+      <select id="${p}TSorumlu">${personelSecenekHtml(t ? t.sorumlu : '')}</select></div>
+    <div class="ad-kutucuklar">
+      <label><input type="checkbox" id="${p}TAna" ${(!t || t.anaEkran !== false) ? 'checked' : ''}><span>Rota ana ekranda göster</span></label>
+      <label><input type="checkbox" id="${p}TBildirim" ${(!t || t.bildirim !== false) ? 'checked' : ''}><span>Bildirim gönder</span></label>
+    </div>`;
+}
+function takipModTazele(p){
+  const mod = deger(p + 'TMod');
+  const tA = document.getElementById(p + 'TTarihAlan');
+  const kA = document.getElementById(p + 'TKmAlan');
+  if(tA) tA.style.display = (mod === 'km') ? 'none' : '';
+  if(kA) kA.style.display = (mod === 'tarih') ? 'none' : '';
+  // Tür seçimi varsa, türün doğal takip şeklini ilk kez öneri olarak getir
+  const turEl = document.getElementById(p + 'TTur');
+  if(turEl && !turEl.dataset.elle){ turEl.dataset.elle = 1; }
+}
+// Formdan bir takip kaydı üretir. Geçersizse null döner ve kullanıcıya sebep gösterilir.
+function takipAlanlariniOku(p, vid, turVarsayilan, mevcut){
+  const mod = deger(p + 'TMod') || 'tarih';
+  const turEl = document.getElementById(p + 'TTur');
+  const tur = (turEl ? turEl.value : null) || turVarsayilan || 'diger';
+  const hedefTarih = (mod === 'km') ? '' : deger(p + 'THedef');
+  const hedefKmHam = (mod === 'tarih') ? '' : deger(p + 'THedefKm');
+  const hedefKm = hedefKmHam ? Number(hedefKmHam) : null;
+  if(!hedefTarih && !hedefKm){
+    showToast(mod === 'km' ? 'Sonraki işlem kilometresini girin.' : 'Sonraki işlem tarihini girin.');
+    return null;
+  }
+  if(mtvMukerrerMi(vid, tur, hedefTarih, mevcut && mevcut.id)){
+    showToast('Bu araç için ' + takipTuru(tur).label + ' ' + String(hedefTarih).slice(0,4) + ' kaydı zaten açık — ikinci kez eklenmedi.');
+    return null;
+  }
+  const v = aracBul(vid);
+  const sorumlu = deger(p + 'TSorumlu');
+  const temel = mevcut || {
+    id: yeniTakipId(), aracId: vid, giderId: null, oncekiId: null, durum: 'aktif',
+    tamamTarih: '', tamamKm: null, tamamlayan: '',
+    olusturan: simdiKim(), olusturmaTarihi: new Date().toISOString(), gecmis: [],
+  };
+  return Object.assign(temel, {
+    tur: tur, baslik: takipTuru(tur).label, detay: temel.detay || '',
+    mod: mod, hedefTarih: hedefTarih, hedefKm: hedefKm,
+    baslangicTarih: temel.baslangicTarih || bugunIso(),
+    baslangicKm: temel.baslangicKm || (v && Number(v.km) ? Number(v.km) : null),
+    tekrar: deger(p + 'TTekrar') || 'tek',
+    uyariGun: Number(deger(p + 'TUyari')) || TAKIP_ESIK.gunUyari,
+    uyariKm: TAKIP_ESIK.kmUyari,
+    sorumlu: sorumlu, sorumluAd: personelAdiById(sorumlu),
+    anaEkran: isaretli(p + 'TAna'), bildirim: isaretli(p + 'TBildirim'),
+  });
+}
+
+// ---- BAĞIMSIZ HATIRLATMA FORMU ---------------------------------------------
+function openTakipForm(vid, tid){
+  if(!aracYetki(tid ? 'tam' : 'islem')){ showToast('Bu işlem için yetkiniz yok.'); return; }
+  const v = aracBul(vid); if(!v) return;
+  const t = tid ? ARAC_TAKIP.find(x => x.id === tid) : null;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">${notEsc(v.plate)}</div>
+      <h2>${t ? 'Hatırlatmayı Düzenle' : 'Yeni Hatırlatma'}</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    <div class="hint" style="margin:0 0 12px;">Bu kayıt <b>parasal bir hareket değildir</b> — yalnız ileri tarihli
+      bir işi hatırlatır. Ödeme yapıldığında “İşlemi Tamamla” ile gider kaydı oluşturabilirsiniz.</div>
+    ${takipAlanlariHtml('tf', t, v, true)}
+    <div class="field"><label for="tfDetay">Detay / açıklama</label>
+      <input type="text" id="tfDetay" value="${t ? notEsc(t.detay || '') : ''}" placeholder="örn. Anadolu Sigorta"></div>
+    <button class="modal-submit" onclick="submitTakipForm('${vid}','${tid || ''}')">${t ? 'Kaydet' : 'Hatırlatmayı Oluştur'}</button>`;
+  showModal();
+  takipModTazele('tf');
+}
+function submitTakipForm(vid, tid){
+  const mevcut = tid ? ARAC_TAKIP.find(x => x.id === tid) : null;
+  if(tid && !mevcut){ showToast('Kayıt bulunamadı.'); return; }
+  const eskiTarih = mevcut ? mevcut.hedefTarih : '';
+  const eskiKm = mevcut ? mevcut.hedefKm : null;
+  const t = takipAlanlariniOku('tf', vid, null, mevcut);
+  if(!t) return;
+  t.detay = deger('tfDetay');
+  if(mevcut){
+    takipGecmisEkle(t, 'Hatırlatma düzenlendi',
+      [eskiTarih ? formatDate(eskiTarih) : '', eskiKm ? kmTR(eskiKm) : ''].filter(Boolean).join(' · '),
+      [t.hedefTarih ? formatDate(t.hedefTarih) : '', t.hedefKm ? kmTR(t.hedefKm) : ''].filter(Boolean).join(' · '));
+  } else {
+    takipGecmisEkle(t, 'Hatırlatma oluşturuldu', '',
+      [t.hedefTarih ? formatDate(t.hedefTarih) : '', t.hedefKm ? kmTR(t.hedefKm) : ''].filter(Boolean).join(' · '));
+    ARAC_TAKIP.push(t);
+  }
+  closeModal(); renderContent();
+  showToast(mevcut ? 'Hatırlatma güncellendi.' : 'Hatırlatma oluşturuldu.');
+}
+
+// ---- İŞLEMİ TAMAMLA ---------------------------------------------------------
+// Tek pencerede üç iş yapılır: (1) mevcut takip tamamlanır, (2) istenirse gider kaydı oluşur,
+// (3) istenirse SONRAKİ dönem için yeni takip açılır ve iki kayıt oncekiId ile birbirine bağlanır.
+// ESKİ KAYIT SİLİNMEZ — "Tamamlananlar" sekmesinde durmaya devam eder.
+function openIslemTamamla(tid){
+  if(!aracYetki('islem')){ showToast('İşlem tamamlama yetkiniz yok.'); return; }
+  const t = ARAC_TAKIP.find(x => x.id === tid);
+  if(!t){ showToast('Kayıt bulunamadı.'); return; }
+  if((t.durum || 'aktif') !== 'aktif'){ showToast('Bu kayıt zaten kapanmış.'); return; }
+  const v = aracBul(t.aracId); if(!v) return;
+  const tt = takipTuru(t.tur);
+  const parasal = tt.gider !== false;
+
+  // Sonraki dönem önerisi: MTV'de özel kural, diğerlerinde tekrar şekline göre.
+  const mtv = mtvSonrakiDonem(t.tur, t.hedefTarih);
+  const oneriTarih = mtv ? mtv.tarih : tekrarSonrakiTarih(t.tekrar, t.hedefTarih || bugunIso());
+  const oneriTur = mtv ? mtv.tur : t.tur;
+  const oneriKm = (t.hedefKm && t.baslangicKm && Number(t.hedefKm) > Number(t.baslangicKm))
+    ? Number(t.hedefKm) + (Number(t.hedefKm) - Number(t.baslangicKm))       // aynı aralık kadar ileri
+    : (t.hedefKm ? Number(t.hedefKm) : null);
+  const sonraki = {
+    tur: oneriTur, mod: t.mod, hedefTarih: oneriTarih, hedefKm: (t.mod === 'tarih' ? null : oneriKm),
+    tekrar: t.tekrar, uyariGun: t.uyariGun, sorumlu: t.sorumlu,
+    anaEkran: t.anaEkran !== false, bildirim: t.bildirim !== false,
+  };
+
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">İŞLEMİ TAMAMLA</div>
+      <h2>${notEsc(t.baslik || tt.label)}</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    <div class="hint" style="margin:0 0 12px;">${notEsc(v.plate)} — mevcut hedef:
+      <b>${[t.hedefTarih ? formatDate(t.hedefTarih) : '', t.hedefKm ? kmTR(t.hedefKm) : ''].filter(Boolean).join(' · ') || 'girilmedi'}</b></div>
+
+    <div class="ad-modal-bolum">Gerçekleşen işlem</div>
+    <div class="field-row">
+      <div class="field"><label for="itTarih">Gerçekleşme / ödeme tarihi</label>
+        <input type="date" id="itTarih" value="${bugunIso()}"></div>
+      <div class="field"><label for="itTutar">Ödenen tutar (₺)</label>
+        <input type="number" id="itTutar" step="0.01" min="0" placeholder="0,00"
+          oninput="itGiderTazele()"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="itKm">Güncel kilometre</label>
+        <input type="number" id="itKm" min="0" step="1" value="${Number(v.km) || ''}"></div>
+      <div class="field"><label for="itFirma">Firma / kurum</label>
+        <input type="text" id="itFirma" value="${notEsc(t.detay || '')}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="itBelge">Poliçe / makbuz / belge no</label><input type="text" id="itBelge"></div>
+      <div class="field"><label for="itSorumlu">Sorumlu personel</label>
+        <select id="itSorumlu">${personelSecenekHtml(t.sorumlu)}</select></div>
+    </div>
+    <div class="field"><label for="itAciklama">Açıklama</label><input type="text" id="itAciklama"></div>
+    <label class="ad-anahtar-sat" for="itGider">
+      <input type="checkbox" id="itGider" ${parasal ? 'checked' : ''}>
+      <span>Bu işlem için gider kaydı oluştur</span></label>
+
+    <div class="ad-modal-bolum">Sonraki kayıt</div>
+    ${mtv ? `<div class="hint" style="margin:-4px 0 10px;">MTV taksitleri yıllık yenilenmez:
+      bu işlemden sonra sırada <b>${takipTuru(mtv.tur).label}</b> var. Önerilen tarihi değiştirebilirsiniz.</div>` : ''}
+    ${takipAlanlariHtml('it', sonraki, v, true)}
+
+    <button class="modal-submit" onclick="submitIslemTamamla('${t.id}', true)">Tamamla ve Sonraki Kaydı Oluştur</button>
+    <div style="text-align:center;margin-top:8px;">
+      <span class="ad-ikincil" role="button" tabindex="0" onclick="submitIslemTamamla('${t.id}', false)"
+        onkeydown="if(event.key==='Enter')submitIslemTamamla('${t.id}', false)">Yalnızca Tamamla</span>
+    </div>`;
+  showModal();
+  // Önerilen türü seçili getir
+  const turEl = document.getElementById('itTTur'); if(turEl) turEl.value = sonraki.tur;
+  takipModTazele('it');
+}
+function itGiderTazele(){
+  const tutar = Number(deger('itTutar')) || 0;
+  const sw = document.getElementById('itGider');
+  if(sw && !sw.dataset.elle && tutar > 0) sw.checked = true;
+}
+function submitIslemTamamla(tid, sonrakiDe){
+  // MÜKERRER KORUMASI (madde 9): aynı istek iki kez gönderilirse ikincisi hiçbir şey yapmaz.
+  if(_takipKilit[tid]){ return; }
+  const t = ARAC_TAKIP.find(x => x.id === tid);
+  if(!t){ showToast('Kayıt bulunamadı.'); return; }
+  if((t.durum || 'aktif') !== 'aktif'){ showToast('Bu kayıt zaten tamamlanmış.'); return; }
+  const v = aracBul(t.aracId); if(!v) return;
+  _takipKilit[tid] = true;
+  try{
+    const tarih = deger('itTarih') || bugunIso();
+    const tutar = Number(deger('itTutar')) || 0;
+    const km = deger('itKm') ? Number(deger('itKm')) : null;
+    const giderIstendi = isaretli('itGider');
+
+    // Sonraki kayıt istenmişse ÖNCE doğrula — geçersizse hiçbir şeye dokunma (yarım kalmış
+    // "takip tamamlandı ama yeni kayıt yok" durumu oluşmasın).
+    let yeni = null;
+    if(sonrakiDe){
+      yeni = takipAlanlariniOku('it', t.aracId, t.tur);
+      if(!yeni){ _takipKilit[tid] = false; return; }
+    }
+
+    // 1) Gider kaydı — aynı takipten ikinci gider oluşmasını engelle.
+    let giderId = t.giderId || null;
+    if(giderIstendi && tutar > 0 && !giderId){
+      const sorumluId = deger('itSorumlu');
+      const kayit = {
+        id: 'ag' + Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+        date: tarih, turKey: (giderTuruTanim(t.tur).key === t.tur ? t.tur : 'diger'),
+        type: takipTuru(t.tur).label, amount: tutar, km: km,
+        firma: deger('itFirma'), belgeNo: deger('itBelge'), desc: deger('itAciklama'),
+        sorumluId: sorumluId, sorumlu: personelAdiById(sorumluId),
+        takipId: t.id, ek: {}, olusturan: simdiKim(), olusturmaTarihi: new Date().toISOString(),
+      };
+      v.expenses = v.expenses || [];
+      v.expenses.push(kayit);
+      giderId = kayit.id;
+    }
+
+    // 2) Mevcut takibi kapat (SİLİNMEZ)
+    const eskiHedef = [t.hedefTarih ? formatDate(t.hedefTarih) : '', t.hedefKm ? kmTR(t.hedefKm) : ''].filter(Boolean).join(' · ');
+    t.durum = 'tamam';
+    t.tamamTarih = tarih;
+    t.tamamKm = km;
+    t.tamamlayan = simdiKim();
+    t.completedAt = new Date().toISOString();
+    t.giderId = giderId;
+    if(km && km > (Number(v.km) || 0)) v.km = km;
+    takipGecmisEkle(t, 'İşlem tamamlandı' + (giderId ? ' (gider kaydı oluşturuldu)' : ''), eskiHedef, formatDate(tarih));
+
+    // 3) Sonraki kayıt
+    if(yeni){
+      yeni.oncekiId = t.id;
+      yeni.detay = deger('itFirma') || t.detay || '';
+      yeni.baslangicTarih = tarih;
+      yeni.baslangicKm = km || yeni.baslangicKm;
+      takipGecmisEkle(yeni, 'Önceki dönem tamamlanınca oluşturuldu', eskiHedef,
+        [yeni.hedefTarih ? formatDate(yeni.hedefTarih) : '', yeni.hedefKm ? kmTR(yeni.hedefKm) : ''].filter(Boolean).join(' · '));
+      ARAC_TAKIP.push(yeni);
+      t.sonrakiId = yeni.id;
+    }
+
+    // 4) Eski "ödendi" işareti artık anlamsız — yeni yapı devraldı.
+    if(v.odendi && takipTuru(t.tur).eski) delete v.odendi[takipTuru(t.tur).eski];
+
+    closeModal(); renderContent();
+    showToast('İşlem tamamlandı.'
+      + (giderId ? ' Gider kaydı oluşturuldu.' : '')
+      + (yeni ? ' Sonraki kayıt: ' + (yeni.hedefTarih ? formatDate(yeni.hedefTarih) : kmTR(yeni.hedefKm)) + '.' : ''));
+  } finally {
+    setTimeout(() => { delete _takipKilit[tid]; }, 1500);
+  }
+}
+
+// ---- ⋮ MENÜ İŞLEMLERİ -------------------------------------------------------
+function takipGoruntule(tid){
+  const t = ARAC_TAKIP.find(x => x.id === tid); if(!t) return;
+  const v = aracBul(t.aracId);
+  const st = takipDurum(t, v);
+  const sat = (ad, d) => d ? `<div class="ad-gor-sat"><span>${ad}</span><b>${d}</b></div>` : '';
+  aracTakipMenuId = null;
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">${notEsc(v ? v.plate : '')}</div>
+      <h2>${notEsc(t.baslik || takipTuru(t.tur).label)}</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    <div style="margin-bottom:10px;"><span class="v-chip ${st.cls}">${st.text}</span></div>
+    ${sat('Detay', notEsc(t.detay || ''))}
+    ${sat('Takip şekli', { tarih:'Tarih bazlı', km:'Kilometre bazlı', 'tarih-km':'Tarih veya kilometre' }[t.mod || 'tarih'])}
+    ${sat('Hedef tarih', t.hedefTarih ? formatDate(t.hedefTarih) : '')}
+    ${sat('Hedef kilometre', t.hedefKm ? kmTR(t.hedefKm) : '')}
+    ${sat('Başlangıç', [t.baslangicTarih ? formatDate(t.baslangicTarih) : '', t.baslangicKm ? kmTR(t.baslangicKm) : ''].filter(Boolean).join(' · '))}
+    ${sat('Tekrar', (TEKRAR_SECENEK.find(x => x[0] === t.tekrar) || ['', '—'])[1])}
+    ${sat('Hatırlatma', t.uyariGun ? t.uyariGun + ' gün önce' : '')}
+    ${sat('Sorumlu', notEsc(t.sorumluAd || personelAdiById(t.sorumlu) || ''))}
+    ${sat('Tamamlanma', t.tamamTarih ? formatDate(t.tamamTarih) + (t.tamamlayan ? ' — ' + notEsc(t.tamamlayan) : '') : '')}
+    ${sat('Bağlı gider', t.giderId ? 'Var' : '')}
+    ${sat('Oluşturan', notEsc(t.olusturan || ''))}
+    <div style="text-align:center;margin-top:12px;">
+      <span class="ad-ikincil" role="button" tabindex="0" onclick="takipGecmisi('${t.id}')">Geçmişi görüntüle</span></div>`;
+  showModal();
+}
+function takipGecmisi(tid){
+  const t = ARAC_TAKIP.find(x => x.id === tid); if(!t) return;
+  aracTakipMenuId = null;
+  const zincir = [];
+  let p = t;
+  while(p && zincir.length < 20){ zincir.unshift(p); p = p.oncekiId ? ARAC_TAKIP.find(x => x.id === p.oncekiId) : null; }
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">GEÇMİŞ</div>
+      <h2>${notEsc(t.baslik || takipTuru(t.tur).label)}</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    ${zincir.length > 1 ? `<div class="hint" style="margin:0 0 10px;">Bu kayıt <b>${zincir.length} dönemlik</b> bir zincirin parçası —
+      eski dönemler silinmedi, aşağıda listeleniyor.</div>` : ''}
+    <div class="ad-gecmis">
+      ${zincir.map(k => `
+        <div class="ad-gecmis-donem">
+          <div class="ad-gecmis-bas">${k.hedefTarih ? formatDate(k.hedefTarih) : kmTR(k.hedefKm)}
+            <span class="v-chip ${takipDurum(k, aracBul(k.aracId)).cls}">${takipDurum(k, aracBul(k.aracId)).text}</span></div>
+          ${(k.gecmis || []).map(g => `<div class="ad-gecmis-sat">
+            <span class="ad-gecmis-tarih">${new Date(g.tarih).toLocaleString('tr-TR')}</span>
+            <span>${notEsc(g.ne)}${g.eski || g.yeni ? ` <i>(${notEsc(g.eski || '—')} → ${notEsc(g.yeni || '—')})</i>` : ''}</span>
+            <span class="ad-gecmis-kim">${notEsc(g.kim || '')}</span>
+          </div>`).join('') || '<div class="ad-gecmis-sat"><span></span><span>Kayıt yok</span><span></span></div>'}
+        </div>`).join('')}
+    </div>`;
+  showModal();
+}
+function takipTarihGuncelle(tid){
+  const t = ARAC_TAKIP.find(x => x.id === tid); if(!t) return;
+  if(!aracYetki('islem')){ showToast('Bu işlem için yetkiniz yok.'); return; }
+  aracTakipMenuId = null;
+  const v = aracBul(t.aracId);
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-head"><div><div class="eyebrow">TARİHİ GÜNCELLE</div>
+      <h2>${notEsc(t.baslik || takipTuru(t.tur).label)}</h2></div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Kapat">✕</button></div>
+    <div class="hint" style="margin:0 0 12px;">Yalnızca hedefi kaydırır — işlem tamamlanmış sayılmaz,
+      gider kaydı oluşmaz. Ödeme yapıldıysa <b>İşlemi Tamamla</b>’yı kullanın.</div>
+    <div class="field-row">
+      <div class="field"><label for="tgTarih">Yeni hedef tarih</label>
+        <input type="date" id="tgTarih" value="${t.hedefTarih || ''}"></div>
+      <div class="field"><label for="tgKm">Yeni hedef kilometre</label>
+        <input type="number" id="tgKm" min="0" step="1" value="${t.hedefKm || ''}"></div>
+    </div>
+    <button class="modal-submit" onclick="submitTakipTarih('${t.id}')">Kaydet</button>`;
+  showModal();
+}
+function submitTakipTarih(tid){
+  const t = ARAC_TAKIP.find(x => x.id === tid); if(!t) return;
+  const yeniT = deger('tgTarih');
+  const yeniKm = deger('tgKm') ? Number(deger('tgKm')) : null;
+  if(!yeniT && !yeniKm){ showToast('Tarih veya kilometre girin.'); return; }
+  if(mtvMukerrerMi(t.aracId, t.tur, yeniT, t.id)){
+    showToast('Bu araç için aynı yılda açık bir ' + takipTuru(t.tur).label + ' kaydı zaten var.'); return; }
+  const eski = [t.hedefTarih ? formatDate(t.hedefTarih) : '', t.hedefKm ? kmTR(t.hedefKm) : ''].filter(Boolean).join(' · ');
+  t.hedefTarih = yeniT; t.hedefKm = yeniKm;
+  if(yeniT && yeniKm) t.mod = 'tarih-km'; else if(yeniKm) t.mod = 'km'; else t.mod = 'tarih';
+  takipGecmisEkle(t, 'Hedef güncellendi', eski,
+    [yeniT ? formatDate(yeniT) : '', yeniKm ? kmTR(yeniKm) : ''].filter(Boolean).join(' · '));
+  closeModal(); renderContent();
+  showToast('Hedef güncellendi.');
+}
+function takipPasifDegistir(tid){
+  const t = ARAC_TAKIP.find(x => x.id === tid); if(!t) return;
+  if(!aracYetki('islem')){ showToast('Bu işlem için yetkiniz yok.'); return; }
+  aracTakipMenuId = null;
+  if(t.durum === 'pasif'){ t.durum = 'aktif'; takipGecmisEkle(t, 'Hatırlatma yeniden etkinleştirildi'); }
+  else { t.durum = 'pasif'; takipGecmisEkle(t, 'Hatırlatma pasife alındı'); }
+  renderContent();
+  showToast(t.durum === 'pasif' ? 'Hatırlatma pasife alındı — uyarı vermez.' : 'Hatırlatma yeniden etkin.');
+}
+function takipSil(tid){
+  const t = ARAC_TAKIP.find(x => x.id === tid); if(!t) return;
+  if(!aracYetki('tam')){ showToast('Silme yetkiniz yok — bu işlem yalnız tam yetkili kullanıcılarda.'); return; }
+  aracTakipMenuId = null;
+  const baglı = t.giderId ? '\n\nUYARI: Bu kayda bağlı bir GİDER var. Gider SİLİNMEZ, yalnız bağlantısı kopar.' : '';
+  if(!confirm('Bu takip kaydı kalıcı olarak silinecek:\n\n' + (t.baslik || '')
+    + '\nHedef: ' + (t.hedefTarih ? formatDate(t.hedefTarih) : kmTR(t.hedefKm)) + baglı
+    + '\n\nTamamlanmış kayıtları silmek geçmişi bozar — bunun yerine "Pasife al" önerilir.\n\nSilinsin mi?')) return;
+  const v = aracBul(t.aracId);
+  if(v) (v.expenses || []).forEach(e => { if(e.takipId === t.id) e.takipId = null; });
+  ARAC_TAKIP.forEach(x => { if(x.oncekiId === t.id) x.oncekiId = null; });
+  ARAC_TAKIP = ARAC_TAKIP.filter(x => x.id !== tid);
+  renderContent();
+  showToast('Takip kaydı silindi.');
+}
+
+// ---- ANA SAYFA ŞERİDİ VE BİLDİRİMLER ---------------------------------------
+// Ana sayfadaki araç hatırlatma şeridi artık ARAC_TAKIP'ten beslenir (eski v.dates taramasının yerine).
+function vehicleAlerts(){
+  aracTakipGocu();
+  const out = [];
+  ARAC_TAKIP.forEach(t => {
+    if((t.durum || 'aktif') !== 'aktif') return;
+    if(t.anaEkran === false) return;
+    const v = aracBul(t.aracId); if(!v) return;
+    const st = takipDurum(t, v);
+    if(st.eksik) return;                                   // bilgi eksik kayıt uyarı üretmez
+    if(durumSirasi(st.cls) < durumSirasi('soon')) return;   // yalnız uyarı penceresine girenler
+    out.push({ t:t, v:v, st:st, sira:takipSiraAnahtari(t, v) });
+  });
+  return out.sort((a, b) => a.sira - b.sira);
+}
+function alertRowHtml(a){
+  return `
+    <div class="alert-row ${a.st.cls}" onclick="openVehicle('${a.v.id}')">
+      ${plateHtml(a.v.plate, true)}
+      <div class="alert-row-main">
+        <div class="alert-row-title">${notEsc(a.t.baslik || takipTuru(a.t.tur).label)}</div>
+        <div class="alert-row-sub">${notEsc(vehicleLabel(a.v))} · ${a.t.hedefTarih ? formatDate(a.t.hedefTarih) : kmTR(a.t.hedefKm)}</div>
+      </div>
+      <span class="v-chip ${a.st.cls}">${a.st.text}</span>
+    </div>`;
+}
+function homeVehicleAlertsHtml(){
+  if(!canSeeVehicles()) return '';
+  aracBildirimleriUret();
+  const list = vehicleAlerts();
+  if(!list.length) return '';
+  const gec = list.filter(a => a.st.cls === 'late').length;
+  return `
+    <div class="alert-strip">
+      <div class="alert-strip-head">
+        <span>🚗</span> Araç Hatırlatmaları
+        <span style="color:${gec ? 'var(--risk)' : 'var(--signal)'};">${list.length}</span>
+        ${gec ? `<span style="color:var(--risk);font-weight:600;">· ${gec} gecikmiş</span>` : ''}
+      </div>
+      ${list.slice(0, 5).map(alertRowHtml).join('')}
+      ${list.length > 5 ? `<div class="due" style="padding:2px 2px 0;cursor:pointer;text-decoration:underline;" onclick="goToAraclarim()">+ ${list.length - 5} hatırlatma daha — Araçlarım'a git ›</div>` : ''}
+    </div>`;
+}
+// Uygulama içi bildirim. Her sayfa açılışında yeniden üretilmesini engellemek için her kayıt+eşik
+// çifti için TEK bir anahtar üretilir ve aynı anahtarlı bildirim varsa ikincisi yazılmaz.
+function aracUyariEsigi(t, v){
+  const st = takipDurum(t, v);
+  if(st.eksik || (t.durum || 'aktif') !== 'aktif') return null;
+  const k = takipKalan(t, v);
+  if(k.gun !== null){
+    if(k.gun < 0) return 'gecti';
+    if(k.gun === 0) return 'bugun';
+    if(k.gun <= TAKIP_ESIK.gunKrit) return 'son7';
+    if(k.gun <= (Number(t.uyariGun) || TAKIP_ESIK.gunUyari)) return 'pencere';
+  }
+  if(k.km !== null){
+    if(k.km < 0) return 'kmGecti';
+    if(k.km <= TAKIP_ESIK.kmUyari) return 'kmYakin';
+  }
+  return null;
+}
+function aracBildirimleriUret(){
+  if(!Array.isArray(BILDIRIMLER)) return;
+  ARAC_TAKIP.forEach(t => {
+    if(t.bildirim === false) return;
+    const v = aracBul(t.aracId); if(!v) return;
+    const esik = aracUyariEsigi(t, v);
+    if(!esik) return;
+    const anahtar = t.id + '|' + esik;
+    if(BILDIRIMLER.some(b => b.aracUyari === anahtar)) return;
+    const st = takipDurum(t, v);
+    const metin = `${v.plate} — ${t.baslik || takipTuru(t.tur).label}: ${st.text}`;
+    const p = t.sorumlu ? PERSONELLER.find(x => x.id === t.sorumlu) : null;
+    if(p && p.kullanici && p.kullanici.email) bildirimEkle(p.kullanici.email, metin, 'arac', { aracUyari:anahtar, aracId:v.id });
+    else bildirimYoneticilere(metin, 'arac', { aracUyari:anahtar, aracId:v.id });
+  });
+}
+
 // ---- Liste ----
 function araclarimView(){
+  aracTakipGocu();                       // eski tarih alanlarından takip kayıtlarına göç (bayrak korumalı)
   if(aracStep==='form')   return aracFormView();
   if(aracStep==='detail') return aracDetailView();
   return aracListView();
@@ -10269,7 +11846,8 @@ function aracListView(){
   return `
     <div class="list-page-head"><div class="page-title">Araçlarım</div>
       <button class="primary-btn" onclick="openVehicleForm(null)">+ Yeni Araç</button></div>
-    <div class="note">Plakayı, resmî tarihleri ve kilometreleri girin. Tarihe <b>30 gün</b> kala Ana Sayfa'da ve burada uyarı çıkar. Kilometre alanları kayıt amaçlıdır, uyarı üretmez.</div>
+    <div class="note">Bir araca girin: <b>yaklaşan işlemler</b>, <b>hatırlatmalar</b> ve <b>gider geçmişi</b> orada.
+      Tarihe 30 gün, bakım kilometresine 1.000 km kala Ana Sayfa'da ve burada uyarı çıkar.</div>
     ${alerts.length ? `<div class="alert-strip">
         <div class="alert-strip-head"><span>⏰</span> Yaklaşan / Geçmiş Ödemeler <span style="color:var(--signal);">${alerts.length}</span></div>
         ${alerts.map(alertRowHtml).join('')}
@@ -10278,41 +11856,18 @@ function aracListView(){
       : `<div class="empty-state">Henüz araç eklenmedi.</div>`}
   `;
 }
-// (2026-09-14k) Bir aracın gider dökümü = araç ekranından elle girilenler + Giderler'den bu araca bağlananlar.
-// Bağlı kayıtlar KOPYALANMAZ, GIDERLER'den okunur — gider düzenlenince/silinince burası da kendiliğinden güncellenir.
-function aracGiderKayitlari(v){
-  if(!v) return [];
-  const manuel = (v.expenses || []).map(e => ({
-    id: e.id, ms: isoToMs(e.date), tarihMetni: formatDate(e.date),
-    tur: e.type || 'Gider', aciklama: e.desc || '', tutar: Number(e.amount) || 0, kaynak: 'arac',
-  }));
-  const bagli = (GIDERLER || []).filter(g => g.aracId === v.id).map(g => ({
-    id: g.id, ms: kayitTarihMs(g), tarihMetni: g.tarih || '—',
-    tur: kategoriAdi(g.kategoriId), aciklama: [g.client, g.tur].filter(Boolean).join(' — '),
-    tutar: Number(g.tutar) || 0, kaynak: 'gider',
-  }));
-  return manuel.concat(bagli).sort((a, b) => b.ms - a.ms);
-}
-function aracGiderToplam(v){ return aracGiderKayitlari(v).reduce((s, e) => s + e.tutar, 0); }
-// Araç ekranından bağlantıyı kaldırır — gider kaydının kendisi Giderler'de DURMAYA DEVAM EDER, silinmez.
-function aracGiderBaginiKaldir(vid, gid){
-  const g = (GIDERLER || []).find(x => x.id === gid);
-  if(!g) return;
-  g.aracId = null;
-  renderContent();
-  showToast('Gider bu araçtan ayrıldı — kayıt Giderler\'de duruyor.');
-}
 function vehicleCardHtml(v){
   // (2026-09-14n) Rozetler tarih sırasına göre dizilir. "Ödendi" işaretlileri sona atan eski sıralama,
   // 4 rozetlik sınır yüzünden kasko/trafik rozetlerini karttan tamamen düşürüyor ve tarih hiç girilmemiş
   // gibi gösteriyordu (kullanıcı bildirimi). Sınır 3'ten 4'e çıkarıldı ki 7 alanın önemli olanları sığsın.
-  const chips = DATE_FIELDS
-    .map(f => ({ f:f, n:daysLeft(v.dates[f.key]), odendi:tarihOdendiMi(v, f.key) }))
-    .filter(x => x.n !== null)
-    .sort((a,b) => a.n - b.n)
+  // (2026-09-16k) Rozetler artık ARAC_TAKIP'ten okunur. Tamamlanan/pasif kayıtlar rozet üretmez;
+  // bilgi eksik kayıtlar en sona düşer ki dolu tarihler 4 rozetlik sınırın dışında kalmasın.
+  const chips = aracTakipleri(v.id, 'aktif')
+    .map(t => ({ t:t, st:takipDurum(t, v), sira:takipSiraAnahtari(t, v) }))
+    .filter(x => !x.st.eksik)
+    .sort((a,b) => a.sira - b.sira)
     .slice(0,4)
-    .map(x => { const st = x.odendi ? { cls:'ok', text:'ödendi' } : dueStatus(x.n);
-      return `<span class="v-chip ${st.cls}">${x.f.short}: ${st.text}</span>`; }).join('');
+    .map(x => `<span class="v-chip ${x.st.cls}">${notEsc(takipTuru(x.t.tur).label)}: ${x.st.text}</span>`).join('');
   const totalExp = aracGiderToplam(v);
   // Boş alanlar (yakıt/km/zimmet girilmemiş araçlar) satırda "· 0 km ·" gibi asılı ayraç bırakmasın
   const altBilgi = [v.fuel, (Number(v.km) ? Number(v.km).toLocaleString('tr-TR')+' km' : ''), v.owner]
@@ -10329,93 +11884,6 @@ function vehicleCardHtml(v){
       </div>
       <div class="v-card-dates">${chips || '<span class="v-chip none">Tarih girilmedi</span>'}</div>
     </div>`;
-}
-
-// ---- Detay ----
-function aracDetailView(){
-  const v = VEHICLES.find(x => x.id === viewingVehicleId);
-  if(!v){ aracStep='list'; return aracListView(); }
-  const exps = aracGiderKayitlari(v);
-  const totalExp = exps.reduce((s,e)=>s+e.tutar,0);
-  const fuelExp  = exps.filter(e=>/yakıt|akaryakıt/i.test(e.tur)).reduce((s,e)=>s+e.tutar,0);
-  const nearest  = DATE_FIELDS.map(f=>({f:f,n:daysLeft(v.dates[f.key])}))
-    .filter(x=>x.n!==null && !tarihOdendiMi(v, x.f.key)).sort((a,b)=>a.n-b.n)[0];
-  const bakimKm  = (v.kms||{}).bakim;
-  const sinceBakim = (bakimKm && v.km && Number(v.km) >= Number(bakimKm)) ? Number(v.km)-Number(bakimKm) : null;
-  return `
-    <div class="page-head">
-      <div>
-        <div class="v-detail-head">${plateHtml(v.plate)}<div class="page-title" style="margin:0;">${vehicleLabel(v)}</div></div>
-        <div class="page-sub">${[v.fuel, (Number(v.km) ? Number(v.km).toLocaleString('tr-TR')+' km' : ''), (v.owner ? 'Zimmet: '+v.owner : '')].filter(Boolean).join(' · ') || 'Araç bilgileri girilmedi — Düzenle ile tamamlayabilirsiniz'}</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin:-6px 0 18px;">
-      <button class="btn" style="flex:0 0 auto;" onclick="backToVehicleList()">‹ Listeye Dön</button>
-      <button class="primary-btn" onclick="openVehicleForm('${v.id}')">Düzenle</button>
-    </div>
-
-    <div class="v-stat-row">
-      <div class="v-stat"><div class="v-stat-label">Toplam Gider</div><div class="v-stat-value">${money(totalExp)}</div></div>
-      <div class="v-stat"><div class="v-stat-label">Yakıt Gideri</div><div class="v-stat-value">${money(fuelExp)}</div></div>
-      <div class="v-stat"><div class="v-stat-label">Son Bakımdan Beri</div>
-        <div class="v-stat-value">${sinceBakim !== null ? sinceBakim.toLocaleString('tr-TR')+' km' : '—'}</div></div>
-      <div class="v-stat"><div class="v-stat-label">Gider Kaydı</div><div class="v-stat-value">${exps.length}</div></div>
-      <div class="v-stat"><div class="v-stat-label">En Yakın İşlem</div>
-        <div class="v-stat-value" style="font-size:13px;">${nearest ? nearest.f.short+' · '+dueStatus(nearest.n).text : '—'}</div></div>
-    </div>
-
-    <div class="group-header"><span>— Resmî Tarihler ve Kilometreler</span><span>30 gün kala uyarı verilir</span></div>
-    <div class="hint" style="margin:0 0 10px;">Ödemesi yapılmış ama yeni dönemin tarihi henüz belli değilse satırdaki
-      <b>✓ ödendi</b> ile işaretleyin — tarih kayıtta kalır, gecikme uyarısı vermez. Yeni tarihi girdiğinizde hatırlatma
-      kendiliğinden yeniden çalışır.</div>
-    <table style="margin-bottom:22px;">
-      <thead><tr><th>İşlem</th><th>Tarih</th><th>Girdiği Kilometre</th><th style="text-align:right;">Durum</th></tr></thead>
-      <tbody>
-        ${DATE_FIELDS.map(f => {
-          const n = daysLeft(v.dates[f.key]);
-          const odendi = tarihOdendiMi(v, f.key);
-          const st = odendi ? { cls:'ok', text:'✓ ödendi' } : dueStatus(n);
-          const km = (v.kms||{})[f.key];
-          let kmCell = '<span style="color:var(--ink-3);">—</span>';
-          if(f.hasKm && km){
-            const delta = (v.km && Number(v.km) >= Number(km)) ? Number(v.km)-Number(km) : null;
-            kmCell = `<span style="font-family:var(--font-mono);">${Number(km).toLocaleString('tr-TR')} km</span>`
-              + (delta !== null ? `<div class="due">o günden beri +${delta.toLocaleString('tr-TR')} km</div>` : '');
-          } else if(f.hasKm){
-            kmCell = '<span style="color:var(--ink-3);">girilmedi</span>';
-          }
-          return `<tr><td><b>${f.label}</b></td><td>${formatDate(v.dates[f.key])}</td><td>${kmCell}</td>
-            <td style="text-align:right;"><span class="v-chip ${st.cls}">${st.text}</span>
-              ${v.dates[f.key] ? `<div class="due" style="margin-top:3px;cursor:pointer;text-decoration:underline;"
-                onclick="tarihOdendiDegistir('${v.id}','${f.key}')"
-                title="${odendi ? 'Ödendi işaretini kaldır — hatırlatma yeniden çalışır' : 'Ödendi olarak işaretle — bu tarih için uyarı verilmez'}"
-                >${odendi ? 'işareti kaldır' : '✓ ödendi'}</div>` : ''}</td></tr>`; }).join('')}
-      </tbody>
-    </table>
-
-    <div class="group-header"><span>— Giderler</span>
-      <span style="cursor:pointer;text-decoration:underline;" onclick="openExpenseModal('${v.id}')">+ Gider Ekle</span></div>
-    <div class="hint" style="margin:0 0 10px;">Ön Muhasebe &gt; Giderler'de <b>Yakıt</b> kategorisi seçilip bu plaka işaretlenen kayıtlar burada
-      <span class="tag blue">Giderler</span> etiketiyle otomatik görünür; aynı kayıt iki kez yazılmaz.</div>
-    ${exps.length ? `<table style="margin-bottom:22px;">
-      <thead><tr><th>Tarih</th><th>Tür</th><th>Açıklama</th><th style="text-align:right;">Tutar</th><th></th></tr></thead>
-      <tbody>
-        ${exps.map(e => `<tr>
-          <td>${e.tarihMetni}</td>
-          <td>${notEsc(e.tur)}${e.kaynak === 'gider' ? ' <span class="tag blue" style="margin-left:4px;">Giderler</span>' : ''}</td>
-          <td>${notEsc(e.aciklama) || '—'}</td>
-          <td style="text-align:right;font-family:var(--font-mono);">${money(e.tutar)}</td>
-          <td style="text-align:right;width:34px;">${e.kaynak === 'gider'
-            ? `<span style="cursor:pointer;color:var(--ink-3);" title="Bu giderin araç bağlantısını kaldır (gider kaydı Giderler'de kalır)" onclick="aracGiderBaginiKaldir('${v.id}','${e.id}')">⛓</span>`
-            : `<span style="cursor:pointer;color:var(--ink-3);" title="Sil" onclick="deleteExpense('${v.id}','${e.id}')">✕</span>`}</td>
-        </tr>`).join('')}
-        <tr><td colspan="3"><b>Toplam</b></td>
-          <td style="text-align:right;font-family:var(--font-mono);"><b>${money(totalExp)}</b></td><td></td></tr>
-      </tbody></table>`
-      : `<div class="note" style="margin-bottom:22px;">Bu araç için henüz gider kaydı yok.</div>`}
-
-    ${v.note ? `<div class="group-header"><span>— Not</span><span></span></div><div class="note">${v.note}</div>` : ''}
-  `;
 }
 
 // ---- Form ----
@@ -17244,6 +18712,21 @@ function renderNotlar(){
 
 // ---------------- MODAL / TOAST HELPERS ----------------
 function showModal(){ document.getElementById('overlay').classList.add('show'); document.getElementById('modalBox').className = 'modal wide'; }
+// (2026-09-16k) Araç tablosundaki ⋮ menüsü, dışarı tıklanınca kapansın.
+document.addEventListener('click', function(){
+  var acik = (typeof aracTakipMenuId !== 'undefined' && aracTakipMenuId)
+          || (typeof aracGiderMenuId !== 'undefined' && aracGiderMenuId);
+  if(acik){
+    aracTakipMenuId = null; aracGiderMenuId = null;
+    if(typeof renderContent === 'function') renderContent();
+  }
+}, true);
+window.addEventListener('scroll', function(){
+  if((typeof aracTakipMenuId !== 'undefined' && aracTakipMenuId) || (typeof aracGiderMenuId !== 'undefined' && aracGiderMenuId)){
+    aracTakipMenuId = null; aracGiderMenuId = null;
+    if(typeof renderContent === 'function') renderContent();
+  }
+}, true);
 function closeModal(){
   const mb = document.getElementById('modalBox');
   if(mb){ mb.classList.remove('wide'); mb.style.maxWidth = ''; } document.getElementById('overlay').classList.remove('show'); }
@@ -17270,7 +18753,7 @@ function collectState(){
     AGENCY, CUSTOMERS, JOBS, QUOTES, PRODUCT_CATALOG, DEPOLAR, PROJELER_LIST, STOK_HAREKETLERI, GOREV_RAPORU,
     PLAN_TASKS, GENERAL_TASKS, KASA_ACCOUNTS, BANK_ACCOUNTS, CEK_SENET, GELIRLER, GIDERLER, PERSONELLER,
     KATEGORILER, MESAI_RATES, MESAI_KAYIT, VEHICLES, FATURALAR, NOT_DEFTERI, DIS_ALIMLAR, DIS_ALIM_HAREKET, BILDIRIMLER,
-    CARI_HAREKETLER,
+    CARI_HAREKETLER, ARAC_TAKIP, ARAC_KM_GECMIS,
     MALZEME_FIYATLARI, KURLAR, MALIYET_SABLONLARI, KREDI_KARTLARI,
     LBX_PROFILLER, LBX_KOSELER, LBX_LEDLER, LBX_TRAFOLAR, LBX_ARKALIKLAR, LBX_KUMASLAR, LBX_CALCULATIONS,
   };
@@ -17292,6 +18775,8 @@ function applyState(d){
   VEHICLES = arr('VEHICLES'); FATURALAR = arr('FATURALAR');
   DIS_ALIMLAR = arr('DIS_ALIMLAR'); DIS_ALIM_HAREKET = arr('DIS_ALIM_HAREKET'); BILDIRIMLER = arr('BILDIRIMLER');
   CARI_HAREKETLER = arr('CARI_HAREKETLER');
+  // (2026-09-16k) Araç takip/hatırlatma kayıtları ve kilometre geçmişi
+  ARAC_TAKIP = arr('ARAC_TAKIP'); ARAC_KM_GECMIS = arr('ARAC_KM_GECMIS');
   MALZEME_FIYATLARI = Array.isArray(d.MALZEME_FIYATLARI) && d.MALZEME_FIYATLARI.length ? d.MALZEME_FIYATLARI : VARSAYILAN_MALZEMELER();
   KURLAR = (d.KURLAR && typeof d.KURLAR === 'object' && !Array.isArray(d.KURLAR)) ? d.KURLAR : { usd:0, eur:0, tarih:'', kaynak:'' };
   MALIYET_SABLONLARI = arr('MALIYET_SABLONLARI');
