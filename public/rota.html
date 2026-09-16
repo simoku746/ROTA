@@ -1693,6 +1693,12 @@ html,body{font-family:var(--font-family-base);font-size:var(--font-size-body);li
 .login-tam-logo{height:46px;width:auto;display:block;}
 .login-brand{margin-bottom:6px;}
 /* --- Kişiye özel yetki penceresi (Yönetim > Kullanıcılar) --- */
+.yd-kutu{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface-sunk);}
+.yd-metin{margin:0 0 10px;font-size:12.5px;line-height:1.5;color:var(--ink-2);}
+.yd-dugmeler{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.yd-yukle span{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:1px solid var(--line-strong);
+  border-radius:8px;background:var(--surface);color:var(--ink-2);font-size:12.5px;font-weight:600;cursor:pointer;}
+.yd-yukle span:hover{border-color:var(--ink);color:var(--ink);}
 .si-panel{border:1px solid var(--signal);background:var(--signal-soft);border-radius:10px;padding:12px 14px;margin:0 0 12px;}
 .si-bas{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;}
 .si-adet{display:inline-block;padding:1px 7px;border-radius:99px;background:var(--signal);color:#fff;font-size:11px;font-weight:700;}
@@ -2661,7 +2667,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16h';
+window.ROTA_SURUM = 'v2026-09-16j';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -10004,8 +10010,74 @@ function firmaBilgileriView(){
         <textarea id="fAgencySozler" rows="5" placeholder="Boş bırakırsanız hazır listeden her gün farklı bir söz gösterilir.">${(AGENCY.sozler || []).join('\n')}</textarea></div>
       <div class="hint" style="margin:2px 0 12px;">Ana sayfada tarihin altında görünür; her gün sıradaki söze geçer.</div>
       <button class="save-btn" onclick="submitAgency()">Kaydet</button>
+      ${yoneticiMi() ? yedekBolumuHtml() : ''}
     </div>
   `;
+}
+// ---- VERİ YEDEKLEME -------------------------------------------------------------------------
+// Uygulama verisi (cariler, teklifler, işler…) ile giriş hesapları farklı yerlerde durur; yedek
+// ikisini TEK dosyada alır. 16 Eylül 2026'da veritabanı kotası dolup erişim kesildiğinde elde hiçbir
+// kopya olmadığı görüldü — bu bölüm o eksiği kapatır. Gövdeler canlı sürümde make_live.py ile doldurulur.
+function yedekBolumuHtml(){
+  return `
+    <div class="group-header" style="margin:22px 0 10px;"><span>— Veri Yedekleme</span></div>
+    <div class="yd-kutu">
+      <p class="yd-metin">Tüm verinizi (cariler, teklifler, işler, araçlar, banka hesapları, plan ve giriş hesapları)
+        tek bir dosyaya indirir. <b>Haftada bir almanız önerilir.</b> Dosyayı şirket dışına çıkarmayın —
+        içinde şifre özetleri bulunur.</p>
+      <div class="yd-dugmeler">
+        <button class="primary-btn" onclick="yedekAl()">⬇ Yedek Al</button>
+        <label class="yd-yukle">
+          <input type="file" accept="application/json,.json" onchange="yedektenYukle(this)" style="display:none;">
+          <span>Yedekten Geri Yükle…</span>
+        </label>
+      </div>
+      <div class="hint" style="margin:8px 0 0;">Geri yükleme mevcut verinin <b>üzerine yazar</b>; onay isteyecektir.
+        Yeni bir kuruluma (örn. şirket sunucusu) taşırken de bu dosya kullanılır.</div>
+    </div>`;
+}
+function yedekDosyaAdi(){
+  const d = new Date(), i = n => String(n).padStart(2, '0');
+  return `rota-yedek-${d.getFullYear()}-${i(d.getMonth() + 1)}-${i(d.getDate())}-${i(d.getHours())}${i(d.getMinutes())}.json`;
+}
+function yedekDosyaIndir(metin, ad){
+  const blob = new Blob([metin], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = ad; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+// Prototipte yalnız uygulama verisini indirir; canlı sürümde giriş hesapları da eklenir.
+async function yedekAl(){
+  showToast('Yedek hazırlanıyor…');
+  await liveSave();                                   // ekrandaki son değişiklikler de yedeğe girsin
+  const r = await liveApi('GET', '/api/yedek');
+  if(!r.ok){ showToast(r.error || 'Yedek alınamadı.'); return; }
+  yedekDosyaIndir(JSON.stringify(r.data, null, 1), yedekDosyaAdi());
+  const k = (r.data && r.data.users ? r.data.users.length : 0);
+  showToast(`Yedek indirildi (${k} giriş hesabı dahil).`);
+}
+async function yedektenYukle(input){
+  const dosya = input.files && input.files[0];
+  input.value = '';
+  if(!dosya) return;
+  let icerik;
+  try { icerik = JSON.parse(await dosya.text()); }
+  catch(e){ showToast('Dosya okunamadı — geçerli bir ROTA yedek dosyası seçin.'); return; }
+  // İki biçim de kabul edilir: (a) /api/yedek dosyası {state,users}, (b) elle alınmış /api/state çıktısı {version,data}.
+  // (b) 16 Eylül 2026 kesintisinde tarayıcıdan Ctrl+S ile kaydedilen acil kopyanın biçimidir; onu da geri yükleyebilmeliyiz.
+  const govde = (icerik && (icerik.state || icerik.data)) || null;
+  if(!govde || typeof govde !== 'object'){ showToast('Bu dosya bir ROTA yedeği değil.'); return; }
+  const tarih = (icerik.tarih || icerik.updatedAt) ? new Date(icerik.tarih || icerik.updatedAt).toLocaleString('tr-TR') : 'bilinmiyor';
+  const hesap = Array.isArray(icerik.users) ? icerik.users.length : 0;
+  if(!confirm('DİKKAT — GERİ YÜKLEME\n\nYedek tarihi: ' + tarih + '\nİçindeki giriş hesabı: ' + hesap +
+     '\n\nMevcut TÜM veri bu yedekteki hâliyle DEĞİŞTİRİLECEK. Bu işlem geri alınamaz.\n\nDevam edilsin mi?')) return;
+  const hesaplarDa = hesap > 0 && confirm('Giriş hesapları da geri yüklensin mi?\n\nEVET: yedekteki hesaplar ve şifreleri geri gelir (mevcut hesaplar silinmez).\nHAYIR: yalnız uygulama verisi geri yüklenir.');
+  showToast('Geri yükleniyor…');
+  const r = await liveApi('PUT', '/api/yedek', { state: govde, users: icerik.users || [], kullanicilariDaYukle: hesaplarDa });
+  if(!r.ok){ showToast(r.error || 'Geri yükleme başarısız.'); return; }
+  showToast('Geri yüklendi — sayfa yenileniyor.');
+  setTimeout(() => location.reload(), 1200);
 }
 function bankRowsHtml(){
   const banks = (AGENCY.banks && AGENCY.banks.length) ? AGENCY.banks : [{ name:'', iban:'' }];
@@ -17284,7 +17356,7 @@ async function liveApi(method, url, body){
 function liveMarkDirty(){
   if(!LIVE.booted) return;
   clearTimeout(LIVE.timer);
-  LIVE.timer = setTimeout(() => liveSave(), 700);
+  LIVE.timer = setTimeout(() => liveSave(), 2500);   // (16i) 700 ms → 2,5 sn: yazarken her tuşta kayıt gitmesin
 }
 
 async function liveSave(opts){
@@ -17390,7 +17462,7 @@ async function liveBoot(){
     doLogin(typeof rolCozumle === 'function' ? rolCozumle(LIVE.user.email, LIVE.user.role) : LIVE.user.role);
     liveSetStatus('ok', 'Kaydedildi');
     if(typeof sifreIstekleriGetir === 'function') sifreIstekleriGetir();   // bekleyen şifre talepleri
-    setInterval(liveTick, 15000);
+    setInterval(liveTick, 45000);   // (16i) 15 sn → 45 sn: boşta yoklama trafiğini üçte bire indirir
   }catch(e){
     msg.innerHTML = 'Veriler yüklenemedi. <a href="#" onclick="location.reload();return false;" style="color:var(--ink);">Yeniden dene</a>'
       + '<div style="font-family:var(--font-mono);font-size:11px;margin-top:8px;">' + String(e.message || e) + '</div>';
