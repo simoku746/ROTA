@@ -102,6 +102,8 @@
   --red:var(--risk); --red-light:var(--risk-soft);
   --amber:var(--signal); --amber-light:var(--signal-soft);
   --border:var(--line); --shadow:var(--shadow-sm);
+  /* Teklif ürün kartı: ölçü şeridi ve satır toplamı zeminleri */
+  --olcu-bg:#F6F9FC; --olcu-line:#DCE6F0; --satir-toplam-bg:#FFF4EC; --satir-toplam-line:#F6D5BE;
 }
 html.dark{
   --canvas:#101828; --surface:#17233A; --surface-muted:#1D2939; --surface-sunk:#243047;
@@ -115,6 +117,7 @@ html.dark{
   --hold:#FACC15; --hold-soft:#2E2408;
   --hold-glow:#FACC15;
   --info:#8DB0FF; --info-soft:#152648;
+  --olcu-bg:#1B2740; --olcu-line:#2E3A50; --satir-toplam-bg:#3A2410; --satir-toplam-line:#5A3A1C;
   --shadow-sm:0 1px 3px rgba(0,0,0,.5);
   --shadow-md:0 6px 24px rgba(0,0,0,.6);
   --cat-g1:#4ADE80; --cat-g2:#22C55E; --cat-g3:#16A34A; --cat-g4:#15803D; --cat-g5:#0F5F2E;
@@ -520,24 +523,41 @@ tr:last-child td{border-bottom:none;}
 .type-card .label{font-family:var(--font-display);font-weight:600;font-size:14px;}
 
 /* ---------- Teklif satırları ---------- */
-.tf-table-head{display:grid;grid-template-columns:1fr 70px 78px 100px 70px 98px 30px 24px;gap:7px;
-  font-family:var(--font-display);font-size:10.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.7px;color:var(--ink-3);padding:0 2px 8px;}
-.tf-row{display:grid;grid-template-columns:1fr 70px 78px 100px 70px 98px 30px 24px;gap:7px;align-items:center;
-  padding:7px;background:var(--surface-sunk);border-radius:7px;margin-bottom:6px;}
+.tf-table-head{display:none;}
+/* Ürün kartı — kompakt, 8px tabanlı, tek satırlık fiyatlandırma gridi */
+.tf-row{display:flex;flex-direction:column;gap:10px;padding:12px 14px;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;margin-bottom:8px;}
+.tf-row:focus-within{border-color:var(--signal);}
 .tf-row.li-tasinan{opacity:.45;}
-.tf-row.li-hedef{outline:2px dashed var(--signal);outline-offset:1px;}
-.li-drag{cursor:grab;color:var(--ink-3);text-align:center;user-select:none;font-size:15px;line-height:1;
-  padding:6px 0;border-radius:5px;touch-action:none;}
-.li-drag:hover{color:var(--ink);background:var(--surface);}
+.tf-row.li-hedef{border-color:var(--signal);box-shadow:0 0 0 2px var(--signal-soft);}
+.li-label{display:block;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 4px;line-height:14px;}
+.li-label .li-label-not{font-weight:400;letter-spacing:0;text-transform:none;font-size:10px;color:var(--ink-3);opacity:.85;}
+.li-field{min-width:0;}
+.li-ust{display:flex;align-items:flex-end;gap:10px;}
+.li-ust .li-f-urun{flex:1;min-width:0;}
+.li-islemler{display:flex;gap:6px;flex-shrink:0;}
+.li-act{width:34px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-3);border-radius:8px;cursor:pointer;font-size:14px;line-height:1;padding:0;}
+.li-act:hover{color:var(--ink);border-color:var(--line-strong);background:var(--surface-sunk);}
+.li-act.li-act-sil:hover{color:var(--risk);border-color:var(--risk);background:var(--risk-soft);}
+.li-fiyat-grid{display:grid;gap:10px;align-items:start;
+  grid-template-columns:minmax(90px,.7fr) minmax(120px,1fr) minmax(150px,1.1fr) minmax(110px,.8fr) minmax(180px,1.2fr);}
+.li-birim-ipucu{display:block;margin-top:4px;font-size:11px;font-weight:400;color:var(--ink-3);line-height:14px;}
+.li-total{height:36px;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;
+  background:var(--satir-toplam-bg);border:1px solid var(--satir-toplam-line);border-radius:8px;
+  font-size:16px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;}
+.li-drag{cursor:grab;color:var(--ink-3);user-select:none;font-size:15px;line-height:1;flex-shrink:0;
+  width:22px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;touch-action:none;}
+.li-drag:hover{color:var(--ink);background:var(--surface-sunk);}
 .li-drag:active{cursor:grabbing;}
 .li-detail-wrap{position:relative;margin-top:4px;}
-.tf-row textarea.li-detail{display:block;width:100%;height:26px;min-height:26px;padding:4px 30px 4px 8px;
-  border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink-2);
-  font-size:11.5px;line-height:16px;font-family:inherit;resize:none;overflow:hidden;white-space:pre;box-sizing:border-box;}
+.tf-row textarea.li-detail{display:block;width:100%;height:38px;min-height:38px;padding:9px 32px 9px 10px;
+  border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink-2);
+  font-size:13px;font-weight:400;line-height:18px;font-family:inherit;resize:none;overflow:hidden;white-space:pre;box-sizing:border-box;}
 .tf-row textarea.li-detail:focus{outline:none;border-color:var(--ink);}
-.li-detail-wrap.acik textarea.li-detail{height:auto;min-height:66px;white-space:pre-wrap;overflow-y:auto;resize:vertical;padding-right:34px;}
-.li-detail-tgl{position:absolute;right:3px;top:3px;height:20px;min-width:20px;padding:0 5px;border:0;border-radius:5px;
+.li-detail-wrap.acik textarea.li-detail{height:auto;min-height:66px;max-height:180px;white-space:pre-wrap;overflow-y:auto;resize:vertical;padding-right:34px;}
+.li-detail-tgl{position:absolute;right:5px;top:8px;height:20px;min-width:20px;padding:0 5px;border:0;border-radius:5px;
   background:transparent;color:var(--ink-3);font-size:10.5px;line-height:20px;cursor:pointer;display:flex;align-items:center;gap:3px;}
 .li-detail-tgl:hover{background:var(--surface-sunk);color:var(--ink);}
 .li-detail-tgl .ok{font-size:11px;transition:transform .15s;}
@@ -547,19 +567,63 @@ tr:last-child td{border-bottom:none;}
 .kosul-satir input:first-child{font-weight:600;}
 .kosul-satir input:focus{outline:none;border-color:var(--ink);}
 @media (max-width:640px){ .kosul-satir{grid-template-columns:1fr 30px;} .kosul-satir input:first-child{grid-column:1 / -1;} }
-.tf-row input,.tf-row select{height:29px;padding:0 8px;border:1px solid var(--line-strong);
-  border-radius:6px;background:var(--surface);color:var(--ink);font-size:12.5px;width:100%;}
+.tf-row input,.tf-row select{height:36px;padding:0 10px;border:1px solid var(--line-strong);
+  border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;width:100%;}
+.tf-row input[inputmode="decimal"]{font-variant-numeric:tabular-nums;}
 .tf-row input:focus,.tf-row select:focus{outline:none;border-color:var(--ink);}
 .tf-row input:disabled{background:var(--surface-sunk);color:var(--ink-3);cursor:not-allowed;}
-.li-dims{grid-column:1 / -1; display:flex; align-items:center; gap:6px; flex-wrap:wrap;
-  margin-top:8px; padding-top:9px; border-top:1px dashed var(--line-strong);
-  font-size:11.5px; color:var(--ink-3);}
-.li-dims-label{font-family:var(--font-display); font-size:10px; font-weight:700;
-  text-transform:uppercase; letter-spacing:.6px; color:var(--ink-3); margin-right:2px;}
-.li-dims input{width:82px !important;}
-.li-dims .li-res{margin-left:auto; font-family:var(--font-mono); font-size:12.5px; font-weight:600;
-  color:var(--ink); background:var(--surface); border:1px solid var(--line-strong);
-  border-radius:6px; padding:6px 11px; white-space:nowrap;}
+.li-dims{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:64px;box-sizing:border-box;
+  background:var(--olcu-bg);border:1px solid var(--olcu-line);border-radius:8px;padding:10px 12px;
+  font-size:12px;color:var(--ink-3);}
+.li-dims-label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3);flex-shrink:0;}
+.li-dims-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+.li-dim-alanlar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.li-dim-f{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);}
+.li-dim-f>span{font-weight:500;}
+.li-dim-kutu{position:relative;}
+.li-dim-kutu input{width:92px !important;padding-right:28px !important;}
+.li-dim-kutu i{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-style:normal;
+  font-size:11px;color:var(--ink-3);pointer-events:none;}
+.li-dims .li-carp{color:var(--ink-3);font-size:13px;}
+.li-formula{font-size:11px;font-weight:400;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+.li-dims .li-res{margin-left:auto;display:flex;align-items:baseline;gap:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 10px;
+  font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.li-dims .li-res small{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3);}
+/* Yeni satır ekleme düğmesi */
+.li-ekle-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:36px;
+  border:1px dashed var(--signal);border-radius:8px;background:var(--surface);color:var(--signal);
+  font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:2px;}
+.li-ekle-btn:hover{background:var(--signal-soft);}
+/* Bölüm başlığı rozeti */
+.li-kalem-rozet{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;
+  background:var(--surface-sunk);border:1px solid var(--line);color:var(--ink-2);
+  font-size:11px;font-weight:600;vertical-align:middle;}
+.section-title.buyuk h3{font-size:18px;font-weight:700;}
+.tf-03-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media (max-width:900px){ .tf-03-grid{grid-template-columns:1fr;} }
+/* Alt toplam bandı */
+.li-band{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;
+  margin-top:12px;padding:8px 14px;background:var(--surface-sunk);border:1px solid var(--line);
+  border-radius:10px;min-height:56px;max-height:64px;box-sizing:border-box;}
+@media (max-width:760px){ .li-band{max-height:none;} }
+.li-band-kalem{display:flex;align-items:baseline;gap:7px;font-size:12px;color:var(--ink-3);
+  padding-right:12px;border-right:1px solid var(--line);}
+.li-band-kalem:last-child{border-right:0;padding-right:0;}
+.li-band-kalem b{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.li-band-kalem.iskonto b{color:var(--risk);}
+.li-band-kalem.genel{padding:6px 12px;border:1px solid var(--satir-toplam-line);border-radius:8px;
+  background:var(--satir-toplam-bg);}
+.li-band-kalem.genel b{font-size:18px;font-weight:700;}
+@media (max-width:1100px){ .li-fiyat-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (max-width:1100px){ .li-fiyat-grid .li-f-total{grid-column:1 / -1;} }
+@media (max-width:560px){
+  .li-fiyat-grid{grid-template-columns:1fr 1fr;}
+  .li-dims{gap:8px;} .li-dims .li-res{margin-left:0;width:100%;justify-content:space-between;}
+  .li-dim-kutu input{width:100% !important;} .li-dim-f{flex:1;min-width:110px;}
+  .li-band{justify-content:space-between;} .li-band-kalem{border-right:0;padding-right:0;}
+}
 .qd-sub{display:block; font-size:10px; line-height:14px; color:#777; font-weight:400; margin-top:2px;}
 .tf-totals,.totals{display:flex;flex-direction:column;align-items:flex-end;gap:3px;
   font-family:var(--font-mono);font-size:12px;color:var(--ink-2);padding:10px 4px 0;}
@@ -1188,7 +1252,7 @@ html.dark .hp-kim span{background:rgba(255,255,255,.12);}
   .board-col,.gt-col{min-width:78vw;flex:0 0 78vw;}
   .kb-columns,.donut-row,.type-choice{flex-direction:column;}
   .tf-table-head{display:none;}
-  .tf-row{grid-template-columns:1fr;gap:6px;background:var(--surface-sunk);padding:10px;}
+  .tf-row{padding:12px;}
   .li-row-full{grid-template-columns:1fr;gap:6px;}
   .quote-doc-parties{flex-direction:column;gap:14px;}
 }
@@ -2573,7 +2637,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-15c';
+window.ROTA_SURUM = 'v2026-09-16b';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3008,6 +3072,7 @@ const SUB_STATE = {
 //   disAlim:'duzen'|'ekle'|null   → dış alımlarda tam düzenleme / yalnız yeni kayıt ekleme / hiç
 //   teklif:'hepsi'|'kendi'|null   → tüm teklifler / yalnız temsilcisi olduğu teklifler / hiç
 //   teklifTutari:false  → teklif ve maliyet rakamlarını da göremez (üretim tarafı)
+//   ozet:false          → ana sayfadaki şirket geneli özet kartları (açık işler, onay bekleyen…) gizlenir
 const ROLE_CONFIG = {
   YONETICI:      { label:'Yönetici', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
   KOORDINATOR:   { label:'Koordinatör', tabs:['ana-sayfa','kisiler','on-muhasebe','stok','gorev-yonetimi','teklifler','raporlar','yonetim','destek'], gorevSubs:['tum-isler','kapasite','haftalik-plan','dis-alimlar','gorevlerim','projeler'], yonetimSubs:['kullanicilar','firma-bilgileri','araclarim','kategoriler'], plan:'duzen', disAlim:'duzen', teklif:'hepsi' },
@@ -3016,10 +3081,10 @@ const ROLE_CONFIG = {
   // (Eski "Montaj (Saha)" rolü kullanıcı kararıyla bu rolle birleştirildi.)
   URETIM_MUDURU: { label:'Üretim Müdürü', tabs:['ana-sayfa','gorev-yonetimi','yonetim','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], yonetimSubs:['araclarim'], finans:false, teklifTutari:false, plan:'duzen', disAlim:'duzen', teklif:null },
   // Tasarımcı: planı yalnız GÖRÜNTÜLER, dış alıma yeni kayıt EKLER, kendi tekliflerini ve maliyetlerini yönetir.
-  TASARIM:       { label:'Tasarımcı', tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], finans:false, plan:'goruntule', disAlim:'ekle', teklif:'kendi' },
+  TASARIM:       { label:'Tasarımcı', tabs:['ana-sayfa','gorev-yonetimi','teklifler','destek'], gorevSubs:['haftalik-plan','dis-alimlar','gorevlerim'], finans:false, plan:'goruntule', disAlim:'ekle', teklif:'kendi', ozet:false },
   // Satış-Pazarlama ve Mimar: yalnız kendi teklifleri + maliyetleri. Plan ve dış alıma hiç dokunmaz.
   SATIS:         { label:'Satış-Pazarlama', tabs:['ana-sayfa','kisiler','teklifler','destek'], gorevSubs:[], finans:false, plan:null, disAlim:null, teklif:'kendi' },
-  MIMAR:         { label:'Mimar', tabs:['ana-sayfa','kisiler','teklifler','destek'], gorevSubs:[], finans:false, plan:null, disAlim:null, teklif:'kendi' },
+  MIMAR:         { label:'Mimar', tabs:['ana-sayfa','kisiler','teklifler','destek'], gorevSubs:[], finans:false, plan:null, disAlim:null, teklif:'kendi', ozet:false },
   // (2026-09-14s) SUNUM/DEMO rolü — personele canlı tanıtım için. Yöneticiyle AYNI ekranlara erişir (her yer açık,
   // cariler dahil) ama finansal rakamlar gizlenir: finans:false hem mevcut finansGorebilir() kontrollerini kapatır
   // hem de ekrana basılan para tutarlarını maskeleyen sunumMaskele() katmanını devreye sokar.
@@ -3124,6 +3189,8 @@ function sunumModu(){ return CURRENT_ROLE === 'SUNUM'; }
 // ---- (2026-09-15) Rol yetkileri ----
 // Haftalık plan: düzenleyebilir mi / en azından görüntüleyebilir mi
 function gorevEkraniVar(){ return roleCfg().tabs.includes('gorev-yonetimi'); }
+// Ana sayfadaki şirket geneli özet kartları (açık işler / onay bekleyen / sahada / teklifler)
+function ozetKartlariGorur(){ return roleCfg().ozet !== false; }
 // Tüm İşler (iş havuzu) ekranını gören roller — ana sayfadaki iş odaklı panellerin ölçütü budur.
 function isListesiGorur(){ return gorevEkraniVar() && roleCfg().gorevSubs.includes('tum-isler'); }
 function planYetkili(){ return roleCfg().plan === 'duzen'; }
@@ -9437,7 +9504,7 @@ function anaSayfaView(){
         <div class="gunun-sozu"><span class="tirnak">“</span>${gununSozu()}<span class="tirnak kapa">”</span></div></div>
       <div class="date-chip">${tarihMetni} <strong>${gunMetni}</strong></div>
     </div>
-    <div class="metric-grid">
+    ${!ozetKartlariGorur() ? '' : `<div class="metric-grid">
       ${finansGorebilir() ? `
       ${metric('Açık işler', openTasks, waitingApproval ? `${waitingApproval} iş onay bekliyor` : `${inMontaj} iş sahada`, waitingApproval ? 'risk' : '', NAV_SVG.tasks, 'orange', isListesiGorur() ? "selectSub('gorev-yonetimi','tum-isler')" : '')}
       ${metric('Bekleyen teklifler', CURRENCY_SYMBOLS.TL + ' ' + Math.round(gonderilenTutar).toLocaleString('tr-TR'), `${gonderilen.length} teklif karar bekliyor · ${draftQuotes} taslak`, '', NAV_SVG.file, 'blue', "goTo('teklifler')")}
@@ -9455,7 +9522,7 @@ function anaSayfaView(){
       ${roleCfg().tabs.includes('teklifler')
         ? metric('Bekleyen teklifler', gonderilen.length, `${draftQuotes} taslak`, '', NAV_SVG.file, 'green', "goTo('teklifler')")
         : metric('Planlı işler', PLAN_TASKS.length, 'haftalık planda', '', NAV_SVG.home, 'green', roleCfg().gorevSubs.includes('haftalik-plan') ? "selectSub('gorev-yonetimi','haftalik-plan')" : '')}`)}
-    </div>
+    </div>`}
     ${homeVehicleAlertsHtml()}
     <div class="dashboard-grid">
       <div>
@@ -9610,6 +9677,7 @@ function openYetkiModal(pid, rolSecim){
     <div class="yt-grid" style="margin-top:8px;">
       ${kutu('ytFinans', 'Şirket finans rakamlarını görür', c.finans !== false)}
       ${kutu('ytTeklifTutar', 'Teklif ve maliyet tutarlarını görür', c.teklifTutari !== false)}
+      ${kutu('ytOzet', 'Ana sayfada şirket özet kartlarını görür', c.ozet !== false)}
     </div>
     ${kendim ? `<div class="yt-not" style="color:var(--risk);">Kendi hesabınızı düzenliyorsunuz — Yönetim ve Kullanıcılar ekranı yetkinizi kaldıramazsınız.</div>` : ''}
 
@@ -9637,6 +9705,7 @@ function submitYetki(pid){
     teklif: document.getElementById('ytTeklif').value || null,
     finans: isar('ytFinans'),
     teklifTutari: isar('ytTeklifTutar'),
+    ozet: isar('ytOzet'),
   };
   // Plan/dış alım yetkisi, ilgili alt ekran kapalıysa anlamsız kalmasın
   if(!yetki.gorevSubs.includes('haftalik-plan')) yetki.plan = null;
@@ -11959,7 +12028,7 @@ function openQuoteEdit(id){
   const q = QUOTES.find(x=>x.id===id);
   if(!q) return;
   editingQuoteId = id;
-  quoteLineItems = JSON.parse(JSON.stringify(q.items));
+  quoteLineItems = lineItemsNormalle(JSON.parse(JSON.stringify(q.items)));
   quoteKosullar = null;
   quoteCurrency = q.currency || 'TL';
   teklifCollapse = { yetkili:true, ustAlt:false, onKapak:false, dipNot:!!q.notlar };
@@ -12004,17 +12073,19 @@ function teklifEkleForm(){
               <div class="field span-2"><label>E-posta</label><input id="qEmail" readonly></div>
             </div>
           </div>
-          <div class="hint" style="margin-top:10px;">Teklif tarihi bugünün tarihi olarak otomatik atanır. Firma bilgileriniz belgede sağda, müşteri bilgileri solda gösterilir.</div>
+          <div class="hint" style="margin-top:8px;">Teklif tarihi bugünün tarihi olarak otomatik atanır. Firma bilgileriniz belgede sağda, müşteri bilgileri solda gösterilir.</div>
         </section>
 
         <section class="form-section">
-          <div class="section-title"><span>02</span><div><h3>Ürün ve hizmetler</h3><p>Miktar, birim, birim fiyat ve KDV oranlarını düzenleyin; satırları sürükleyerek sıralayın.</p></div>
-            <button class="ghost sag-eylem" onclick="addLineItem()">＋ Satır Ekle</button></div>
+          <div class="section-title buyuk"><span>02</span>
+            <div><h3>Ürün ve Hizmetler<span class="li-kalem-rozet" id="liKalemSayi">0 kalem</span></h3>
+              <p>Miktar, birim, birim fiyat ve KDV'yi düzenleyin. Birim m² veya mtül ise ölçü satırı açılır; satırları ⠿ tutamağından sürükleyip sıralayabilirsiniz.</p></div>
+            <button class="ghost sag-eylem" onclick="addLineItem()">＋ Ürün / Hizmet Ekle</button></div>
           <div id="lineItemsWrap">
             <div class="tf-table-head" id="lineItemsHead"></div>
             <div id="lineItemsBox"></div>
           </div>
-          <div class="collapse-link" onclick="addLineItem()">+ Yeni Satır</div>
+          <button type="button" class="li-ekle-btn" onclick="addLineItem()">＋ Yeni Satır Ekle</button>
           <div class="tf-iskonto-row" style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
             <label style="font-size:13px;color:var(--navy-muted);font-weight:600;">İskonto</label>
             <select id="qIskontoTip" onchange="updateGrandTotals()" style="width:auto;min-width:90px;">
@@ -12025,17 +12096,19 @@ function teklifEkleForm(){
               value="${editing && editing.iskontoDeger ? virgulYaz(editing.iskontoDeger) : ''}" oninput="updateGrandTotals()">
             <span class="hint" style="margin:0;">Ara toplamdan düşülür, KDV indirimli tutar üzerinden hesaplanır.</span>
           </div>
-          <div class="tf-totals" id="totalsBox" style="display:none;"></div>
+          <div class="li-band" id="totalsBox"></div>
         </section>
 
         <section class="form-section">
           <div class="section-title"><span>03</span><div><h3>Koşullar ve açıklamalar</h3><p>Giriş metni, firma bilgileri ve dip notları düzenleyin.</p></div></div>
-          <div class="field"><label>Giriş Metni</label>
-            <div class="rte-toolbar">B <i>I</i> <u>U</u> T↕</div>
-            <div class="rte-box"><textarea id="qGiris" rows="3">${editing ? editing.girisMetni : DEFAULT_INTRO}</textarea></div></div>
-          <div class="field"><label>Firma Bilgilerim</label>
-            <div class="rte-toolbar">B <i>I</i> <u>U</u> T↕</div>
-            <div class="rte-box"><textarea id="qFirmaBilgilerim" rows="2" placeholder="Bir şey yazın">${AGENCY.name} — ${AGENCY.address}</textarea></div></div>
+          <div class="tf-03-grid">
+            <div class="field"><label for="qGiris">Giriş Metni</label>
+              <div class="rte-toolbar">B <i>I</i> <u>U</u> T↕</div>
+              <div class="rte-box"><textarea id="qGiris" rows="3">${editing ? editing.girisMetni : DEFAULT_INTRO}</textarea></div></div>
+            <div class="field"><label for="qFirmaBilgilerim">Firma Bilgilerim</label>
+              <div class="rte-toolbar">B <i>I</i> <u>U</u> T↕</div>
+              <div class="rte-box"><textarea id="qFirmaBilgilerim" rows="3" placeholder="Bir şey yazın">${AGENCY.name} — ${AGENCY.address}</textarea></div></div>
+          </div>
           <div class="collapse-link" onclick="toggleTeklifCollapse('ustAlt')">+ Üst Bilgi Alt Bilgi</div>
           <div class="collapse-body" style="${teklifCollapse.ustAlt?'':'display:none;'}"><div class="form-grid"><div class="field"><label>Üst Bilgi</label><input placeholder="Sayfa üst bilgisi"></div><div class="field"><label>Alt Bilgi</label><input placeholder="Sayfa alt bilgisi"></div></div></div>
           <div class="collapse-link" onclick="toggleTeklifCollapse('onKapak')">+ Ön Kapak</div>
@@ -12270,33 +12343,120 @@ function renderLineItems(){
   const box = document.getElementById('lineItemsBox');
   if(!box) return;
   const head = document.getElementById('lineItemsHead');
-  if(head) head.innerHTML = `<span>Ürün\\Hizmet</span><span>Miktar</span><span>Birim</span>`
-    + `<span>Birim Fiyat</span><span>KDV</span><span>Tutar</span><span></span><span></span>`;
+  if(head) head.innerHTML = '';
   box.innerHTML = quoteLineItems.map((it,idx)=>{
     const u = lineUnit(it);
     return `
     <div class="tf-row" ondragover="liDragOver(event,${idx})" ondragleave="liDragLeave(event)" ondrop="liDrop(event,${idx})">
-      <div class="ac-wrap">
-        <input value="${it.title}" placeholder="Hizmet veya Ürün Seçin" oninput="onLineTitleInput(${idx},this.value)" onfocus="onLineTitleInput(${idx},this.value)" onblur="setTimeout(()=>hideAc(${idx}),150)">
-        <div class="ac-list" id="acList${idx}"></div>
+      <div class="li-ust">
+        <span class="li-drag" draggable="true" role="button" tabindex="-1"
+          title="Sırayı değiştirmek için basılı tutup sürükleyin" aria-label="Satırı sürükle"
+          ondragstart="liDragStart(event,${idx})" ondragend="liDragEnd()">⠿</span>
+        <div class="li-field li-f-urun">
+          <label class="li-label" for="liTitle${idx}">Ürün / Hizmet</label>
+          <div class="ac-wrap">
+            <input id="liTitle${idx}" value="${notEsc(it.title || '')}" placeholder="Hizmet veya ürün adı yazın"
+              aria-label="Ürün veya hizmet adı" autocomplete="off"
+              oninput="onLineTitleInput(${idx},this.value)" onfocus="onLineTitleInput(${idx},this.value)" onblur="setTimeout(()=>hideAc(${idx}),150)">
+            <div class="ac-list" id="acList${idx}"></div>
+          </div>
+        </div>
+        <div class="li-islemler">
+          <button type="button" class="li-act" title="Satırı kopyala" aria-label="Satırı kopyala" onclick="copyLine(${idx})">⧉</button>
+          <button type="button" class="li-act li-act-sil" title="Satırı sil" aria-label="Satırı sil" onclick="removeLine(${idx})">✕</button>
+        </div>
+      </div>
+      <div class="li-field">
+        <label class="li-label" for="liDetay${idx}">Açıklama <span class="li-label-not">— müşteri belgesinde görünür</span></label>
         ${liDetayHtml(idx)}
       </div>
-      <input inputmode="decimal" value="${virgulYaz(it.qty)}" oninput="updateLine(${idx},'qty',this.value)">
-      <select id="liUnit${idx}" onchange="updateLine(${idx},'unit',this.value)">
-        ${LINE_UNITS.map(x=>`<option value="${x.key}" ${u===x.key?'selected':''}>${x.label}</option>`).join('')}
-      </select>
-      <input inputmode="decimal" value="${virgulYaz(it.price)}" oninput="updateLine(${idx},'price',this.value)">
-      <select onchange="updateLine(${idx},'kdv',this.value)">
-        ${[0,1,8,10,20].map(r=>`<option value="${r}" ${it.kdv===r?'selected':''}>%${r}</option>`).join('')}
-      </select>
-      <input id="rowTotal${idx}" readonly value="${CURRENCY_SYMBOLS[quoteCurrency]}${Math.round(lineNet(it)).toLocaleString('tr-TR')}">
-      <button class="li-remove" onclick="removeLine(${idx})">✕</button>
-      <span class="li-drag" draggable="true" title="Sırayı değiştirmek için basılı tutup aşağı/yukarı sürükleyin"
-        ondragstart="liDragStart(event,${idx})" ondragend="liDragEnd()">⠿</span>
-      ${dimLineHtml(idx)}
+      <div class="li-fiyat-grid">
+        <div class="li-field">
+          <label class="li-label" for="liQty${idx}">Miktar</label>
+          <input id="liQty${idx}" inputmode="decimal" aria-label="Miktar" value="${virgulYaz(it.qty)}"
+            oninput="updateLine(${idx},'qty',liSayiTemizle(this))">
+        </div>
+        <div class="li-field">
+          <label class="li-label" for="liUnit${idx}">Birim</label>
+          <select id="liUnit${idx}" aria-label="Birim" onchange="lineUnitDegis(${idx},this.value)">
+            ${LINE_UNITS.map(x=>`<option value="${x.key}" ${u===x.key?'selected':''}>${x.label}</option>`).join('')}
+          </select>
+          <span class="li-birim-ipucu" id="liUnitHint${idx}">${lineUnitIpucu(it)}</span>
+        </div>
+        <div class="li-field">
+          <label class="li-label" for="liPrice${idx}">Birim Fiyat (${CURRENCY_SYMBOLS[quoteCurrency]})</label>
+          <input id="liPrice${idx}" inputmode="decimal" aria-label="Birim fiyat" value="${virgulYaz(it.price)}"
+            oninput="updateLine(${idx},'price',liSayiTemizle(this))">
+        </div>
+        <div class="li-field">
+          <label class="li-label" for="liKdv${idx}">KDV</label>
+          <select id="liKdv${idx}" aria-label="KDV oranı" onchange="updateLine(${idx},'kdv',this.value)">
+            ${[0,1,8,10,20].map(r=>`<option value="${r}" ${Number(it.kdv)===r?'selected':''}>%${r}</option>`).join('')}
+          </select>
+        </div>
+        <div class="li-field li-f-total">
+          <label class="li-label">Satır Toplamı</label>
+          <div class="li-total" id="rowTotal${idx}" role="status" aria-label="Satır toplamı">${liPara(lineNet(it))}</div>
+        </div>
+      </div>
+      <div id="liDimWrap${idx}">${dimLineHtml(idx)}</div>
     </div>`;
   }).join('');
+  const rozet = document.getElementById('liKalemSayi');
+  if(rozet) rozet.textContent = quoteLineItems.length + ' kalem';
   updateGrandTotals();
+}
+// Para ve ölçü biçimleri — tek kaynak (tr-TR, 2 ondalık, tabular)
+function liPara(n){ return CURRENCY_SYMBOLS[quoteCurrency] + fmt2(n); }
+function liAdetYaz(n){ const s = Number(n) || 0; return Number.isInteger(s) ? String(s) : fmt2(s); }
+function lineUnitIpucu(it){
+  const u = lineUnit(it);
+  if(u === 'm2')   return 'm²: En × Boy × Adet';
+  if(u === 'mtul') return 'mtül: Uzunluk × Adet';
+  return '';
+}
+function lineFormul(it){
+  const u = lineUnit(it), adet = Number(it.qty) || 0;
+  if(u === 'm2')   return `${fmt2((Number(it.w)||0)/100)} m × ${fmt2((Number(it.h)||0)/100)} m × ${liAdetYaz(adet)} adet`;
+  if(u === 'mtul') return `${fmt2((Number(it.w)||0)/100)} m × ${liAdetYaz(adet)} adet`;
+  return '';
+}
+// Sayısal alan koruması: harf ve eksi değer girilemez, imleç bozulmaz (biçimleme yazarken yapılmaz)
+function liSayiTemizle(el){
+  const temiz = String(el.value).replace(/[^0-9.,]/g, '');
+  if(temiz !== el.value){
+    const fark = el.value.length - temiz.length;
+    const yer = Math.max(0, (el.selectionStart || 0) - fark);
+    el.value = temiz;
+    try { el.setSelectionRange(yer, yer); } catch(e) {}
+  }
+  return temiz;
+}
+// Birim değişimi: eski ölçüler geçici yedekte saklanır, kullanıcı geri dönerse yeniden görünür.
+// Yedek satır nesnesinde "_" önekiyle durur ve kayda YAZILMAZ (submitQuote temizler).
+function lineUnitDegis(idx, yeniBirim){
+  const it = quoteLineItems[idx]; if(!it) return;
+  const eski = lineUnit(it);
+  if(!it._olcuYedek) it._olcuYedek = {};
+  if(eski === 'm2')   it._olcuYedek.m2   = { w:Number(it.w)||0, h:Number(it.h)||0 };
+  if(eski === 'mtul') it._olcuYedek.mtul = { w:Number(it.w)||0 };
+  it.unit = yeniBirim;
+  const y = it._olcuYedek[yeniBirim];
+  if(yeniBirim === 'm2' && y){ it.w = y.w; it.h = y.h; }
+  else if(yeniBirim === 'mtul' && y){ it.w = y.w; }
+  refreshDimLine(idx);
+  const ip = document.getElementById('liUnitHint'+idx);
+  if(ip) ip.textContent = lineUnitIpucu(it);
+  syncRow(idx);
+}
+function copyLine(idx){
+  const it = quoteLineItems[idx]; if(!it) return;
+  const kopya = JSON.parse(JSON.stringify(it));
+  delete kopya._olcuYedek;
+  kopya.id = benzersizId('li');           // kopya kendi kimliğini alır, orijinalinkini kullanmaz
+  quoteLineItems.splice(idx + 1, 0, kopya);
+  renderLineItems();
+  showToast('Satır kopyalandı.');
 }
 // Açıklama alanı — tek satır (kapalı) / çok satır (açık). Açık/kapalı durumu satır nesnesine bağlı tutulur,
 // yeniden çizimlerde (ürün seçimi, sürükleme) kaybolmaz; kayda yazılmaz.
@@ -12358,31 +12518,32 @@ function dimLineHtml(idx){
   const u = lineUnit(it);
   if(u === 'adet') return '';
   const isM2 = (u === 'm2');
+  const cetvel = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18v6H3z"/><path d="M7 9v3M11 9v3M15 9v3M19 9v3"/></svg>`;
+  const kutu = (id, etiket, deger, alan) => `<label class="li-dim-f"><span>${etiket}</span>
+      <span class="li-dim-kutu"><input inputmode="decimal" id="${id}" value="${deger ? virgulYaz(deger) : ''}"
+        placeholder="0" aria-label="${etiket} (santimetre)" oninput="updateLine(${idx},'${alan}',liSayiTemizle(this))"><i>cm</i></span></label>`;
   return `<div class="li-dims">
-    <span class="li-dims-label">${isM2 ? 'Ölçü' : 'Uzunluk'}</span>
-    <input inputmode="decimal" id="liW${idx}" value="${it.w ? virgulYaz(it.w) : ''}"
-      placeholder="${isM2 ? 'en' : 'uzunluk'}" oninput="updateLine(${idx},'w',this.value)">
-    ${isM2 ? `<span>×</span>
-    <input inputmode="decimal" id="liH${idx}" value="${it.h ? virgulYaz(it.h) : ''}"
-      placeholder="boy" oninput="updateLine(${idx},'h',this.value)">` : ''}
-    <span>cm</span>
-    <span class="li-res" id="liM${idx}">${fmt2(lineQty(it))} ${unitShort(it)}</span>
+    <span class="li-dims-label">${cetvel} Ölçü</span>
+    <div class="li-dim-alanlar">
+      ${isM2 ? kutu('liW'+idx, 'En', it.w, 'w') + `<span class="li-carp">×</span>` + kutu('liH'+idx, 'Boy', it.h, 'h')
+             : kutu('liW'+idx, 'Uzunluk', it.w, 'w')}
+    </div>
+    <span class="li-formula" id="liF${idx}">${lineFormul(it)}</span>
+    <span class="li-res" id="liM${idx}"><small>Toplam</small> ${fmt2(lineQty(it))} ${unitShort(it)}</span>
   </div>`;
 }
 function refreshDimLine(idx){
-  const row = document.querySelectorAll('#lineItemsBox .tf-row')[idx];
-  if(!row) return;
-  const old = row.querySelector('.li-dims');
-  if(old) old.remove();
-  const html = dimLineHtml(idx);
-  if(html) row.insertAdjacentHTML('beforeend', html);
+  const kap = document.getElementById('liDimWrap'+idx);
+  if(kap) kap.innerHTML = dimLineHtml(idx);
 }
 function syncRow(idx){
-  const it = quoteLineItems[idx];
+  const it = quoteLineItems[idx]; if(!it) return;
   const m = document.getElementById('liM'+idx);
+  const f = document.getElementById('liF'+idx);
   const t = document.getElementById('rowTotal'+idx);
-  if(m) m.textContent = fmt2(lineQty(it)) + ' ' + unitShort(it);
-  if(t) t.value = CURRENCY_SYMBOLS[quoteCurrency] + Math.round(lineNet(it)).toLocaleString('tr-TR');
+  if(m) m.innerHTML = '<small>Toplam</small> ' + fmt2(lineQty(it)) + ' ' + unitShort(it);
+  if(f) f.textContent = lineFormul(it);
+  if(t) t.textContent = liPara(lineNet(it));
   updateGrandTotals();
 }
 function updateGrandTotals(){
@@ -12404,11 +12565,12 @@ function updateGrandTotals(){
   const kdvModeEl = document.getElementById('qKdvMode');
   const haric = kdvModeEl ? kdvModeEl.value === 'Hariç' : false;   // KDV "Hariç" seçiliyken belgede yalnız KDV hariç genel toplam gösterilir; özet panel de aynı mantığı izler
   const totalsBox = document.getElementById('totalsBox');
-  if(totalsBox) totalsBox.innerHTML = `<span>Ara Toplam: ${sym}${Math.round(ham).toLocaleString('tr-TR')}</span>`
-    + (iskontoTutar > 0 ? `<span class="iskonto">${iskontoEtiketi}: −${sym}${Math.round(iskontoTutar).toLocaleString('tr-TR')}</span>` : '')
+  const bant = (etiket, deger, cls) => `<div class="li-band-kalem ${cls || ''}"><span>${etiket}</span><b>${deger}</b></div>`;
+  if(totalsBox) totalsBox.innerHTML = bant('Ara Toplam', sym + fmt2(ham))
+    + (iskontoTutar > 0 ? bant(iskontoEtiketi, '−' + sym + fmt2(iskontoTutar), 'iskonto') : '')
     + (haric
-      ? `<span class="grand">Genel Toplam (KDV hariç): ${sym}${Math.round(sub).toLocaleString('tr-TR')}</span>`
-      : `<span>Toplam KDV: ${sym}${Math.round(total-sub).toLocaleString('tr-TR')}</span><span class="grand">Genel Toplam: ${sym}${Math.round(total).toLocaleString('tr-TR')}</span>`);
+      ? bant('Genel Toplam <small>(KDV hariç)</small>', sym + fmt2(sub), 'genel')
+      : bant('KDV', sym + fmt2(total - sub)) + bant('Genel Toplam', sym + fmt2(total), 'genel'));
   // Sağdaki sabit Teklif Özeti paneli (aynı değerler, yalnız sunum) — belgedeki KDV Dahil/Hariç ayrımını birebir izler
   const ozet = document.getElementById('totalsBoxOzet');
   if(ozet) ozet.innerHTML = `<div><span>Ara toplam</span><strong>${sym}${ham.toLocaleString('tr-TR',{minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
@@ -12425,6 +12587,7 @@ function onLineTitleInput(idx, value){
   if(d && lineUnit(cur) === 'adet' && !cur.w && !cur.h){
     cur.unit = 'm2'; cur.w = d.w; cur.h = d.h;
     const us = document.getElementById('liUnit'+idx); if(us) us.value = 'm2';
+    const ip = document.getElementById('liUnitHint'+idx); if(ip) ip.textContent = lineUnitIpucu(cur);
     refreshDimLine(idx);
     syncRow(idx);
     showToast(`Ölçü algılandı: ${d.w} × ${d.h} cm`);
@@ -12445,9 +12608,12 @@ function hideAc(idx){ const l = document.getElementById('acList'+idx); if(l) l.c
 function updateLine(idx, field, value){
   // Sadece o satırın toplamını ve genel toplamı güncelle — input'ları yeniden oluşturma,
   // yoksa yazarken fokus kayboluyor (kullanıcı tekrar tıklamak zorunda kalıyordu).
-  quoteLineItems[idx][field] = (field==='title' || field==='unit' || field==='detail')
-    ? value
-    : Number(String(value).replace(',', '.')) || 0;
+  const it = quoteLineItems[idx]; if(!it) return;
+  if(field === 'title' || field === 'unit' || field === 'detail'){ it[field] = value; }
+  else {
+    const sayi = virgulSayi(value);
+    it[field] = (!isFinite(sayi) || sayi < 0) ? 0 : sayi;   // NaN ve negatif değer engellenir
+  }
   if(field === 'unit') refreshDimLine(idx);
   syncRow(idx);
 }
@@ -12479,8 +12645,26 @@ function liDrop(e, idx){
   renderLineItems();
   showToast('Satır sırası güncellendi.');
 }
-function blankLine(){ return { title:'', detail:'', qty:1, price:0, kdv:20, unit:'adet', w:0, h:0 }; }
-function addLineItem(){ quoteLineItems.push(blankLine()); renderLineItems(); }
+function blankLine(){ return { id:benzersizId('li'), title:'', detail:'', qty:1, price:0, kdv:20, unit:'adet', w:0, h:0 }; }
+// Eski kayıtlarda id/ölçü alanları olmayabilir — ekran açılmadan güvenli varsayılanlara tamamlanır.
+function lineItemsNormalle(liste){
+  (liste || []).forEach(it => {
+    if(!it.id) it.id = benzersizId('li');
+    if(!it.unit) it.unit = 'adet';
+    if(it.w === undefined || it.w === null) it.w = 0;
+    if(it.h === undefined || it.h === null) it.h = 0;
+    if(it.qty === undefined || it.qty === null) it.qty = 1;
+    if(it.price === undefined || it.price === null) it.price = 0;
+    if(it.kdv === undefined || it.kdv === null) it.kdv = 20;
+  });
+  return liste;
+}
+function addLineItem(){
+  quoteLineItems.push(blankLine());
+  renderLineItems();
+  const alan = document.getElementById('liTitle' + (quoteLineItems.length - 1));
+  if(alan) alan.focus({ preventScroll:true });     // sayfa kontrolsüz aşağı sıçramasın
+}
 function removeLine(idx){ quoteLineItems.splice(idx,1); if(quoteLineItems.length===0) quoteLineItems.push(blankLine()); renderLineItems(); }
 
 function submitQuote(){
@@ -12498,7 +12682,14 @@ function submitQuote(){
   const iskontoTip = iskontoTipEl ? iskontoTipEl.value : 'yuzde';
   const iskontoDeger = iskontoDegerEl ? virgulSayi(iskontoDegerEl.value) : 0;
   const items = quoteLineItems.filter(i=>i.title);
-  items.forEach(it => { delete it._detayKapatildi; if(typeof it.detail === 'string') it.detail = it.detail.replace(/\s+$/,''); });
+  items.forEach(it => {
+    delete it._detayKapatildi; delete it._olcuYedek;
+    if(!it.id) it.id = benzersizId('li');
+    if(typeof it.detail === 'string') it.detail = it.detail.replace(/\s+$/,'');
+    const u = lineUnit(it);                       // kayda yalnız aktif birimin ölçüsü gider
+    if(u === 'adet'){ it.w = 0; it.h = 0; }
+    else if(u === 'mtul'){ it.h = 0; }
+  });
   // Teklifte yazılan yeni ürünler kataloğa eklenir — sonraki tekliflerde ilk harften otomatik tamamlanır
   items.forEach(it => {
     const ad = String(it.title).trim();
@@ -16119,6 +16310,14 @@ function disAlimlarView(){
     ${daHareketPaneliHtml()}
   `;
 }
+// Dış alım tedarikçi önerileri — tek kaynak: mxTedarikciler() (Tedarikçi cariler + fiyat listesi tedarikçileri).
+// Kayıtta duran ama listede olmayan bir firma adı kaybolmasın diye başa eklenir.
+function daTedarikciSecenekleri(mevcut){
+  const liste = (typeof mxTedarikciler === 'function' ? mxTedarikciler() : []).slice();
+  const ad = String(mevcut || '').trim();
+  if(ad && !liste.some(x => x.localeCompare(ad, 'tr', { sensitivity:'base' }) === 0)) liste.unshift(ad);
+  return liste.map(x => `<option value="${notEsc(x)}">`).join('');
+}
 function openDisAlimModal(id){
   if(id ? !disAlimDuzenleyebilir() : !disAlimEkleyebilir()){ showToast('Bu işlem için yetkiniz yok.'); return; }
   const a = id ? DIS_ALIMLAR.find(x => x.id === id) : null;
@@ -16130,7 +16329,8 @@ function openDisAlimModal(id){
       ${Object.keys(DA_TURLER).map(k => `<option value="${k}" ${a && a.tur === k ? 'selected' : ''}>${DA_TURLER[k].ikon} ${DA_TURLER[k].ad}</option>`).join('')}</select></div>
     <div class="field"><label>Malzeme / Sipariş</label><input id="daMalzeme" value="${a ? notEsc(a.malzeme) : ''}" placeholder="ör. 6 mt alüminyum profil × 12 adet"></div>
     <div class="field"><label>Tedarikçi</label><input id="daTedarikci" list="daTedList" value="${a ? notEsc(a.tedarikci || '') : ''}" placeholder="Firma adı">
-      <datalist id="daTedList">${CUSTOMERS.map(c => `<option value="${notEsc(c.name)}">`).join('')}</datalist></div>
+      <datalist id="daTedList">${daTedarikciSecenekleri(a ? a.tedarikci : '')}</datalist>
+      <div class="hint" style="margin-top:4px;">Listede yalnız <b>Tedarikçi</b> olarak işaretlenmiş cariler çıkar. Yeni bir firmayı elle de yazabilirsiniz; cari kartını Kişiler'den "Tedarikçi" durumuyla açarsanız listeye eklenir.</div></div>
     <div class="field-row">
       <div class="field"><label>Tarih</label><input id="daTarih" type="date" value="${a && a.tarih ? a.tarih : planIso(new Date())}"></div>
       ${finansGorebilir() ? `<div class="field"><label>Tutar (isteğe bağlı)</label><input id="daTutar" type="number" min="0" value="${a && a.tutar ? a.tutar : ''}" placeholder="0"></div>` : ''}
