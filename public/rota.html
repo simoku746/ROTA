@@ -2654,7 +2654,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16e';
+window.ROTA_SURUM = 'v2026-09-16f';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -13201,10 +13201,15 @@ function maliyetView(id){
     </div>
   `;
 }
-// ---- Maliyet dökümü yazdırma (İÇ BELGE — müşteriye verilmez) --------------------------------------------------
-// Ekrandaki kalemlerin aynısını A4 tabloya basar. Hesap yapmaz: mevcut motoru (mxSatirToplam / mxMaliyetMiktar /
-// maliyetToplam / mxSatisTL / mxBrutKar / mxMarjOrani) okur — ekranla çıktı arasında ikinci bir hesap mantığı yoktur.
-function maliyetYazdirOlcuMetni(r){
+// ---- MALİYET DÖKÜMÜ ÇIKTISI (A4 dikey, iç kullanım belgesi) --------------------------------------------------
+// Tekrar kullanılabilir tek fonksiyon: maliyetDokumuHtml(q) → kendi kendine yeten yazdırma belgesi.
+// HESAP YAPMAZ: mevcut motoru okur (mxKur / mxSatirToplam / mxMaliyetMiktar / maliyetToplam / mxSatisTL /
+// mxBrutKar / mxMarjOrani). Ekranla çıktı arasında ikinci bir hesap mantığı yoktur.
+// Sayfalama belgenin içindeki betikle yapılır: satırlar ölçülerek dağıtılır, satır iki sayfaya bölünmez,
+// tablo başlığı her sayfada tekrarlanır, özet/dağılım/not yalnız son sayfadadır, alt bilgi her sayfada N/M yazar.
+const MD_RENK = { ink:'#182235', muted:'#6B778C', line:'#DDE2E9', yuzey:'#F5F7F9', kirmizi:'#D20A11', yesil:'#247A67' };
+
+function mdOlcuMetni(r){
   const sy = n => (Number(n) || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 });
   const t = r.hesapTuru;
   if(t === 'en_boy')      return `${sy(r.en)} × ${sy(r.boy)} cm`;
@@ -13213,122 +13218,381 @@ function maliyetYazdirOlcuMetni(r){
   if(t === 'goturu')      return 'Götürü';
   return '';
 }
-function maliyetYazdirHtml(q){
-  const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// Belgenin tüm sayısal verisi tek yerden türetilir (ekrandaki motorun aynısı).
+function maliyetDokumuVerisi(q){
   const kur = mxKur(q);
   const items = ((q.maliyet && q.maliyet.items) || []).filter(r => r.aktif !== false);
-  const toplam = maliyetToplam(q);
-  const satis = mxSatisTL(q, kur);
-  const kar = mxBrutKar(satis, toplam);
-  const marj = mxMarjOrani(kar, satis);
-  const dagilim = mxGrupDagilimi(q, kur);
+  const toplamMaliyet = maliyetToplam(q);
+  const satisFiyati = mxSatisTL(q, kur);
+  const ongorulenKar = mxBrutKar(satisFiyati, toplamMaliyet);
+  const karMarji = mxMarjOrani(ongorulenKar, satisFiyati);
+  const satirlar = items.map((r, i) => ({
+    sira: i + 1,
+    ad: r.ad || '—',
+    aciklama: [mdOlcuMetni(r), r.tedarikciAd ? 'Tedarikçi: ' + r.tedarikciAd : '',
+               r.fire ? 'Fire %' + (Number(r.fire) || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 }) : '',
+               r.not || ''].filter(Boolean).join(' · '),
+    grup: mxGrupBul(q, r.grup).ad,
+    miktar: mxMaliyetMiktar(r),
+    birim: r.birim || '',
+    birimTL: (Number(r.fiyatOrj) || 0) * mxKurDegeri(r.para, kur),
+    para: r.para || 'TL',
+    fiyatOrj: Number(r.fiyatOrj) || 0,
+    tutar: mxSatirToplam(r, kur),
+  }));
+  return {
+    kur, satirlar, toplamMaliyet, satisFiyati, ongorulenKar, karMarji,
+    // Yardımcı oranlar — temel değerlerden türetilir, state'e yazılmaz
+    satisMaliyetOrani: toplamMaliyet > 0 ? satisFiyati / toplamMaliyet : 0,
+    maliyetinSatistakiPayi: satisFiyati > 0 ? (toplamMaliyet / satisFiyati) * 100 : 0,
+    // Dağılım kalem bazlı (büyükten küçüğe)
+    dagilim: satirlar.map(r => ({ ad:r.ad, tutar:r.tutar, pay: toplamMaliyet > 0 ? (r.tutar / toplamMaliyet) * 100 : 0 }))
+                     .sort((a, b) => b.tutar - a.tutar),
+  };
+}
+function maliyetDokumuHtml(q){
+  const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const v = maliyetDokumuVerisi(q);
+  const pr = n => '₺' + (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
   const sy2 = n => (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  const bugun = new Date().toLocaleDateString('tr-TR', { day:'2-digit', month:'long', year:'numeric' });
+  const bugun = new Date();
+  const tarihUzun = bugun.toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
+  const tarihKisa = bugun.toLocaleDateString('tr-TR');
   const musteri = typeof teklifMusteriAdi === 'function' ? teklifMusteriAdi(q) : '';
-  const kurMetni = [kur.usd ? '$ ' + sy2(kur.usd) : '', kur.eur ? '€ ' + sy2(kur.eur) : ''].filter(Boolean).join('  ·  ')
-    + (KURLAR.kaynak ? '   (' + esc(KURLAR.kaynak) + (KURLAR.tarih ? ' · ' + esc(KURLAR.tarih) : '') + ')' : '');
+  const kurMetni = [v.kur.usd ? '$ ' + sy2(v.kur.usd) : '', v.kur.eur ? '€ ' + sy2(v.kur.eur) : ''].filter(Boolean).join(' · ') || '—';
+  const dovizliVar = v.satirlar.some(r => r.para !== 'TL');
+  const notMetni = 'Satış fiyatı KDV hariçtir'
+    + (q.kdvMode === 'Hariç' ? ' (teklif de KDV hariç düzenlenmiştir)' : ' (teklif KDV dahil düzenlenmiştir)') + '. '
+    + (dovizliVar && (v.kur.usd || v.kur.eur)
+        ? 'Dövizli kalemler ' + esc(KURLAR.kaynak || 'girilen kur') + (KURLAR.tarih ? ' · ' + esc(KURLAR.tarih) : '')
+          + ' değeriyle ₺\'ye çevrilmiştir.'
+        : 'Bu dökümde dövizli maliyet kalemi bulunmamaktadır.')
+    + ' Bu belge iç kullanım içindir, müşteriye verilmez.';
 
-  const satirlar = items.map((r, i) => {
-    const grup = mxGrupBul(q, r.grup);
-    const miktar = mxMaliyetMiktar(r);
-    const olcu = maliyetYazdirOlcuMetni(r);
-    const altBilgi = [olcu, r.tedarikciAd ? 'Tedarikçi: ' + esc(r.tedarikciAd) : '',
-                      r.fire ? 'Fire %' + (Number(r.fire) || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 }) : '',
-                      r.not ? esc(r.not) : ''].filter(Boolean).join(' · ');
-    const dovizli = r.para && r.para !== 'TL';
-    return `<tr>
-      <td class="sr">${i + 1}</td>
-      <td><b>${esc(r.ad || '—')}</b>${altBilgi ? `<span class="alt">${altBilgi}</span>` : ''}</td>
-      <td class="gr">${esc(grup.ad)}</td>
-      <td class="sa">${(miktar || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 })} ${esc(r.birim || '')}</td>
-      <td class="sa">${sy2((Number(r.fiyatOrj) || 0) * mxKurDegeri(r.para, kur))}${dovizli ? `<span class="alt">${sy2(r.fiyatOrj)} ${esc(r.para)}</span>` : ''}</td>
-      <td class="sa tut">${sy2(mxSatirToplam(r, kur))}</td>
-    </tr>`;
-  }).join('');
+  const satirHtml = v.satirlar.map(r => `
+    <tr>
+      <td class="c-sira">${r.sira}</td>
+      <td class="c-ad"><b>${esc(r.ad)}</b>${r.aciklama ? `<span class="alt">${esc(r.aciklama)}</span>` : ''}</td>
+      <td class="c-grup">${esc(r.grup)}</td>
+      <td class="c-sag">${(r.miktar || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 })}${r.birim ? ' ' + esc(r.birim) : ''}</td>
+      <td class="c-sag">${pr(r.birimTL)}${r.para !== 'TL' ? `<span class="alt">${sy2(r.fiyatOrj)} ${esc(r.para)}</span>` : ''}</td>
+      <td class="c-sag c-tutar">${pr(r.tutar)}</td>
+    </tr>`).join('');
 
-  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Maliyet Dökümü — ${esc(q.no || '')}</title>
-  <style>
-    @page{size:A4 portrait;margin:12mm 10mm;}
-    *{box-sizing:border-box;}
-    body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:9pt;color:#1E293B;
-      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .yazdirma-notu{background:#FFF7ED;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;
-      margin-bottom:10px;font-size:10pt;color:#9A3412;}
-    @media print{.yazdirma-notu{display:none;}}
-    .ust{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
-      border-bottom:2px solid #1E293B;padding-bottom:8px;margin-bottom:4px;}
-    .logo-img{height:34px;}
-    .marka .ad{font-size:17pt;font-weight:800;letter-spacing:-.5px;}
-    .baslik{text-align:center;flex:1;}
-    .baslik .b1{font-size:12.5pt;font-weight:700;letter-spacing:.4px;}
-    .baslik .b2{font-size:8pt;font-weight:600;color:#B91C1C;letter-spacing:.6px;margin-top:2px;}
-    .no-kutu{min-width:150px;}
-    .no-kutu .satir{display:flex;justify-content:space-between;gap:10px;font-size:8pt;padding:1px 0;}
-    .no-kutu .et{color:#64748B;font-weight:600;letter-spacing:.3px;}
-    .no-kutu .dg{font-weight:700;}
-    .kunye{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:8.5pt;margin:8px 0 10px;}
-    .kunye div span{color:#64748B;font-weight:600;margin-right:5px;}
-    table{width:100%;border-collapse:collapse;}
-    thead th{background:#F1F5F9;border-top:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;
-      font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#475569;
-      padding:5px 6px;text-align:left;}
-    tbody td{border-bottom:1px solid #E2E8F0;padding:5px 6px;vertical-align:top;}
-    tbody tr{page-break-inside:avoid;}
-    td.sr{width:22px;color:#94A3B8;font-size:8pt;}
-    td.gr{width:96px;font-size:8pt;color:#475569;}
-    td.sa{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
-    td.sa.tut{font-weight:700;width:86px;}
-    thead th.sa{text-align:right;}
-    .alt{display:block;font-size:7.5pt;font-weight:400;color:#64748B;margin-top:1px;}
-    .bos{padding:16px;text-align:center;color:#94A3B8;font-size:9pt;}
-    .ozet{margin-top:10px;display:flex;justify-content:flex-end;page-break-inside:avoid;}
-    .ozet table{width:auto;min-width:290px;}
-    .ozet td{border:0;padding:3px 0;font-size:9.5pt;}
-    .ozet td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;padding-left:26px;}
-    .ozet tr.ayrac td{border-top:1px solid #CBD5E1;padding-top:6px;}
-    .ozet tr.buyuk td{font-size:11pt;font-weight:800;}
-    .dagilim{margin-top:12px;page-break-inside:avoid;}
-    .dagilim h4{margin:0 0 5px;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#475569;}
-    .dagilim .sat{display:flex;align-items:center;gap:8px;font-size:8.5pt;padding:2px 0;}
-    .dagilim .kutu{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
-    .dagilim .ad{flex:1;}
-    .dagilim .tut{font-weight:700;font-variant-numeric:tabular-nums;}
-    .dagilim .yzd{width:46px;text-align:right;color:#64748B;}
-    .alt-bilgi{margin-top:14px;border-top:2px solid #1E293B;padding-top:4px;display:flex;justify-content:space-between;
-      font-size:7.5pt;color:#94A3B8;letter-spacing:.3px;}
-  </style></head><body>
-  <div class="yazdirma-notu">Yazdırma penceresi otomatik açılır; açılmazsa <b>Ctrl+P</b> ile yazdırın.</div>
+  const tabloBasligi = `<thead><tr>
+      <th class="c-sira">#</th><th>Maliyet Kalemi</th><th class="c-grup">Grup</th>
+      <th class="c-sag">Miktar</th><th class="c-sag">Birim Maliyet</th><th class="c-sag">Tutar</th>
+    </tr></thead>`;
+
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<title>Maliyet Dökümü ${esc(q.no || '')}</title>
+<style>
+  @page{ size:A4 portrait; margin:0; }
+  :root{
+    --cost-text:${MD_RENK.ink}; --cost-muted:${MD_RENK.muted}; --cost-line:${MD_RENK.line};
+    --cost-surface:${MD_RENK.yuzey}; --cost-red:${MD_RENK.kirmizi}; --cost-green:${MD_RENK.yesil}; --cost-white:#FFFFFF;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:#9AA3AE; }
+  body{ font-family:"DejaVu Sans","Inter",Arial,sans-serif; font-size:9pt; line-height:1.35;
+    color:var(--cost-text); -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    font-variant-numeric:tabular-nums; }
+  .uyari{ max-width:210mm; margin:10px auto; padding:9px 13px; background:#FFF7ED; border:1px solid #FDBA74;
+    border-radius:6px; color:#9A3412; font-size:10pt; }
+  .uyari b{ font-weight:700; }
+  .sayfa{ width:210mm; height:297mm; padding:13mm 14mm 12mm; margin:0 auto 10px; background:var(--cost-white);
+    display:flex; flex-direction:column; overflow:hidden; }
+  .s-govde{ flex:1 1 auto; overflow:hidden; }
+
+  /* 1 — Üst başlık */
+  .ust{ display:flex; align-items:flex-start; gap:12mm; padding-bottom:3mm; }
+  .ust .logo{ width:44mm; height:13mm; display:flex; align-items:center; }
+  .ust .logo img{ max-width:100%; max-height:13mm; height:auto; display:block; }
+  .ust .logo .ad{ font-size:14pt; font-weight:700; letter-spacing:-.3px; }
+  .ust .orta{ flex:1; text-align:center; }
+  .ust .orta .b1{ font-size:13pt; font-weight:700; letter-spacing:.6px; }
+  .ust .orta .b2{ font-size:8pt; font-weight:400; color:var(--cost-muted); margin-top:1mm; }
+  .ust .sag{ width:44mm; text-align:right; }
+  .ust .sag .no{ font-size:12pt; font-weight:700; }
+  .ust .sag .tar{ font-size:8pt; font-weight:400; color:var(--cost-muted); margin-top:.8mm; }
+  .cizgi{ border-top:1px solid var(--cost-text); }
+  /* sonraki sayfalarda kompakt başlık */
+  .ust.kompakt{ padding-bottom:2mm; align-items:center; }
+  .ust.kompakt .logo{ height:8mm; }
+  .ust.kompakt .logo img{ max-height:8mm; }
+  .ust.kompakt .orta .b1{ font-size:10pt; }
+  .ust.kompakt .orta .b2,.ust.kompakt .sag .tar{ display:none; }
+  .ust.kompakt .sag .no{ font-size:10pt; }
+
+  /* 2 — Belge bilgileri */
+  .kunye{ display:flex; gap:8mm; padding:4mm 0 4.5mm; }
+  .kunye > div{ flex:1; min-width:0; }
+  .kunye .et{ display:block; font-size:7pt; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+    color:var(--cost-muted); margin-bottom:.8mm; }
+  .kunye .dg{ display:block; font-size:9.5pt; font-weight:700; color:var(--cost-text); word-wrap:break-word; }
+
+  /* 3 — Maliyet kalemleri tablosu */
+  table.kalemler{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  table.kalemler th{ background:var(--cost-surface); color:var(--cost-muted); font-size:7pt; font-weight:700;
+    letter-spacing:.5px; text-transform:uppercase; text-align:left; padding:2.2mm 2mm;
+    border-top:1px solid var(--cost-line); border-bottom:1px solid var(--cost-line); }
+  table.kalemler td{ padding:2.2mm 2mm; border-bottom:1px solid var(--cost-line); vertical-align:top; }
+  table.kalemler th.c-sag,table.kalemler td.c-sag{ text-align:right; }
+  .c-sira{ width:8mm; color:var(--cost-muted); font-size:8pt; }
+  .c-grup{ width:26mm; color:var(--cost-muted); font-size:8pt; }
+  td.c-ad b{ font-weight:700; }
+  td.c-ad .alt,td.c-sag .alt{ display:block; font-size:7.5pt; font-weight:400; color:var(--cost-muted); margin-top:.6mm; }
+  th.c-sag:nth-child(4),td.c-sag:nth-child(4){ width:24mm; }
+  th.c-sag:nth-child(5),td.c-sag:nth-child(5){ width:28mm; }
+  th.c-sag:nth-child(6),td.c-sag:nth-child(6){ width:30mm; }
+  td.c-tutar{ font-weight:700; }
+  .bos-satir{ padding:8mm 2mm; text-align:center; color:var(--cost-muted); }
+
+  /* 4 — Finansal özet */
+  .ozet{ margin-top:6mm; border:1px solid var(--cost-line); background:var(--cost-white); display:flex; }
+  .ozet > div{ flex:1; padding:3.5mm 4mm; border-left:1px solid var(--cost-line); text-align:center; }
+  .ozet > div:first-child{ border-left:0; }
+  .ozet .et{ display:block; font-size:7pt; font-weight:700; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--cost-muted); margin-bottom:1.4mm; }
+  .ozet .dg{ display:block; font-size:12pt; font-weight:700; color:var(--cost-text); white-space:nowrap; }
+  .ozet .dg.satis{ font-size:13.5pt; color:var(--cost-red); }
+  .ozet .dg.kar{ color:var(--cost-green); }
+  .ozet .dg.kar.zarar{ color:var(--cost-red); }   /* kâr negatifse yeşil göstermek yanıltıcı olur */
+
+  /* 5 — Yardımcı oranlar */
+  .oranlar{ display:flex; gap:12mm; padding:3.2mm 1mm 0; }
+  .oranlar .et{ font-size:7.5pt; font-weight:700; color:var(--cost-muted); margin-right:2.5mm;
+    letter-spacing:.3px; text-transform:uppercase; }
+  .oranlar .dg{ font-size:9.5pt; font-weight:700; color:var(--cost-text); }
+
+  /* 6 — Maliyet dağılımı */
+  .dagilim{ margin-top:6mm; }
+  .dagilim .bas{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2mm; }
+  .dagilim .bas h4{ margin:0; font-size:8pt; font-weight:700; letter-spacing:.6px; text-transform:uppercase; }
+  .dagilim .bas .tp{ font-size:8pt; font-weight:700; color:var(--cost-muted); letter-spacing:.3px; }
+  .dagilim .bas .tp b{ color:var(--cost-text); font-weight:700; margin-left:2mm; }
+  table.dag{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  table.dag th{ background:var(--cost-surface); color:var(--cost-muted); font-size:7pt; font-weight:700;
+    letter-spacing:.5px; text-transform:uppercase; text-align:left; padding:1.8mm 2mm;
+    border-top:1px solid var(--cost-line); border-bottom:1px solid var(--cost-line); }
+  table.dag td{ padding:1.8mm 2mm; border-bottom:1px solid var(--cost-line); }
+  table.dag th.sag,table.dag td.sag{ text-align:right; }
+  table.dag th.sag:nth-child(2),table.dag td.sag:nth-child(2){ width:34mm; }
+  table.dag th.sag:nth-child(3),table.dag td.sag:nth-child(3){ width:22mm; }
+  table.dag td.pay{ font-weight:700; }
+
+  /* 7 — Not */
+  .not{ margin-top:5mm; background:var(--cost-surface); padding:3mm 3.5mm; }
+  .not h5{ margin:0 0 1.2mm; font-size:7pt; font-weight:700; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--cost-muted); }
+  .not p{ margin:0; font-size:8pt; font-weight:400; color:var(--cost-text); }
+
+  /* 8 — Alt bilgi */
+  .s-alt{ flex:0 0 auto; margin-top:3mm; border-top:1px solid var(--cost-text); padding-top:1.6mm;
+    display:flex; justify-content:space-between; font-size:7.5pt; font-weight:400; color:var(--cost-muted); }
+
+  @media print{
+    html,body{ background:var(--cost-white); }
+    .uyari{ display:none; }
+    .sayfa{ margin:0; page-break-after:always; break-after:page; }
+    .sayfa:last-child{ page-break-after:auto; break-after:auto; }
+  }
+</style></head><body>
+<div class="uyari">Yazdırma penceresi otomatik açılır; açılmazsa <b>Ctrl+P</b> ile yazdırın.
+  Tarayıcının yazdırma penceresinde <b>“Üstbilgiler ve altbilgiler”</b> kutusunu kapatın, <b>“Arka plan grafikleri”</b>ni açık bırakın.</div>
+
+<!-- Sayfalama betiği bu şablonları okuyup sayfalara dağıtır -->
+<template id="tplUst">
   <div class="ust">
-    <div class="marka">${AGENCY.logo ? `<img class="logo-img" src="${AGENCY.logo}" alt="${esc(AGENCY.name || '')}">` : `<div class="ad">${esc(AGENCY.name || 'Dekant')}</div>`}</div>
-    <div class="baslik"><div class="b1">MALİYET DÖKÜMÜ</div>
-      <div class="b2">İÇ BELGEDİR — MÜŞTERİYE VERİLMEZ</div></div>
-    <div class="no-kutu">
-      <div class="satir"><span class="et">TEKLİF NO</span><span class="dg">${esc(q.no || '—')}</span></div>
-      <div class="satir"><span class="et">YAZDIRMA</span><span class="dg">${bugun}</span></div>
-    </div>
+    <div class="logo">${AGENCY.logo ? `<img src="${AGENCY.logo}" alt="${esc(AGENCY.name || '')}">` : `<div class="ad">${esc(AGENCY.name || 'Dekant')}</div>`}</div>
+    <div class="orta"><div class="b1">MALİYET DÖKÜMÜ</div><div class="b2">İç kullanım belgesi</div></div>
+    <div class="sag"><div class="no">${esc(q.no || '—')}</div><div class="tar">${tarihUzun}</div></div>
   </div>
+  <div class="cizgi"></div>
+</template>
+<template id="tplKunye">
   <div class="kunye">
-    <div><span>Müşteri</span>${esc(musteri || '—')}</div>
-    <div><span>Teklif tarihi</span>${q.date ? esc(formatDate(q.date)) : '—'}</div>
-    <div><span>Durum</span>${esc(q.status || '—')}</div>
-    ${kurMetni.trim() ? `<div><span>Kur</span>${kurMetni}</div>` : ''}
+    <div><span class="et">Müşteri</span><span class="dg">${esc(musteri || '—')}</span></div>
+    <div><span class="et">Teklif tarihi</span><span class="dg">${q.date ? esc(formatDate(q.date)) : '—'}</span></div>
+    <div><span class="et">Durum</span><span class="dg">${esc(q.status || '—')}</span></div>
+    <div><span class="et">Kur</span><span class="dg">${kurMetni}</span></div>
   </div>
-  <table>
-    <thead><tr><th>#</th><th>Kalem</th><th>Grup</th><th class="sa">Miktar</th><th class="sa">Birim Maliyet (₺)</th><th class="sa">Tutar (₺)</th></tr></thead>
-    <tbody>${satirlar || `<tr><td colspan="6" class="bos">Maliyet kalemi girilmemiş.</td></tr>`}</tbody>
-  </table>
-  <div class="ozet"><table>
-    <tr><td>Toplam Maliyet</td><td>₺${sy2(toplam)}</td></tr>
-    <tr><td>Teklif Tutarı (KDV hariç)</td><td>₺${sy2(satis)}</td></tr>
-    <tr class="ayrac buyuk"><td>Öngörülen Kâr</td><td>₺${sy2(kar)}</td></tr>
-    <tr><td>Kâr Marjı</td><td>${marj === null ? '—' : '%' + Math.round(marj)}</td></tr>
-  </table></div>
-  ${dagilim.length ? `<div class="dagilim"><h4>Gruplara göre dağılım</h4>
-    ${dagilim.map(d => `<div class="sat"><span class="kutu" style="background:${d.renk};"></span>
-      <span class="ad">${esc(d.ad)}</span><span class="tut">₺${sy2(d.tutar)}</span>
-      <span class="yzd">%${Math.round(d.yuzde)}</span></div>`).join('')}</div>` : ''}
-  <div class="alt-bilgi"><span>${esc(AGENCY.name || '')} · Maliyet dökümü</span><span>${esc(q.no || '')} · ${bugun}</span></div>
-  </body></html>`;
+</template>
+<template id="tplTablo"><table class="kalemler">${tabloBasligi}<tbody></tbody></table></template>
+<template id="tplSatirlar"><tbody>${satirHtml || `<tr><td colspan="6" class="bos-satir">Maliyet kalemi girilmemiş.</td></tr>`}</tbody></template>
+<template id="tplBloklar">
+  <div class="ozet">
+    <div><span class="et">Toplam Maliyet</span><span class="dg">${pr(v.toplamMaliyet)}</span></div>
+    <div><span class="et">Satış Fiyatı</span><span class="dg satis">${pr(v.satisFiyati)}</span></div>
+    <div><span class="et">Öngörülen Kâr</span><span class="dg kar${v.ongorulenKar < 0 ? ' zarar' : ''}">${pr(v.ongorulenKar)}</span></div>
+    <div><span class="et">Kâr Marjı</span><span class="dg">${v.karMarji === null ? '—' : '%' + Math.round(v.karMarji)}</span></div>
+  </div>
+  <div class="oranlar">
+    <div><span class="et">Satış / maliyet oranı</span><span class="dg">${(v.satisMaliyetOrani || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 })}×</span></div>
+    <div><span class="et">Maliyetin satıştaki payı</span><span class="dg">%${(v.maliyetinSatistakiPayi || 0).toLocaleString('tr-TR', { minimumFractionDigits:1, maximumFractionDigits:1 })}</span></div>
+  </div>
+  ${v.dagilim.length ? `<div class="dagilim">
+    <div class="bas"><h4>Maliyet Dağılımı</h4><span class="tp">TOPLAM<b>${pr(v.toplamMaliyet)}</b></span></div>
+    <table class="dag"><thead><tr><th>Kalem</th><th class="sag">Tutar</th><th class="sag">Pay</th></tr></thead>
+      <tbody>${v.dagilim.map(d => `<tr><td>${esc(d.ad)}</td><td class="sag">${pr(d.tutar)}</td>
+        <td class="sag pay">%${(d.pay || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 })}</td></tr>`).join('')}</tbody>
+    </table></div>` : ''}
+  <div class="not"><h5>Not</h5><p>${notMetni}</p></div>
+</template>
+<template id="tplAlt">
+  <div class="s-alt"><span>${esc(AGENCY.name || '')} · Maliyet dökümü</span>
+    <span>${esc(q.no || '')} · ${tarihKisa} · <span class="sn">1/1</span></span></div>
+</template>
+
+<div id="belge"></div>
+<script>
+function mdSayfala(){
+  var belge = document.getElementById('belge');
+  belge.innerHTML = '';
+  var tpl = function(id){ return document.getElementById(id).innerHTML; };
+  var sayfalar = [];
+
+  function yeniSayfa(ilk){
+    var s = document.createElement('section');
+    s.className = 'sayfa';
+    var ust = document.createElement('div');
+    ust.innerHTML = tpl('tplUst');
+    if(!ilk){ ust.querySelector('.ust').classList.add('kompakt'); }
+    var govde = document.createElement('div');
+    govde.className = 's-govde';
+    var alt = document.createElement('div');
+    alt.innerHTML = tpl('tplAlt');
+    s.appendChild(ust); s.appendChild(govde); s.appendChild(alt.firstElementChild);
+    belge.appendChild(s);
+    sayfalar.push(s);
+    if(ilk){ govde.insertAdjacentHTML('beforeend', tpl('tplKunye')); }
+    return govde;
+  }
+  // Taşma ölçümü: scrollHeight çocukların üst marjını her zaman saymıyor (dağılım bloğunda 8px kayma
+  // yaşandı), bu yüzden çocukların gerçek alt kenarı sayfa gövdesinin alt kenarıyla karşılaştırılır.
+  function tasti(govde){
+    var alt = govde.getBoundingClientRect().bottom;
+    var c = govde.children, en = 0;
+    for(var i = 0; i < c.length; i++){ var b = c[i].getBoundingClientRect().bottom; if(b > en) en = b; }
+    return c.length > 0 && en > alt + 0.5;
+  }
+
+  var govde = yeniSayfa(true);
+
+  // --- Maliyet kalemleri: satır satır yerleştir, sığmayınca yeni sayfa (satır bölünmez) ---
+  var kaynak = document.createElement('table');
+  kaynak.innerHTML = tpl('tplSatirlar');
+  var satirlar = Array.prototype.slice.call(kaynak.querySelectorAll('tr'));
+
+  function tabloEkle(g){
+    g.insertAdjacentHTML('beforeend', tpl('tplTablo'));
+    return g.querySelector('table.kalemler:last-of-type tbody');
+  }
+  var govdeTbody = tabloEkle(govde);
+  for(var i = 0; i < satirlar.length; i++){
+    govdeTbody.appendChild(satirlar[i]);
+    if(tasti(govde)){
+      govdeTbody.removeChild(satirlar[i]);
+      if(!govdeTbody.children.length){ govdeTbody.parentNode.remove(); }   // boş tablo bırakma
+      govde = yeniSayfa(false);
+      govdeTbody = tabloEkle(govde);
+      govdeTbody.appendChild(satirlar[i]);
+    }
+  }
+
+  // --- Özet / oranlar / dağılım / not: yalnız son sayfada, sığmazsa yeni sayfaya taşınır ---
+  var kutu = document.createElement('div');
+  kutu.innerHTML = tpl('tplBloklar');
+  var bloklar = Array.prototype.slice.call(kutu.children);
+  for(var j = 0; j < bloklar.length; j++){
+    govde.appendChild(bloklar[j]);
+    if(tasti(govde)){
+      govde.removeChild(bloklar[j]);
+      govde = yeniSayfa(false);
+      govde.appendChild(bloklar[j]);
+      // Dağılım tablosu tek başına da sığmazsa satırları bölünmeden sonraki sayfaya devreder
+      if(tasti(govde) && bloklar[j].querySelector('table.dag')){
+        var tb = bloklar[j].querySelector('table.dag tbody');
+        var ds = Array.prototype.slice.call(tb.children);
+        ds.forEach(function(tr){ tb.removeChild(tr); });
+        for(var k = 0; k < ds.length; k++){
+          tb.appendChild(ds[k]);
+          if(tasti(govde)){
+            tb.removeChild(ds[k]);
+            var klon = bloklar[j].cloneNode(true);
+            klon.querySelector('table.dag tbody').innerHTML = '';
+            govde = yeniSayfa(false);
+            govde.appendChild(klon);
+            bloklar[j] = klon;
+            tb = klon.querySelector('table.dag tbody');
+            tb.appendChild(ds[k]);
+          }
+        }
+      }
+    }
+  }
+
+  // --- Güvenlik ağı: hiçbir sayfa taşmasın ---
+  // 1) Sayfada birden çok blok varsa sonuncusu sonraki sayfaya iner.
+  // 2) Tek blok taşıyorsa (uzun bir tablo) o bloğun SON SATIRI sonraki sayfadaki eşine taşınır —
+  //    satır asla iki sayfaya bölünmez, tablo başlığı yeni sayfada da bulunur.
+  function sonrakiGovde(si){
+    return (si + 1 < sayfalar.length) ? sayfalar[si + 1].querySelector('.s-govde') : yeniSayfa(false);
+  }
+  for(var tur = 0; tur < 500; tur++){
+    var degisti = false;
+    for(var si = 0; si < sayfalar.length; si++){
+      var g = sayfalar[si].querySelector('.s-govde');
+      if(!tasti(g)) continue;
+      if(g.children.length > 1){
+        sonrakiGovde(si).insertBefore(g.lastElementChild, sonrakiGovde(si).firstChild);
+        degisti = true; continue;
+      }
+      var tek = g.firstElementChild;
+      var tb2 = tek ? tek.querySelector('tbody') : null;
+      if(tb2 && tb2.children.length > 1){
+        var hedef = sonrakiGovde(si);
+        var esi = hedef.firstElementChild;
+        if(!(esi && esi.className === tek.className && esi.querySelector('tbody'))){
+          esi = tek.cloneNode(true);
+          esi.querySelector('tbody').innerHTML = '';
+          hedef.insertBefore(esi, hedef.firstChild);
+        }
+        var hedefTb = esi.querySelector('tbody');
+        hedefTb.insertBefore(tb2.lastElementChild, hedefTb.firstChild);
+        degisti = true;
+      }
+    }
+    if(!degisti) break;
+  }
+  // Boş kalan blok/sayfa temizliği
+  sayfalar.slice().forEach(function(s2){
+    var g2 = s2.querySelector('.s-govde');
+    Array.prototype.slice.call(g2.children).forEach(function(c){
+      var t = c.querySelector && c.querySelector('tbody');
+      if(t && !t.children.length && !c.classList.contains('not')) c.remove();
+    });
+    if(!g2.children.length && sayfalar.length > 1){
+      sayfalar.splice(sayfalar.indexOf(s2), 1);
+      s2.remove();
+    }
+  });
+
+  // --- Sayfa numaraları ---
+  var n = sayfalar.length;
+  sayfalar.forEach(function(s, idx){
+    var sn = s.querySelector('.s-alt .sn');
+    if(sn) sn.textContent = (idx + 1) + '/' + n;
+  });
+  window.__mdSayfaSayisi = n;
+  window.__mdHazir = true;
+}
+// Logo/görseller yüklendikten sonra ölçüm yapılır; erken çalışırsa başlık yüksekliği sonradan
+// değişip son sayfada birkaç piksellik taşmaya yol açıyordu.
+if(document.readyState === 'complete') mdSayfala();
+else window.addEventListener('load', mdSayfala);
+<\/script>
+</body></html>`;
 }
 function maliyetYazdir(){
   if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()){ showToast('Maliyet bilgileri için yetkiniz yok.'); return; }
@@ -13336,10 +13600,21 @@ function maliyetYazdir(){
   if(!q){ showToast('Teklif bulunamadı.'); return; }
   const w = window.open('', '_blank');
   if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
-  w.document.write(maliyetYazdirHtml(q));
+  w.document.write(maliyetDokumuHtml(q));
   w.document.close();
-  setTimeout(() => { try { w.focus(); w.print(); } catch(err) {} }, 400);
+  // Sayfalama bitene kadar bekle (en fazla ~4 sn), sonra yazdırma penceresini aç
+  let deneme = 0;
+  const bekle = setInterval(() => {
+    let hazir = false;
+    try { hazir = !!w.__mdHazir; } catch(e) { hazir = true; }
+    if(hazir || ++deneme > 40){
+      clearInterval(bekle);
+      try { w.focus(); w.print(); } catch(err) {}
+    }
+  }, 100);
 }
+// Geriye dönük ad (eski çağrılar bozulmasın)
+function maliyetYazdirHtml(q){ return maliyetDokumuHtml(q); }
 
 // ---- Maliyet Hesabı: eski (ilk) tasarımın etkileşim fonksiyonları — mk* önekiyle, mevcut mx* motoruna bağlı ----
 function mkGuncelle(i, alan, deger){
