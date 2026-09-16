@@ -2654,7 +2654,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16f';
+window.ROTA_SURUM = 'v2026-09-16g';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -17182,6 +17182,22 @@ function applyState(d){
   }
 }
 
+// (2026-09-16g) OTURUM GEÇERSİZ → ÇEREZİ TEMİZLEYEREK ÇIK.
+// Ara katman (middleware) çerezin GEÇERLİ olup olmadığına değil, yalnız VAR olup olmadığına bakıyor:
+// süresi dolmuş bir çerezle /login'e gidildiğinde ara katman kullanıcıyı /'a geri atıyor, uygulama da
+// 401 alıp yeniden /login'e yolluyordu → sonsuz döngü, giriş formuna hiç ulaşılamıyordu.
+// Çerezi önce sunucuya temizletip öyle çıkıyoruz; böylece döngü tek turda kırılıyor.
+let _cikisYapiliyor = false;
+function liveOturumBitti(){
+  if(_cikisYapiliyor) return;
+  _cikisYapiliyor = true;
+  const git = () => { location.href = '/login'; };
+  try {
+    fetch('/api/auth/logout', { method:'POST', cache:'no-store' }).then(git, git);
+    setTimeout(git, 2500);          // sunucu yanıt vermezse yine de çık
+  } catch(e){ git(); }
+}
+
 function liveSetStatus(cls, text){
   const el = document.getElementById('saveStatus');
   if(!el) return;
@@ -17195,7 +17211,7 @@ async function liveApi(method, url, body){
   try{
     const r = await fetch(url, { method, headers:{ 'Content-Type':'application/json' }, body: body ? JSON.stringify(body) : undefined, cache:'no-store' });
     let data = null; try { data = await r.json(); } catch(e) {}
-    if(r.status === 401){ location.href = '/login'; return { ok:false, status:401, error:'Oturum süresi doldu' }; }
+    if(r.status === 401){ liveOturumBitti(); return { ok:false, status:401, error:'Oturum süresi doldu' }; }
     return { ok:r.ok, status:r.status, data, error:(data && data.error) || (r.ok ? '' : 'İşlem başarısız (' + r.status + ')') };
   }catch(e){
     return { ok:false, status:0, data:null, error:'Sunucuya ulaşılamadı' };
@@ -17228,7 +17244,7 @@ async function liveSave(opts){
       setTimeout(() => location.reload(), 2500);
       return;
     }
-    if(r.status === 401){ location.href = '/login'; return; }
+    if(r.status === 401){ liveOturumBitti(); return; }
     if(!r.ok){
       let msg = 'Kaydedilemedi'; try { msg = (await r.json()).error || msg; } catch(e) {}
       liveSetStatus('err', msg + ' — yeniden denenecek');
@@ -17269,7 +17285,7 @@ async function liveTick(){
   if(LIVE.saving) return;
   try{
     const r = await fetch('/api/state?v=' + LIVE.version, { cache:'no-store' });
-    if(r.status === 401){ location.href = '/login'; return; }
+    if(r.status === 401){ liveOturumBitti(); return; }
     if(!r.ok) return;
     const d = await r.json();
     if(d.unchanged || d.version === LIVE.version) return;
@@ -17289,12 +17305,12 @@ async function liveBoot(){
   const msg = document.getElementById('bootMsg');
   try{
     const me = await fetch('/api/auth/me', { cache:'no-store' });
-    if(me.status === 401){ location.href = '/login'; return; }
+    if(me.status === 401){ liveOturumBitti(); return; }
     if(!me.ok) throw new Error('me ' + me.status);
     LIVE.user = await me.json();
 
     const st = await fetch('/api/state', { cache:'no-store' });
-    if(st.status === 401){ location.href = '/login'; return; }
+    if(st.status === 401){ liveOturumBitti(); return; }
     if(!st.ok) throw new Error('state ' + st.status);
     const d = await st.json();
     LIVE.version = d.version || 0;
