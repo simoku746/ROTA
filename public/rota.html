@@ -600,6 +600,9 @@ tr:last-child td{border-bottom:none;}
 .li-kalem-rozet{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;
   background:var(--surface-sunk);border:1px solid var(--line);color:var(--ink-2);
   font-size:11px;font-weight:600;vertical-align:middle;}
+.mx-yazdir{height:32px;padding:0 13px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
+  color:var(--ink-2);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;margin-right:8px;}
+.mx-yazdir:hover{border-color:var(--ink);color:var(--ink);background:var(--surface-sunk);}
 .section-title.buyuk h3{font-size:18px;font-weight:700;}
 /* İskonto satırı — toplam bandının hemen altında, sağa hizalı ve ince */
 .li-iskonto{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:8px;padding:0 2px;}
@@ -2651,7 +2654,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16c';
+window.ROTA_SURUM = 'v2026-09-16e';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -13170,6 +13173,7 @@ function maliyetView(id){
         <div class="page-sub">${notEsc(q.no)} · ${notEsc(teklifMusteriAdi(q))} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
       </div>
       <div class="action-row">
+        <button class="mx-yazdir" onclick="maliyetYazdir()" title="Maliyet dökümünü yazdır / PDF olarak kaydet">🖨 Yazdır</button>
         <button id="mxKaydetBtn" class="mx-kaydet ${kaydet.cls}" ${kaydet.disabled ? 'disabled' : ''} onclick="mxKaydet()">${kaydet.metin}</button>
       </div>
     </div>
@@ -13197,6 +13201,146 @@ function maliyetView(id){
     </div>
   `;
 }
+// ---- Maliyet dökümü yazdırma (İÇ BELGE — müşteriye verilmez) --------------------------------------------------
+// Ekrandaki kalemlerin aynısını A4 tabloya basar. Hesap yapmaz: mevcut motoru (mxSatirToplam / mxMaliyetMiktar /
+// maliyetToplam / mxSatisTL / mxBrutKar / mxMarjOrani) okur — ekranla çıktı arasında ikinci bir hesap mantığı yoktur.
+function maliyetYazdirOlcuMetni(r){
+  const sy = n => (Number(n) || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 });
+  const t = r.hesapTuru;
+  if(t === 'en_boy')      return `${sy(r.en)} × ${sy(r.boy)} cm`;
+  if(t === 'en_boy_adet') return `${sy(r.en)} × ${sy(r.boy)} cm × ${sy(r.adet || 1)} adet`;
+  if(t === 'uzunluk')     return `${sy(r.boy)} cm × ${sy(r.adet || 1)} adet`;
+  if(t === 'goturu')      return 'Götürü';
+  return '';
+}
+function maliyetYazdirHtml(q){
+  const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const kur = mxKur(q);
+  const items = ((q.maliyet && q.maliyet.items) || []).filter(r => r.aktif !== false);
+  const toplam = maliyetToplam(q);
+  const satis = mxSatisTL(q, kur);
+  const kar = mxBrutKar(satis, toplam);
+  const marj = mxMarjOrani(kar, satis);
+  const dagilim = mxGrupDagilimi(q, kur);
+  const sy2 = n => (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const bugun = new Date().toLocaleDateString('tr-TR', { day:'2-digit', month:'long', year:'numeric' });
+  const musteri = typeof teklifMusteriAdi === 'function' ? teklifMusteriAdi(q) : '';
+  const kurMetni = [kur.usd ? '$ ' + sy2(kur.usd) : '', kur.eur ? '€ ' + sy2(kur.eur) : ''].filter(Boolean).join('  ·  ')
+    + (KURLAR.kaynak ? '   (' + esc(KURLAR.kaynak) + (KURLAR.tarih ? ' · ' + esc(KURLAR.tarih) : '') + ')' : '');
+
+  const satirlar = items.map((r, i) => {
+    const grup = mxGrupBul(q, r.grup);
+    const miktar = mxMaliyetMiktar(r);
+    const olcu = maliyetYazdirOlcuMetni(r);
+    const altBilgi = [olcu, r.tedarikciAd ? 'Tedarikçi: ' + esc(r.tedarikciAd) : '',
+                      r.fire ? 'Fire %' + (Number(r.fire) || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 }) : '',
+                      r.not ? esc(r.not) : ''].filter(Boolean).join(' · ');
+    const dovizli = r.para && r.para !== 'TL';
+    return `<tr>
+      <td class="sr">${i + 1}</td>
+      <td><b>${esc(r.ad || '—')}</b>${altBilgi ? `<span class="alt">${altBilgi}</span>` : ''}</td>
+      <td class="gr">${esc(grup.ad)}</td>
+      <td class="sa">${(miktar || 0).toLocaleString('tr-TR', { maximumFractionDigits:2 })} ${esc(r.birim || '')}</td>
+      <td class="sa">${sy2((Number(r.fiyatOrj) || 0) * mxKurDegeri(r.para, kur))}${dovizli ? `<span class="alt">${sy2(r.fiyatOrj)} ${esc(r.para)}</span>` : ''}</td>
+      <td class="sa tut">${sy2(mxSatirToplam(r, kur))}</td>
+    </tr>`;
+  }).join('');
+
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Maliyet Dökümü — ${esc(q.no || '')}</title>
+  <style>
+    @page{size:A4 portrait;margin:12mm 10mm;}
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:9pt;color:#1E293B;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .yazdirma-notu{background:#FFF7ED;border:1px solid #FDBA74;border-radius:6px;padding:8px 12px;
+      margin-bottom:10px;font-size:10pt;color:#9A3412;}
+    @media print{.yazdirma-notu{display:none;}}
+    .ust{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+      border-bottom:2px solid #1E293B;padding-bottom:8px;margin-bottom:4px;}
+    .logo-img{height:34px;}
+    .marka .ad{font-size:17pt;font-weight:800;letter-spacing:-.5px;}
+    .baslik{text-align:center;flex:1;}
+    .baslik .b1{font-size:12.5pt;font-weight:700;letter-spacing:.4px;}
+    .baslik .b2{font-size:8pt;font-weight:600;color:#B91C1C;letter-spacing:.6px;margin-top:2px;}
+    .no-kutu{min-width:150px;}
+    .no-kutu .satir{display:flex;justify-content:space-between;gap:10px;font-size:8pt;padding:1px 0;}
+    .no-kutu .et{color:#64748B;font-weight:600;letter-spacing:.3px;}
+    .no-kutu .dg{font-weight:700;}
+    .kunye{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:8.5pt;margin:8px 0 10px;}
+    .kunye div span{color:#64748B;font-weight:600;margin-right:5px;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{background:#F1F5F9;border-top:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;
+      font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#475569;
+      padding:5px 6px;text-align:left;}
+    tbody td{border-bottom:1px solid #E2E8F0;padding:5px 6px;vertical-align:top;}
+    tbody tr{page-break-inside:avoid;}
+    td.sr{width:22px;color:#94A3B8;font-size:8pt;}
+    td.gr{width:96px;font-size:8pt;color:#475569;}
+    td.sa{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+    td.sa.tut{font-weight:700;width:86px;}
+    thead th.sa{text-align:right;}
+    .alt{display:block;font-size:7.5pt;font-weight:400;color:#64748B;margin-top:1px;}
+    .bos{padding:16px;text-align:center;color:#94A3B8;font-size:9pt;}
+    .ozet{margin-top:10px;display:flex;justify-content:flex-end;page-break-inside:avoid;}
+    .ozet table{width:auto;min-width:290px;}
+    .ozet td{border:0;padding:3px 0;font-size:9.5pt;}
+    .ozet td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;padding-left:26px;}
+    .ozet tr.ayrac td{border-top:1px solid #CBD5E1;padding-top:6px;}
+    .ozet tr.buyuk td{font-size:11pt;font-weight:800;}
+    .dagilim{margin-top:12px;page-break-inside:avoid;}
+    .dagilim h4{margin:0 0 5px;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#475569;}
+    .dagilim .sat{display:flex;align-items:center;gap:8px;font-size:8.5pt;padding:2px 0;}
+    .dagilim .kutu{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+    .dagilim .ad{flex:1;}
+    .dagilim .tut{font-weight:700;font-variant-numeric:tabular-nums;}
+    .dagilim .yzd{width:46px;text-align:right;color:#64748B;}
+    .alt-bilgi{margin-top:14px;border-top:2px solid #1E293B;padding-top:4px;display:flex;justify-content:space-between;
+      font-size:7.5pt;color:#94A3B8;letter-spacing:.3px;}
+  </style></head><body>
+  <div class="yazdirma-notu">Yazdırma penceresi otomatik açılır; açılmazsa <b>Ctrl+P</b> ile yazdırın.</div>
+  <div class="ust">
+    <div class="marka">${AGENCY.logo ? `<img class="logo-img" src="${AGENCY.logo}" alt="${esc(AGENCY.name || '')}">` : `<div class="ad">${esc(AGENCY.name || 'Dekant')}</div>`}</div>
+    <div class="baslik"><div class="b1">MALİYET DÖKÜMÜ</div>
+      <div class="b2">İÇ BELGEDİR — MÜŞTERİYE VERİLMEZ</div></div>
+    <div class="no-kutu">
+      <div class="satir"><span class="et">TEKLİF NO</span><span class="dg">${esc(q.no || '—')}</span></div>
+      <div class="satir"><span class="et">YAZDIRMA</span><span class="dg">${bugun}</span></div>
+    </div>
+  </div>
+  <div class="kunye">
+    <div><span>Müşteri</span>${esc(musteri || '—')}</div>
+    <div><span>Teklif tarihi</span>${q.date ? esc(formatDate(q.date)) : '—'}</div>
+    <div><span>Durum</span>${esc(q.status || '—')}</div>
+    ${kurMetni.trim() ? `<div><span>Kur</span>${kurMetni}</div>` : ''}
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>Kalem</th><th>Grup</th><th class="sa">Miktar</th><th class="sa">Birim Maliyet (₺)</th><th class="sa">Tutar (₺)</th></tr></thead>
+    <tbody>${satirlar || `<tr><td colspan="6" class="bos">Maliyet kalemi girilmemiş.</td></tr>`}</tbody>
+  </table>
+  <div class="ozet"><table>
+    <tr><td>Toplam Maliyet</td><td>₺${sy2(toplam)}</td></tr>
+    <tr><td>Teklif Tutarı (KDV hariç)</td><td>₺${sy2(satis)}</td></tr>
+    <tr class="ayrac buyuk"><td>Öngörülen Kâr</td><td>₺${sy2(kar)}</td></tr>
+    <tr><td>Kâr Marjı</td><td>${marj === null ? '—' : '%' + Math.round(marj)}</td></tr>
+  </table></div>
+  ${dagilim.length ? `<div class="dagilim"><h4>Gruplara göre dağılım</h4>
+    ${dagilim.map(d => `<div class="sat"><span class="kutu" style="background:${d.renk};"></span>
+      <span class="ad">${esc(d.ad)}</span><span class="tut">₺${sy2(d.tutar)}</span>
+      <span class="yzd">%${Math.round(d.yuzde)}</span></div>`).join('')}</div>` : ''}
+  <div class="alt-bilgi"><span>${esc(AGENCY.name || '')} · Maliyet dökümü</span><span>${esc(q.no || '')} · ${bugun}</span></div>
+  </body></html>`;
+}
+function maliyetYazdir(){
+  if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()){ showToast('Maliyet bilgileri için yetkiniz yok.'); return; }
+  const q = mxAktifTeklif();
+  if(!q){ showToast('Teklif bulunamadı.'); return; }
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Açılır pencere engellendi — tarayıcı izni verin.'); return; }
+  w.document.write(maliyetYazdirHtml(q));
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch(err) {} }, 400);
+}
+
 // ---- Maliyet Hesabı: eski (ilk) tasarımın etkileşim fonksiyonları — mk* önekiyle, mevcut mx* motoruna bağlı ----
 function mkGuncelle(i, alan, deger){
   const q = mxAktifTeklif(); if(!q) return;
@@ -16823,6 +16967,10 @@ async function liveSave(opts){
     liveSetStatus('err', 'Bağlantı yok — yeniden denenecek');
   }finally{
     LIVE.saving = false;
+    // (2026-09-16d) Düğme durumu bayrak İNDİKTEN SONRA tazelenmeli. liveSetStatus('ok', …) try bloğunda,
+    // yani LIVE.saving hâlâ true iken çalışıyordu; bu yüzden kayıt başarıyla bittiği hâlde Maliyet ekranındaki
+    // düğme "Kaydediliyor…" yazısında asılı kalıyordu (veri kaydedilmişti, yalnız gösterge yanlıştı).
+    if(typeof mxKaydetYenile === 'function') mxKaydetYenile();
     if(LIVE.pending){ LIVE.pending = false; liveMarkDirty(); }
   }
 }
