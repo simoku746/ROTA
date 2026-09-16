@@ -601,6 +601,20 @@ tr:last-child td{border-bottom:none;}
   background:var(--surface-sunk);border:1px solid var(--line);color:var(--ink-2);
   font-size:11px;font-weight:600;vertical-align:middle;}
 .section-title.buyuk h3{font-size:18px;font-weight:700;}
+/* İskonto satırı — toplam bandının hemen altında, sağa hizalı ve ince */
+.li-iskonto{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:8px;padding:0 2px;}
+.li-iskonto-etiket{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);}
+.li-iskonto select{height:32px;width:auto;min-width:104px;padding:0 8px;border:1px solid var(--line-strong);
+  border-radius:7px;background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:500;}
+.li-iskonto input{height:32px;width:110px;padding:0 10px;border:1px solid var(--line-strong);
+  border-radius:7px;background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:500;
+  text-align:right;font-variant-numeric:tabular-nums;}
+.li-iskonto select:focus,.li-iskonto input:focus{outline:none;border-color:var(--signal);}
+.li-iskonto-not{order:-1;margin-right:auto;font-size:11px;font-weight:400;color:var(--ink-3);}
+@media (max-width:760px){
+  .li-iskonto{justify-content:flex-start;}
+  .li-iskonto-not{order:0;flex-basis:100%;margin-right:0;}
+}
 .tf-03-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 @media (max-width:900px){ .tf-03-grid{grid-template-columns:1fr;} }
 /* Alt toplam bandı */
@@ -2637,7 +2651,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16b';
+window.ROTA_SURUM = 'v2026-09-16c';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -12086,17 +12100,18 @@ function teklifEkleForm(){
             <div id="lineItemsBox"></div>
           </div>
           <button type="button" class="li-ekle-btn" onclick="addLineItem()">＋ Yeni Satır Ekle</button>
-          <div class="tf-iskonto-row" style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
-            <label style="font-size:13px;color:var(--navy-muted);font-weight:600;">İskonto</label>
-            <select id="qIskontoTip" onchange="updateGrandTotals()" style="width:auto;min-width:90px;">
+          <div class="li-band" id="totalsBox"></div>
+          <div class="li-iskonto">
+            <label class="li-iskonto-etiket" for="qIskontoDeger">İskonto</label>
+            <select id="qIskontoTip" aria-label="İskonto tipi" onchange="updateGrandTotals()">
               <option value="yuzde" ${(editing?.iskontoTip || 'yuzde') === 'yuzde' ? 'selected' : ''}>Yüzde (%)</option>
               <option value="tutar" ${editing?.iskontoTip === 'tutar' ? 'selected' : ''}>Tutar</option>
             </select>
-            <input id="qIskontoDeger" inputmode="decimal" placeholder="0" style="width:100px;"
-              value="${editing && editing.iskontoDeger ? virgulYaz(editing.iskontoDeger) : ''}" oninput="updateGrandTotals()">
-            <span class="hint" style="margin:0;">Ara toplamdan düşülür, KDV indirimli tutar üzerinden hesaplanır.</span>
+            <input id="qIskontoDeger" inputmode="decimal" placeholder="0" aria-label="İskonto değeri"
+              value="${editing && editing.iskontoDeger ? virgulYaz(editing.iskontoDeger) : ''}"
+              oninput="liSayiTemizle(this); updateGrandTotals();">
+            <span class="li-iskonto-not">Ara toplamdan düşülür, KDV indirimli tutar üzerinden hesaplanır.</span>
           </div>
-          <div class="li-band" id="totalsBox"></div>
         </section>
 
         <section class="form-section">
