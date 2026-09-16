@@ -18,13 +18,22 @@ export async function GET(req: NextRequest) {
   const auth = requireSession();
   if ('res' in auth) return auth.res;
 
-  const row = await prisma.appState.findUnique({ where: { id: STATE_ID } });
-  if (!row) return json({ version: 0, data: null, updatedAt: null, updatedBy: null });
+  // (2026-09-16i) ÖNEMLİ — VERİTABANI TRAFİĞİ:
+  // Eskiden önce TÜM satır (data sütunu dahil) çekiliyor, sürüm ondan sonra karşılaştırılıyordu.
+  // Tarayıcı 15 saniyede bir yoklama yaptığı için, hiçbir şey değişmese bile tüm uygulama verisi
+  // her 15 saniyede bir veritabanından çekiliyordu (açık her sekme için ayrı ayrı). Bu, Neon'un
+  // aylık veri aktarım kotasını günler içinde bitiriyordu.
+  // Artık önce YALNIZ version sütunu okunuyor; data yalnızca gerçekten değiştiyse çekiliyor.
+  const meta = await prisma.appState.findUnique({ where: { id: STATE_ID }, select: { version: true } });
+  if (!meta) return json({ version: 0, data: null, updatedAt: null, updatedBy: null });
 
   const known = Number(req.nextUrl.searchParams.get('v'));
-  if (Number.isFinite(known) && known === row.version) {
-    return json({ version: row.version, unchanged: true });
+  if (Number.isFinite(known) && known === meta.version) {
+    return json({ version: meta.version, unchanged: true });
   }
+
+  const row = await prisma.appState.findUnique({ where: { id: STATE_ID } });
+  if (!row) return json({ version: 0, data: null, updatedAt: null, updatedBy: null });
   return json({ version: row.version, data: row.data, updatedAt: row.updatedAt, updatedBy: row.updatedBy });
 }
 
