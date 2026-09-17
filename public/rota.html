@@ -2545,6 +2545,32 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 .mu-panel-bos{padding:26px 18px;text-align:center;color:var(--ink-3);font-size:13.5px;
   border:1px dashed var(--line-strong);border-radius:var(--radius-lg);}
 
+/* ---- tek ürün ekranı ---- */
+.mu-tek-bar{display:flex;align-items:center;gap:9px;margin-bottom:11px;flex-wrap:wrap;}
+.mu-gez{height:32px;padding:0 13px;border:1px solid var(--line-strong);border-radius:8px;
+  background:var(--surface);color:var(--ink);font:600 12.5px/1 var(--font-body);cursor:pointer;}
+.mu-gez:hover:not([disabled]){border-color:var(--signal);color:var(--signal-ink);}
+.mu-gez[disabled]{opacity:.45;cursor:not-allowed;}
+.mu-gez-tum{margin-left:auto;border-style:dashed;}
+.mu-tek-sayac{font:700 12.5px/1 var(--font-body);color:var(--ink-2);padding:0 4px;}
+.mu-bolum.mu-tek{box-shadow:var(--shadow-md);}
+.mu-bolum.mu-tek .mu-bas{cursor:default;}
+
+.mu-tek-alt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding:14px 18px;
+  border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);}
+.mu-don{height:40px;padding:0 20px;border:none;border-radius:9px;background:var(--signal);color:#fff;
+  font:700 14px/1 var(--font-body);cursor:pointer;}
+.mu-don:hover{background:var(--signal-ink);}
+.mu-sonraki{height:40px;padding:0 16px;border:1px solid var(--line-strong);border-radius:9px;
+  background:var(--surface);color:var(--ink);font:600 13px/1 var(--font-body);cursor:pointer;
+  max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mu-sonraki:hover{border-color:var(--signal);color:var(--signal-ink);}
+.mu-tek-not{margin-left:auto;font-size:12.5px;color:var(--ink-2);}
+.mu-tek-uyari{margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);
+  background:var(--hold-soft);color:var(--hold);font-size:12.5px;}
+.mu-link{border:none;background:none;padding:0;color:var(--signal-ink);font:600 12.5px/1 var(--font-body);
+  cursor:pointer;text-decoration:underline;}
+
 .mu-chip{font-weight:700;}
 .mu-chip.iyi{background:var(--ok-soft);color:var(--ok);}
 .mu-chip.dus{background:var(--hold-soft);color:var(--hold);}
@@ -2584,7 +2610,9 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
   .mu-tasi{width:100%;}
   .mu-tasi select{max-width:none;flex:1;}
   .mu-oneri{margin-left:0;width:100%;}
-  .mu-genel-not,.mu-tbant-not{margin-left:0;flex-basis:100%;}
+  .mu-genel-not,.mu-tbant-not,.mu-tek-not{margin-left:0;flex-basis:100%;}
+  .mu-gez-tum{margin-left:0;}
+  .mu-don,.mu-sonraki{width:100%;max-width:none;}
   .mu-serit-bosluk{display:none;}
 }
 .mx-kolonlar,.mx-satir{display:grid;grid-template-columns:minmax(220px,1fr) 120px 140px 140px 68px;align-items:center;column-gap:12px;}
@@ -14490,11 +14518,9 @@ function submitQuote(sonra){
   quoteKosullar = null;
   renderContent();
   if(sonra && sonra.tip === 'maliyet'){
-    muHedefUrun = sonra.urunId || null;
-    openMaliyet(targetId);
+    openMaliyet(targetId, sonra.urunId || null);
     return;
   }
-  muHedefUrun = null;
   openQuoteView(targetId);
 }
 
@@ -14794,13 +14820,15 @@ function mxGecmisYaz(q, islem, kalem, eski, yeni){
 
 // ---- Sayfa ----
 function mxAktifTeklif(){ return QUOTES.find(x => x.id === teklifViewId); }
-function openMaliyet(id){
+function openMaliyet(id, urunId){
   if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()){ showToast('Maliyet bilgileri için yetkiniz yok.'); return; }
   if(!teklifErisimVar(id)){ showToast('Bu teklif için yetkiniz yok.'); return; }
   pushHistory();
   teklifViewId = id; teklifStep = 'maliyet'; maliyetTab = 'kalemler';
   mxDurum.adim = 'maliyetler'; mxDurum.ara = ''; mxDurum.grup = ''; mxDurum.filtre = ''; mxDurum.filtreAcik = false; mxDurum.sadeceSorunlu = false; mxDurum.menu = null; mxDurum.drawerAra = '';
   kurGetir(false);
+  // urunId verilirse TEK ÜRÜN modu; menüden gelindiğinde undefined olur ve tüm ürünler listelenir.
+  muHedefUrun = urunId || null;
   const q = QUOTES.find(x => x.id === id);
   if(q){ ensureMaliyet(q); muAcikHazirla(q); }
   renderContent();
@@ -14846,6 +14874,10 @@ window.addEventListener('beforeunload', e => {
 const MU_RENKLER = ['pj4', 'pj1', 'pj2', 'pj6', 'pj5', 'pj3'];   // pj3 (turuncu) en sonda: marka turuncusuyla karışmasın
 let muAcik = {};          // urunId -> true (açık bölümler)
 let muHedefUrun = null;   // teklif ekranından hangi ürün için gelindi
+// TEK ÜRÜN MODU: teklif satırındaki düğmeyle gelindiğinde ekranda YALNIZ o ürün olur.
+// Kullanıcı isteği: "sadece o ürüne ait tek ürün ekranı gelip kaydedip geri teklif ekranına gelebilir mi".
+// Menüden/teklif kartından gelindiğinde muTekUrun null'dır ve tüm ürünler listelenir.
+let muTekUrun = null;
 
 function muRenk(i){ return MU_RENKLER[i % MU_RENKLER.length]; }
 
@@ -14933,6 +14965,9 @@ function muBolumAc(urunId){ muAcik[urunId] = !muAcik[urunId]; renderContent(); }
 function muAcikHazirla(q){
   muAcik = {};
   muOzet(q).forEach(d => { if(!d.maliyetVar) muAcik[d.urun.id] = true; });
+  // Teklif satırındaki düğmeyle gelindiyse TEK ÜRÜN modu açılır; menüden/teklif kartından
+  // gelindiyse (muHedefUrun yok) her zamanki gibi tüm ürünler listelenir.
+  muTekUrun = (muHedefUrun && muUrunler(q).some(u => u.id === muHedefUrun)) ? muHedefUrun : null;
   if(muHedefUrun) muAcik[muHedefUrun] = true;
 }
 
@@ -15002,17 +15037,18 @@ function muUrunAdiKisa(q, urunId){
   return u ? String(u.title || 'Ürün') : 'Ürün';
 }
 
-function muBolumHtml(q, d, kur){
-  const acik = !!muAcik[d.urun.id];
+// tekMod: tek ürün ekranı — bölüm her zaman açıktır, kapatma oku ve "gelinen ürün" halkası yoktur.
+function muBolumHtml(q, d, kur, tekMod){
+  const acik = tekMod ? true : !!muAcik[d.urun.id];
   const st = muMarjDurum(q, d);
   const idx = muIndeksler(q, d.urun.id);
   const items = (q.maliyet && q.maliyet.items) || [];
   const oneri = muOneriBirim(q, d.urun.id, kur);
   const s = d.sira;
   return `
-  <div class="mu-bolum mu-r-${d.renk} ${muHedefUrun === d.urun.id ? 'mu-hedef' : ''}">
-    <div class="mu-bas" onclick="muBolumAc('${d.urun.id}')" role="button" tabindex="0"
-         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();muBolumAc('${d.urun.id}');}">
+  <div class="mu-bolum mu-r-${d.renk} ${tekMod ? 'mu-tek' : (muHedefUrun === d.urun.id ? 'mu-hedef' : '')}">
+    <div class="mu-bas" ${tekMod ? '' : `onclick="muBolumAc('${d.urun.id}')" role="button" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();muBolumAc('${d.urun.id}');}"`}>
       <span class="mu-no">${s}</span>
       <span class="mu-ad-blok">
         <span class="mu-ad">${notEsc(d.urun.title)}</span>
@@ -15022,7 +15058,7 @@ function muBolumHtml(q, d, kur){
       <span class="mu-bas-sag">
         ${!acik && d.maliyetVar ? `<span class="mu-ozet-mini">Maliyet <b>${mxPara(d.maliyet)}</b></span>` : ''}
         <span class="v-chip mu-chip ${st.cls}" id="muChip${s}" title="${st.ad}">${d.maliyetVar ? muYuzde(d.marj) : 'Maliyet girilmedi'}</span>
-        <span class="mu-ok">${acik ? '▴' : '▾'}</span>
+        ${tekMod ? '' : `<span class="mu-ok">${acik ? '▴' : '▾'}</span>`}
       </span>
     </div>
     ${!acik ? '' : `
@@ -15089,12 +15125,59 @@ function muBagsizHtml(q, kur){
   </div>`;
 }
 
+// ---- TEK ÜRÜN MODU ----
+function muTekeGec(urunId){ muTekUrun = urunId; muAcik[urunId] = true; renderContent(); window.scrollTo(0, 0); }
+function muTumunuGoster(){ muTekUrun = null; renderContent(); window.scrollTo(0, 0); }
+function muKaydetDon(){
+  const q = mxAktifTeklif(); if(!q) return;
+  if(typeof mxKaydet === 'function') mxKaydet();
+  muTekUrun = null; muHedefUrun = null;
+  openQuoteEdit(q.id);
+}
+function muKomsuUrun(q, urunId, yon){
+  const liste = muUrunler(q);
+  const i = liste.findIndex(u => u.id === urunId);
+  if(i < 0) return null;
+  const j = i + yon;
+  return (j >= 0 && j < liste.length) ? liste[j] : null;
+}
+function muTekPanelHtml(q, kur){
+  const dag = muOzet(q, kur);
+  const d = dag.find(x => x.urun.id === muTekUrun);
+  if(!d){ muTekUrun = null; return muPaneliHtml(q, kur); }   // ürün silinmişse tüm listeye düş
+  const onceki = muKomsuUrun(q, d.urun.id, -1);
+  const sonraki = muKomsuUrun(q, d.urun.id, 1);
+  const bagsiz = muIndeksler(q, null).length;
+  const maliyet = maliyetToplam(q);
+  const satis = mxSatisTL(q, kur);
+  const kar = kurus(satis - maliyet);
+  return `
+    <div class="mu-tek-bar">
+      <button class="mu-gez" ${onceki ? `onclick="muTekeGec('${onceki.id}')"` : 'disabled'}
+        title="${onceki ? notEsc(onceki.title) : 'İlk ürün'}">‹ Önceki</button>
+      <span class="mu-tek-sayac">${d.sira}. ürün / ${dag.length}</span>
+      <button class="mu-gez" ${sonraki ? `onclick="muTekeGec('${sonraki.id}')"` : 'disabled'}
+        title="${sonraki ? notEsc(sonraki.title) : 'Son ürün'}">Sonraki ›</button>
+      <button class="mu-gez mu-gez-tum" onclick="muTumunuGoster()">Tüm ürünleri göster (${dag.length})</button>
+    </div>
+    ${muBolumHtml(q, d, kur, true)}
+    <div class="mu-tek-alt">
+      <button class="mu-don" onclick="muKaydetDon()">✓ Kaydet ve Teklife Dön</button>
+      ${sonraki ? `<button class="mu-sonraki" onclick="muTekeGec('${sonraki.id}')">Sonraki ürüne geç: ${notEsc(sonraki.title)} →</button>` : ''}
+      <span class="mu-tek-not">Teklifin geneli: maliyet <b>${mxPara(maliyet)}</b> · satış <b>${mxPara(satis)}</b> ·
+        kâr <b class="${kar < 0 ? 'mu-eksi' : 'mu-arti'}">${mxPara(kar)}</b></span>
+    </div>
+    ${bagsiz ? `<div class="mu-tek-uyari">${bagsiz} maliyet kalemi hiçbir ürüne bağlı değil.
+      <button class="mu-link" onclick="muTumunuGoster()">Tüm ürünler görünümünde</button> düzenleyebilirsiniz.</div>` : ''}`;
+}
+
 function muPaneliHtml(q, kur){
   const dag = muOzet(q, kur);
   if(!dag.length && !muIndeksler(q, null).length){
     return `<div class="mu-panel-bos">Bu teklifte henüz ürün yok. Teklifi düzenleyip ürün ekleyin,
       sonra her ürünün maliyetini buradan girebilirsiniz.</div>`;
   }
+  if(muTekUrun) return muTekPanelHtml(q, kur);
   const maliyet = maliyetToplam(q);
   const satis = mxSatisTL(q, kur);
   const kar = kurus(satis - maliyet);
