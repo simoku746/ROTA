@@ -2470,6 +2470,123 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 .mx-toolbar .ghost,.mx-toolbar .primary{height:40px;white-space:nowrap;}
 /* tablo */
 .mx-tablo{padding:0 14px 14px;}
+/* ===== ÜRÜN BAZLI MALİYET (v2026-09-17c) — .mu-* =====
+   Renkler haftalık plandaki proje paletinden (--pj1..--pj6) gelir; koyu temada karşılıkları
+   zaten tanımlı olduğu için gece modu ayrıca ele alınmadı. */
+.mu-r-pj1{--kf:var(--pj1);--kb:var(--pj1b);--kt:var(--pj1f);}
+.mu-r-pj2{--kf:var(--pj2);--kb:var(--pj2b);--kt:var(--pj2f);}
+.mu-r-pj3{--kf:var(--pj3);--kb:var(--pj3b);--kt:var(--pj3f);}
+.mu-r-pj4{--kf:var(--pj4);--kb:var(--pj4b);--kt:var(--pj4f);}
+.mu-r-pj5{--kf:var(--pj5);--kb:var(--pj5b);--kt:var(--pj5f);}
+.mu-r-pj6{--kf:var(--pj6);--kb:var(--pj6b);--kt:var(--pj6f);}
+
+.mu-bolum{border:1px solid var(--line);border-left:4px solid var(--kb,var(--line-strong));
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);background:var(--surface);
+  margin-bottom:12px;overflow:hidden;}
+.mu-bolum.mu-hedef{box-shadow:0 0 0 3px var(--signal-soft),var(--shadow-sm);border-color:var(--signal);}
+
+.mu-bas{display:flex;align-items:center;gap:11px;padding:12px 16px;cursor:pointer;
+  background:var(--kf,var(--surface-muted));border-bottom:1px solid var(--kb,var(--line));}
+.mu-bas:hover{filter:brightness(.985);}
+.mu-bas:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;}
+.mu-no{width:25px;height:25px;border-radius:7px;background:var(--surface);color:var(--kt,var(--ink-2));
+  font:700 12.5px/1 var(--font-display);display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;border:1px solid var(--kb,var(--line));}
+.mu-ad-blok{min-width:0;}
+.mu-ad{display:block;font:700 15px/1.25 var(--font-display);letter-spacing:-.2px;color:var(--kt,var(--ink));}
+.mu-alt{display:block;font-size:12px;color:var(--ink-2);margin-top:2px;}
+.mu-bas-sag{margin-left:auto;display:flex;align-items:center;gap:11px;flex:0 0 auto;}
+.mu-ozet-mini{font-size:12.5px;color:var(--ink-2);white-space:nowrap;}
+.mu-ok{color:var(--ink-3);font-size:12px;}
+
+/* Gövde de hafif tonlu (kullanıcı seçimi: "A") — beyaz giriş kutuları üstünde durur. */
+.mu-govde{background:color-mix(in srgb,var(--kf,var(--surface)) 34%,var(--surface));}
+.mu-govde .mx-liste{padding:12px 14px 4px;}
+.mu-govde .mx-row{background:var(--surface);}
+.mu-bos{padding:20px 16px;text-align:center;color:var(--ink-3);font-size:13px;}
+/* Hazır kalem çipleri her bölümde tekrarlandığı için SARMALANMAZ; tek satırda yatay kayar.
+   10 ürünlü bir teklifte 3'er satır çip ekranı okunamaz hale getiriyordu. */
+.mu-ekle{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;padding:4px 14px 14px;
+  overflow-x:auto;scrollbar-width:thin;}
+.mu-ekle::-webkit-scrollbar{height:6px;}
+.mu-ekle::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px;}
+.mu-ekle .add-line-btn{margin:0;width:auto;flex:0 0 auto;}
+.mu-ekle .mx-chip{background:var(--surface);flex:0 0 auto;}
+
+.mu-satir-alt{display:flex;align-items:flex-start;gap:10px;}
+.mu-satir-alt .mx-aciklama{flex:1;min-width:0;}
+.mu-tasi{display:flex;align-items:center;gap:6px;flex:0 0 auto;font-size:11.5px;color:var(--ink-3);}
+.mu-tasi select{height:32px;max-width:190px;padding:0 8px;border:1px solid var(--line);border-radius:7px;
+  background:var(--surface);color:var(--ink-2);font-size:12px;}
+
+.mu-alt-bant{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 16px;
+  background:var(--kf,var(--surface-muted));border-top:1px solid var(--kb,var(--line));}
+.mu-kut{display:flex;flex-direction:column;gap:1px;}
+.mu-kut i{font:700 10px/1 var(--font-body);letter-spacing:.5px;color:var(--ink-2);font-style:normal;}
+.mu-kut b{font:700 14.5px/1.2 var(--font-mono);font-variant-numeric:tabular-nums;}
+.mu-arti{color:var(--ok);} .mu-eksi{color:var(--risk);} .mu-solgun{color:var(--ink-3);}
+.mu-oneri{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mu-oneri-not{font-size:12px;color:var(--ink-2);}
+.mu-oneri-btn{background:var(--signal);color:#fff;border:none;border-radius:8px;height:32px;padding:0 14px;
+  font:700 12.5px/1 var(--font-body);cursor:pointer;font-variant-numeric:tabular-nums;}
+.mu-oneri-btn:hover{background:var(--signal-ink);}
+
+.mu-bagsiz{border-left-color:var(--hold);}
+.mu-bagsiz .mu-bas{background:var(--hold-soft);border-bottom-color:#F0DCB0;}
+.mu-bagsiz .mu-ad{color:var(--hold);}
+.mu-bagsiz .mu-no{color:var(--hold);border-color:#F0DCB0;}
+.mu-bagsiz .mu-govde{background:var(--surface);}
+
+.mu-genel{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:15px 20px;margin-top:2px;
+  border:2px solid var(--ink);border-radius:var(--radius-lg);background:var(--surface);}
+.mu-genel-bas{font:700 11.5px/1 var(--font-body);letter-spacing:.7px;}
+.mu-genel .mu-kut b{font-size:17px;}
+.mu-genel-not{margin-left:auto;font-size:12px;color:var(--hold);}
+.mu-panel-bos{padding:26px 18px;text-align:center;color:var(--ink-3);font-size:13.5px;
+  border:1px dashed var(--line-strong);border-radius:var(--radius-lg);}
+
+.mu-chip{font-weight:700;}
+.mu-chip.iyi{background:var(--ok-soft);color:var(--ok);}
+.mu-chip.dus{background:var(--hold-soft);color:var(--hold);}
+.mu-chip.kotu{background:var(--risk-soft);color:var(--risk);}
+.mu-chip.yok{background:var(--surface);color:var(--ink-3);border:1px solid var(--line);}
+
+.mu-ozet-liste{margin-top:16px;border-top:1px solid var(--line);padding-top:13px;}
+.mu-ozet-bas{font:700 10.5px/1 var(--font-body);letter-spacing:.5px;color:var(--ink-3);margin-bottom:9px;}
+.mu-ozet-sat{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.5px;color:var(--ink-2);}
+.mu-ozet-ad{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mu-ozet-nokta{width:10px;height:10px;border-radius:3px;background:var(--kb,var(--line-strong));flex:0 0 auto;}
+.mu-oz-iyi{color:var(--ok);} .mu-oz-dus{color:var(--hold);} .mu-oz-kotu{color:var(--risk);} .mu-oz-yok{color:var(--ink-3);}
+
+/* ---- teklif ekranı ---- */
+.mu-serit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:11px;
+  border-top:1px dashed var(--line);}
+.mu-nokta{width:11px;height:11px;border-radius:4px;background:var(--kb,var(--line-strong));flex:0 0 auto;}
+.mu-btn{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;cursor:pointer;
+  border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink);
+  font:600 12.5px/1 var(--font-body);font-variant-numeric:tabular-nums;}
+.mu-btn:hover{border-color:var(--signal);color:var(--signal-ink);}
+.mu-btn.bos{border-style:dashed;border-color:var(--signal);color:var(--signal-ink);background:var(--signal-soft);}
+.mu-btn[disabled]{opacity:.5;cursor:not-allowed;border-style:solid;border-color:var(--line);
+  color:var(--ink-3);background:var(--surface);}
+.mu-serit-not{font-size:12.5px;color:var(--ink-3);}
+.mu-serit-bosluk{margin-left:auto;}
+
+.mu-tbant{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:9px;padding:12px 16px;
+  border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);}
+.mu-tbant-bas{font:700 11px/1 var(--font-body);letter-spacing:.6px;color:var(--ink-3);}
+.mu-tbant-not{margin-left:auto;font-size:12px;color:var(--hold);}
+
+@media (max-width:760px){
+  .mu-bas{flex-wrap:wrap;}
+  .mu-bas-sag{margin-left:0;width:100%;justify-content:flex-start;}
+  .mu-satir-alt{flex-direction:column;}
+  .mu-tasi{width:100%;}
+  .mu-tasi select{max-width:none;flex:1;}
+  .mu-oneri{margin-left:0;width:100%;}
+  .mu-genel-not,.mu-tbant-not{margin-left:0;flex-basis:100%;}
+  .mu-serit-bosluk{display:none;}
+}
 .mx-kolonlar,.mx-satir{display:grid;grid-template-columns:minmax(220px,1fr) 120px 140px 140px 68px;align-items:center;column-gap:12px;}
 .mx-kolonlar{height:42px;padding:0 10px;color:var(--ink-3);font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.06em;}
 .mx-kolonlar .sag,.mx-satir .sag{text-align:right;}
@@ -2852,7 +2969,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-17b';
+window.ROTA_SURUM = 'v2026-09-17c';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -13725,6 +13842,7 @@ function teklifEkleForm(){
           </div>
           <button type="button" class="li-ekle-btn" onclick="addLineItem()">＋ Yeni Satır Ekle</button>
           <div class="li-band" id="totalsBox"></div>
+          <div id="muTeklifBant"></div>
           <div class="li-iskonto">
             <label class="li-iskonto-etiket" for="qIskontoDeger">İskonto</label>
             <select id="qIskontoTip" aria-label="İskonto tipi" onchange="updateGrandTotals()">
@@ -14039,11 +14157,13 @@ function renderLineItems(){
         </div>
       </div>
       <div id="liDimWrap${idx}">${dimLineHtml(idx)}</div>
+      <div id="muSerit${idx}">${muTeklifSeridi(idx)}</div>
     </div>`;
   }).join('');
   const rozet = document.getElementById('liKalemSayi');
   if(rozet) rozet.textContent = quoteLineItems.length + ' kalem';
   updateGrandTotals();
+  if(typeof muTeklifBandiTazele === 'function') muTeklifBandiTazele();
 }
 // Para ve ölçü biçimleri — tek kaynak (tr-TR, 2 ondalık, tabular)
 function liPara(n){ return CURRENCY_SYMBOLS[quoteCurrency] + fmt2(n); }
@@ -14183,6 +14303,10 @@ function syncRow(idx){
   if(m) m.innerHTML = '<small>Toplam</small> ' + fmt2(lineQty(it)) + ' ' + unitShort(it);
   if(f) f.textContent = lineFormul(it);
   if(t) t.textContent = liPara(lineNet(it));
+  // Fiyat değişince o satırın kâr/marjı da değişir.
+  const serit = document.getElementById('muSerit' + idx);
+  if(serit && typeof muTeklifSeridi === 'function') serit.innerHTML = muTeklifSeridi(idx);
+  if(typeof muTeklifBandiTazele === 'function') muTeklifBandiTazele();
   updateGrandTotals();
 }
 function updateGrandTotals(){
@@ -14306,7 +14430,7 @@ function addLineItem(){
 }
 function removeLine(idx){ quoteLineItems.splice(idx,1); if(quoteLineItems.length===0) quoteLineItems.push(blankLine()); renderLineItems(); }
 
-function submitQuote(){
+function submitQuote(sonra){
   const customerId = document.getElementById('qCustomer').value;
   if(!customerId){ alert('Lütfen bir müşteri seçin'); return; }
   const repName = (document.getElementById('qRep').value || '').trim() || benimTemsilciAdim();
@@ -14365,6 +14489,12 @@ function submitQuote(){
   quoteLineItems = [blankLine()];
   quoteKosullar = null;
   renderContent();
+  if(sonra && sonra.tip === 'maliyet'){
+    muHedefUrun = sonra.urunId || null;
+    openMaliyet(targetId);
+    return;
+  }
+  muHedefUrun = null;
   openQuoteView(targetId);
 }
 
@@ -14672,7 +14802,7 @@ function openMaliyet(id){
   mxDurum.adim = 'maliyetler'; mxDurum.ara = ''; mxDurum.grup = ''; mxDurum.filtre = ''; mxDurum.filtreAcik = false; mxDurum.sadeceSorunlu = false; mxDurum.menu = null; mxDurum.drawerAra = '';
   kurGetir(false);
   const q = QUOTES.find(x => x.id === id);
-  if(q) ensureMaliyet(q);
+  if(q){ ensureMaliyet(q); muAcikHazirla(q); }
   renderContent();
   tarayiciGecmisYaz();
 }
@@ -14702,6 +14832,392 @@ window.addEventListener('beforeunload', e => {
   }catch(err){}
 });
 
+// ===================== ÜRÜN BAZLI MALİYET (v2026-09-17c) =====================
+// Kurgu (kullanıcı kararı, 17 Eylül):
+//   - Her maliyet satırı BİR teklif ürününe bağlanır (r.urunId).
+//   - ORTAK GİDER / DAĞITIM YOKTUR. Nakliye, vinç, montaj teklifte kendi satırı olarak
+//     müşteriye yansıtılıyor; o yüzden pay dağıtmaya gerek kalmadı.
+//   - Teklif ekranında her ürün satırının altında "Maliyet" düğmesi; maliyet ekranı
+//     ürün ürün bölümlere ayrıldı, her bölüm kendi rengini taşıyor.
+//
+// GÖÇ YOK: urunId alanı olmayan eski satırlar "bağlanmamış" sayılır, ayrı bölümde durur ve
+// GENEL TOPLAMA DAHİLDİR. Bu sayede hiçbir eski teklifin toplam maliyeti/kârı/marjı değişmez.
+
+const MU_RENKLER = ['pj4', 'pj1', 'pj2', 'pj6', 'pj5', 'pj3'];   // pj3 (turuncu) en sonda: marka turuncusuyla karışmasın
+let muAcik = {};          // urunId -> true (açık bölümler)
+let muHedefUrun = null;   // teklif ekranından hangi ürün için gelindi
+
+function muRenk(i){ return MU_RENKLER[i % MU_RENKLER.length]; }
+
+// Adsız satırlar ürün sayılmaz — teklifte de kaydedilmiyorlar (submitQuote onları eler).
+function muUrunler(q){
+  return lineItemsNormalle((q && q.items) || []).filter(u => String(u.title || '').trim());
+}
+function muAktifKalemler(q){ return ((q.maliyet && q.maliyet.items) || []).filter(r => r && r.aktif !== false); }
+
+// Sarkan bağlantı (ürün tekliften silinmiş) BAĞLANMAMIŞ sayılır — satır kaybolmasın diye.
+function muSatirUrunu(q, r){
+  if(!r || !r.urunId) return null;
+  return muUrunler(q).some(u => u.id === r.urunId) ? r.urunId : null;
+}
+// Veri dizisindeki GERÇEK index'ler — mk* fonksiyonlarının tamamı bu index ile çalışır.
+function muIndeksler(q, urunId){
+  const items = (q.maliyet && q.maliyet.items) || [];
+  const out = [];
+  items.forEach((r, i) => { if(r && r.aktif !== false && muSatirUrunu(q, r) === (urunId || null)) out.push(i); });
+  return out;
+}
+function muUrunMaliyet(q, urunId, kur){
+  kur = kur || mxKur(q);
+  const items = (q.maliyet && q.maliyet.items) || [];
+  return kurus(muIndeksler(q, urunId).reduce((s, i) => s + mxSatirToplam(items[i], kur), 0));
+}
+function muUrunSatis(q, u, kur){
+  return kurus(mxTLcevir(lineNet(u), q.currency || 'TL', kur || mxKur(q)));
+}
+
+// Ekranın TEK hesap kaynağı. Satış > 0 değilse marj null döner ve "—" yazılır;
+// sıfıra bölüp %100 gibi yanıltıcı bir sayı ÜRETİLMEZ.
+function muOzet(q, kur, urunListesi){
+  kur = kur || mxKur(q);
+  const urunler = urunListesi || muUrunler(q);
+  return urunler.map((u, i) => {
+    const satis = muUrunSatis(q, u, kur);
+    const maliyet = muUrunMaliyet(q, u.id, kur);
+    const kalem = muIndeksler(q, u.id).length;
+    return {
+      urun: u, sira: i + 1, renk: muRenk(i), satis, maliyet, kalem,
+      kar: kurus(satis - maliyet),
+      marj: satis > 0 ? (satis - maliyet) / satis : null,
+      maliyetVar: kalem > 0,
+    };
+  });
+}
+function muUrunSatiri(q, urunId, kur, urunListesi){
+  return muOzet(q, kur, urunListesi).find(d => d.urun.id === urunId) || null;
+}
+function muHedefOran(q){
+  const h = Number(q.maliyet && q.maliyet.hedefOran);
+  return h > 0 ? h : MALIYET_AYAR.varsayilanHedef;
+}
+// Hedef kâr oranına göre önerilen BİRİM fiyat (teklifin para biriminde).
+function muOneriBirim(q, urunId, kur){
+  kur = kur || mxKur(q);
+  const mal = muUrunMaliyet(q, urunId, kur);
+  if(!(mal > 0)) return null;
+  const u = muUrunler(q).find(x => x.id === urunId); if(!u) return null;
+  const adet = lineQty(u); if(!(adet > 0)) return null;
+  const hedef = muHedefOran(q);
+  const tutarTL = (q.maliyet && q.maliyet.hedefMod === 'markup') ? mxOneriMarkup(mal, hedef) : mxOneriMarj(mal, hedef);
+  if(tutarTL === null) return null;
+  const kd = mxKurDegeri(q.currency || 'TL', kur) || 1;   // teklif dövizliyse ₺'den geri çevir
+  return kurus((tutarTL / kd) / adet);
+}
+function muMarjDurum(q, d){
+  if(!d.maliyetVar) return { cls:'yok', ad:'Bu ürüne maliyet girilmedi' };
+  if(d.marj === null) return { cls:'yok', ad:'Satış fiyatı girilmedi' };
+  const hedef = muHedefOran(q) / 100;
+  if(d.marj < 0)     return { cls:'kotu', ad:'Zararına' };
+  if(d.marj < hedef) return { cls:'dus',  ad:'Hedefin altında (hedef %' + virgulYaz(muHedefOran(q)) + ')' };
+  return { cls:'iyi', ad:'Hedefte' };
+}
+function muYuzde(marj){ return (marj === null || marj === undefined) ? '—' : '%' + (marj * 100).toFixed(1).replace('.', ','); }
+
+// ---------------------------------------------------------------- MALİYET EKRANI
+function muBolumAc(urunId){ muAcik[urunId] = !muAcik[urunId]; renderContent(); }
+
+// Ekrana girerken hangi bölümler açık olsun:
+//   - teklif ekranından gelinen ürün
+//   - maliyeti HENÜZ GİRİLMEMİŞ ürünler (yapılacak iş göz önünde olsun)
+// Maliyeti girilmiş ürünler kapalı gelir — 10 kalemlik teklifte ekran boğulmasın diye.
+function muAcikHazirla(q){
+  muAcik = {};
+  muOzet(q).forEach(d => { if(!d.maliyetVar) muAcik[d.urun.id] = true; });
+  if(muHedefUrun) muAcik[muHedefUrun] = true;
+}
+
+function muSatirHtml(q, r, i){
+  const rozet = { malzeme:'Malzeme', iscilik:'İşçilik', dis_hizmet:'Dış Hizmet' };
+  const ikon = `<svg class="mx-row-ikon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>`;
+  return `
+    <div class="mx-row" id="mxRow${i}">
+      <div class="mx-row-top">
+        <div class="mx-row-id">
+          <span class="mx-row-label">Ürün / Maliyet Kalemi</span>
+          <div class="mx-row-name">
+            ${ikon}
+            <input class="mx-ad-input" value="${notEsc(r.ad || '')}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mkGuncelle(${i},'ad',this.value)">
+            ${rozet[r.grup] ? `<span class="mx-row-rozet">${rozet[r.grup]}</span>` : ''}
+          </div>
+        </div>
+        <div class="mx-row-nums">
+          <div class="mx-field mx-f-miktar"><label>Miktar</label><input inputmode="decimal" value="${virgulYaz(r.miktar ?? 1)}" oninput="mkGuncelle(${i},'miktar',this.value)"></div>
+          <div class="mx-field mx-f-birim"><label>Birim Maliyet</label><input inputmode="decimal" value="${virgulYaz(r.fiyat ?? 0)}" oninput="mkGuncelle(${i},'fiyat',this.value)"></div>
+          <div class="mx-field mx-f-tutar"><label>Tutar</label><input class="mx-tutar" id="mxTutar${i}" readonly value="${tl(r.toplamTL || 0)}"></div>
+          <button class="li-remove" aria-label="Kalemi sil" title="Kalemi sil" onclick="mkSatirSil(${i})">✕</button>
+        </div>
+      </div>
+      <div class="mx-olcu">📐
+        <span class="mx-bagli" id="mxMz_${i}">${mkBagliHtml(r, i)}</span>
+        <input inputmode="decimal" placeholder="En (cm)" value="${r.en ? virgulYaz(r.en) : ''}" oninput="mkOlcu(${i},'en',this.value)">
+        ×
+        <input inputmode="decimal" placeholder="Boy (cm)" value="${r.boy ? virgulYaz(r.boy) : ''}" oninput="mkOlcu(${i},'boy',this.value)">
+        <span class="m2sonuc" id="mxM2_${i}">${mkOlcuMetni(r)}</span>
+      </div>
+      <div class="mu-satir-alt">
+        <textarea class="mx-aciklama" rows="1"
+          placeholder="Açıklama / tedarikçi notu — ör. X firmasından alındı, özel iskontolu fiyattır"
+          oninput="mkGuncelle(${i},'not',this.value)">${notEsc(r.not || '')}</textarea>
+        ${muTasiSecHtml(q, r, i)}
+      </div>
+    </div>`;
+}
+
+// Satırı başka bir ürüne taşıma seçicisi — yanlış ürüne yazılan kalem buradan düzeltilir.
+function muTasiSecHtml(q, r, i){
+  const urunler = muUrunler(q);
+  if(!urunler.length) return '';
+  const secili = muSatirUrunu(q, r) || '';
+  return `<label class="mu-tasi" title="Bu kalem hangi ürüne ait?">
+    <span>Ürün</span>
+    <select onchange="muSatirTasi(${i}, this.value)">
+      <option value="" ${secili === '' ? 'selected' : ''}>— bağlanmamış —</option>
+      ${urunler.map((u, k) => `<option value="${u.id}" ${secili === u.id ? 'selected' : ''}>${k + 1}. ${notEsc(u.title)}</option>`).join('')}
+    </select>
+  </label>`;
+}
+function muSatirTasi(i, urunId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ((q.maliyet && q.maliyet.items) || [])[i]; if(!r) return;
+  const eski = muSatirUrunu(q, r) ? muUrunAdiKisa(q, muSatirUrunu(q, r)) : 'bağlanmamış';
+  r.urunId = urunId || null;
+  const yeni = urunId ? muUrunAdiKisa(q, urunId) : 'bağlanmamış';
+  if(typeof mxGecmisYaz === 'function' && eski !== yeni) mxGecmisYaz(q, 'tasima', r.ad || 'Kalem', eski, yeni);
+  if(urunId) muAcik[urunId] = true;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  renderContent();
+}
+function muUrunAdiKisa(q, urunId){
+  const u = muUrunler(q).find(x => x.id === urunId);
+  return u ? String(u.title || 'Ürün') : 'Ürün';
+}
+
+function muBolumHtml(q, d, kur){
+  const acik = !!muAcik[d.urun.id];
+  const st = muMarjDurum(q, d);
+  const idx = muIndeksler(q, d.urun.id);
+  const items = (q.maliyet && q.maliyet.items) || [];
+  const oneri = muOneriBirim(q, d.urun.id, kur);
+  const s = d.sira;
+  return `
+  <div class="mu-bolum mu-r-${d.renk} ${muHedefUrun === d.urun.id ? 'mu-hedef' : ''}">
+    <div class="mu-bas" onclick="muBolumAc('${d.urun.id}')" role="button" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();muBolumAc('${d.urun.id}');}">
+      <span class="mu-no">${s}</span>
+      <span class="mu-ad-blok">
+        <span class="mu-ad">${notEsc(d.urun.title)}</span>
+        <span class="mu-alt">${liAdetYaz(lineQty(d.urun))} ${notEsc(lineUnit(d.urun) === 'adet' ? 'adet' : lineUnit(d.urun))} ·
+          ${d.satis > 0 ? 'birim fiyat ' + mxPara(Number(d.urun.price) || 0) : 'birim fiyat girilmedi'}${d.kalem ? ' · ' + d.kalem + ' kalem' : ''}</span>
+      </span>
+      <span class="mu-bas-sag">
+        ${!acik && d.maliyetVar ? `<span class="mu-ozet-mini">Maliyet <b>${mxPara(d.maliyet)}</b></span>` : ''}
+        <span class="v-chip mu-chip ${st.cls}" id="muChip${s}" title="${st.ad}">${d.maliyetVar ? muYuzde(d.marj) : 'Maliyet girilmedi'}</span>
+        <span class="mu-ok">${acik ? '▴' : '▾'}</span>
+      </span>
+    </div>
+    ${!acik ? '' : `
+    <div class="mu-govde">
+      ${idx.length ? `<div class="mx-liste">${idx.map(i => muSatirHtml(q, items[i], i)).join('')}</div>`
+                   : `<div class="mu-bos">Bu ürün için henüz maliyet kalemi girilmedi.</div>`}
+      <div class="mu-ekle">
+        <button class="add-line-btn mu-ekle-btn" onclick="mkSatirEkle('', '${d.urun.id}')">+ ${idx.length ? 'Satır' : 'İlk Satırı'} Ekle</button>
+        ${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mkSatirEkle('${a.replace(/'/g, "\\'")}', '${d.urun.id}')">${notEsc(a)}</button>`).join('')}
+      </div>
+    </div>
+    <div class="mu-alt-bant">
+      <span class="mu-kut"><i>MALİYET</i><b id="muMal${s}">${muBantMal(d)}</b></span>
+      <span class="mu-kut"><i>SATIŞ</i><b>${mxPara(d.satis)}</b></span>
+      <span class="mu-kut"><i>KÂR</i><b id="muKar${s}" class="${muBantKarCls(d)}">${muBantKar(d)}</b></span>
+      <span class="mu-oneri" id="muOneri${s}">${muOneriHtml(q, d, oneri)}</span>
+    </div>`}
+  </div>`;
+}
+// Maliyeti HİÇ girilmemiş üründe kâr yazmak yanıltıcıdır: satışın tamamı kâr gibi okunur.
+// O yüzden maliyet de kâr da "—" gösterilir; rozet zaten "Maliyet girilmedi" diyor.
+function muBantMal(d){ return d.maliyetVar ? mxPara(d.maliyet) : '—'; }
+function muBantKar(d){ return d.maliyetVar ? mxPara(d.kar) : '—'; }
+function muBantKarCls(d){ return !d.maliyetVar ? 'mu-solgun' : (d.kar < 0 ? 'mu-eksi' : 'mu-arti'); }
+
+function muOneriHtml(q, d, oneri){
+  if(oneri === null) return `<span class="mu-oneri-not">Maliyet girilince hedef marja göre fiyat önerilir.</span>`;
+  return `<span class="mu-oneri-not">Hedef %${virgulYaz(muHedefOran(q))} için önerilen</span>
+    <button class="mu-oneri-btn" title="Teklifteki birim fiyatı bu değerle değiştirir"
+      onclick="muFiyatUygula('${d.urun.id}')">${mxPara(oneri)} · Teklife yaz</button>`;
+}
+function muFiyatUygula(urunId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const oneri = muOneriBirim(q, urunId, mxKur(q)); if(oneri === null) return;
+  const u = (q.items || []).find(x => x.id === urunId); if(!u) return;
+  u.price = oneri;
+  if(typeof liveMarkDirty === 'function') liveMarkDirty();
+  showToast((u.title || 'Ürün') + ' birim fiyatı ' + mxPara(oneri) + ' oldu.');
+  renderContent();
+}
+
+// Bağlanmamış kalemler — eski kayıtlar ya da tekliften silinmiş ürünün kalemleri. ASLA gizlenmez.
+function muBagsizHtml(q, kur){
+  const idx = muIndeksler(q, null);
+  const items = (q.maliyet && q.maliyet.items) || [];
+  if(!idx.length) return '';
+  const acik = !!muAcik['__bagsiz'];
+  const toplam = kurus(idx.reduce((s, i) => s + mxSatirToplam(items[i], kur), 0));
+  return `
+  <div class="mu-bolum mu-bagsiz">
+    <div class="mu-bas" onclick="muBolumAc('__bagsiz')" role="button" tabindex="0">
+      <span class="mu-no">?</span>
+      <span class="mu-ad-blok">
+        <span class="mu-ad">Bağlanmamış kalemler</span>
+        <span class="mu-alt">${idx.length} kalem hiçbir ürüne bağlı değil — eski kayıtlar ya da tekliften silinmiş bir ürüne aitti.
+          Kaybolmadılar, genel toplama dâhiller. Her satırdaki <b>Ürün</b> seçicisinden taşıyabilirsiniz.</span>
+      </span>
+      <span class="mu-bas-sag">
+        <span class="mu-ozet-mini">Maliyet <b>${mxPara(toplam)}</b></span>
+        <span class="mu-ok">${acik ? '▴' : '▾'}</span>
+      </span>
+    </div>
+    ${acik ? `<div class="mu-govde"><div class="mx-liste">${idx.map(i => muSatirHtml(q, items[i], i)).join('')}</div></div>` : ''}
+  </div>`;
+}
+
+function muPaneliHtml(q, kur){
+  const dag = muOzet(q, kur);
+  if(!dag.length && !muIndeksler(q, null).length){
+    return `<div class="mu-panel-bos">Bu teklifte henüz ürün yok. Teklifi düzenleyip ürün ekleyin,
+      sonra her ürünün maliyetini buradan girebilirsiniz.</div>`;
+  }
+  const maliyet = maliyetToplam(q);
+  const satis = mxSatisTL(q, kur);
+  const kar = kurus(satis - maliyet);
+  const marj = satis > 0 ? kar / satis : null;
+  const eksik = dag.filter(d => !d.maliyetVar).length;
+  return `
+    ${dag.map(d => muBolumHtml(q, d, kur)).join('')}
+    ${muBagsizHtml(q, kur)}
+    <div class="mu-genel">
+      <span class="mu-genel-bas">GENEL TOPLAM</span>
+      <span class="mu-kut"><i>TOPLAM MALİYET</i><b id="muBandMal">${mxPara(maliyet)}</b></span>
+      <span class="mu-kut"><i>TOPLAM SATIŞ</i><b>${mxPara(satis)}</b></span>
+      <span class="mu-kut"><i>KÂR</i><b id="muBandKar" class="${kar < 0 ? 'mu-eksi' : 'mu-arti'}">${mxPara(kar)}</b></span>
+      <span class="mu-kut"><i>MARJ</i><b id="muBandMarj">${muYuzde(marj)}</b></span>
+      ${eksik ? `<span class="mu-genel-not">${eksik} üründe maliyet girilmedi — toplam eksik olabilir</span>` : ''}
+    </div>`;
+}
+
+// Sağ ÖZET panelinin altına ürün bazında marj listesi.
+function muOzetListesiHtml(q, kur){
+  const dag = muOzet(q, kur);
+  if(!dag.length) return '';
+  return `<div class="mu-ozet-liste">
+    <div class="mu-ozet-bas">ÜRÜN BAZINDA</div>
+    ${dag.map(d => {
+      const st = muMarjDurum(q, d);
+      return `<div class="mu-ozet-sat"><span class="mu-ozet-nokta mu-r-${d.renk}"></span>
+        <span class="mu-ozet-ad">${notEsc(d.urun.title)}</span>
+        <b class="mu-oz-${st.cls}">${d.maliyetVar ? muYuzde(d.marj) : '—'}</b></div>`;
+    }).join('')}
+  </div>`;
+}
+
+// Satır içi düzenleme sırasında bölüm alt bantlarını ve genel bandı tazeler (yeniden çizim YOK,
+// yoksa yazarken imleç kaybolur).
+function muTazele(){
+  const q = mxAktifTeklif(); if(!q) return;
+  const kur = mxKur(q);
+  muOzet(q, kur).forEach(d => {
+    const st = muMarjDurum(q, d);
+    const mal = document.getElementById('muMal' + d.sira); if(mal) mal.textContent = muBantMal(d);
+    const kar = document.getElementById('muKar' + d.sira);
+    if(kar){ kar.textContent = muBantKar(d); kar.className = muBantKarCls(d); }
+    const chip = document.getElementById('muChip' + d.sira);
+    if(chip){ chip.textContent = d.maliyetVar ? muYuzde(d.marj) : 'Maliyet girilmedi'; chip.className = 'v-chip mu-chip ' + st.cls; chip.title = st.ad; }
+    const on = document.getElementById('muOneri' + d.sira);
+    if(on) on.innerHTML = muOneriHtml(q, d, muOneriBirim(q, d.urun.id, kur));
+  });
+  const maliyet = maliyetToplam(q), satis = mxSatisTL(q, kur), kar = kurus(satis - maliyet);
+  const bm = document.getElementById('muBandMal'); if(bm) bm.textContent = mxPara(maliyet);
+  const bk = document.getElementById('muBandKar');
+  if(bk){ bk.textContent = mxPara(kar); bk.className = kar < 0 ? 'mu-eksi' : 'mu-arti'; }
+  const bj = document.getElementById('muBandMarj'); if(bj) bj.textContent = muYuzde(satis > 0 ? kar / satis : null);
+}
+
+// ---------------------------------------------------------------- TEKLİF EKRANI
+// Ürün satırının altındaki şerit: renk noktası + maliyet düğmesi + kâr/marj.
+function muTeklifSeridi(idx){
+  const it = quoteLineItems[idx]; if(!it) return '';
+  if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()) return '';
+  const renk = muRenk(idx);
+  const adVar = !!String(it.title || '').trim();
+  const q = editingQuoteId ? QUOTES.find(x => x.id === editingQuoteId) : null;
+  // Yeni (hiç kaydedilmemiş) teklifte maliyet ekranı yoktur; düğme yine görünür ama önce kaydettirir.
+  const d = (q && it.id) ? muUrunSatiri(q, it.id, mxKur(q), quoteLineItems) : null;
+  const dolu = d && d.maliyetVar;
+  const st = d ? muMarjDurum(q, d) : null;
+  return `<div class="mu-serit">
+    <span class="mu-nokta mu-r-${renk}" aria-hidden="true"></span>
+    <button type="button" class="mu-btn ${dolu ? '' : 'bos'}" ${adVar ? '' : 'disabled'}
+      title="${adVar ? 'Bu ürünün maliyet hesabını aç' : 'Önce ürün adını yazın'}"
+      onclick="muMaliyeteGit(${idx})">
+      ${muHesapIkon}${dolu ? 'Maliyet ' + mxPara(d.maliyet) : 'Maliyet Hesabı'}
+    </button>
+    ${dolu
+      ? `<span class="mu-serit-not">${d.kalem} kalem girildi</span>
+         <span class="mu-serit-bosluk"></span>
+         <span class="mu-serit-not">Kâr ${mxPara(d.kar)}</span>
+         <span class="v-chip mu-chip ${st.cls}" title="${st.ad}">${muYuzde(d.marj)}</span>`
+      : `<span class="mu-serit-not">${adVar ? 'Maliyet girilmedi — fiyat belirlemek için tıklayın' : 'Ürün adını yazınca maliyet girebilirsiniz'}</span>`}
+  </div>`;
+}
+const muHesapIkon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8" y2="10"></line><line x1="12" y1="10" x2="12" y2="10"></line><line x1="16" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="8" y2="14"></line><line x1="12" y1="14" x2="12" y2="14"></line><line x1="16" y1="14" x2="16" y2="18"></line><line x1="8" y1="18" x2="12" y2="18"></line></svg>`;
+
+// Maliyet ekranına geçerken teklif ÖNCE kaydedilir — yoksa o an yazılan fiyatlar kaybolur.
+function muMaliyeteGit(idx){
+  const it = quoteLineItems[idx]; if(!it) return;
+  if(!String(it.title || '').trim()){ showToast('Önce ürün adını yazın.'); return; }
+  submitQuote({ tip:'maliyet', urunId: it.id });
+}
+
+// Teklif ekranının altındaki maliyet özeti bandı.
+function muTeklifBandiTazele(){
+  const kutu = document.getElementById('muTeklifBant'); if(!kutu) return;
+  if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()){ kutu.innerHTML = ''; return; }
+  const q = editingQuoteId ? QUOTES.find(x => x.id === editingQuoteId) : null;
+  if(!q || !q.maliyet || !muAktifKalemler(q).length){ kutu.innerHTML = ''; return; }
+  const kur = mxKur(q);
+  const dag = muOzet(q, kur, quoteLineItems.filter(u => String(u.title || '').trim()));
+  const maliyet = kurus(dag.reduce((s, d) => s + d.maliyet, 0) + muIndeksler(q, null)
+    .reduce((s, i) => s + mxSatirToplam(q.maliyet.items[i], kur), 0));
+  const satis = kurus(dag.reduce((s, d) => s + d.satis, 0));
+  const kar = kurus(satis - maliyet);
+  const marj = satis > 0 ? kar / satis : null;
+  const eksik = dag.filter(d => !d.maliyetVar).length;
+  kutu.innerHTML = `<div class="mu-tbant">
+    <span class="mu-tbant-bas">MALİYET ÖZETİ</span>
+    <span class="mu-kut"><i>TOPLAM MALİYET</i><b>${mxPara(maliyet)}</b></span>
+    <span class="mu-kut"><i>TOPLAM SATIŞ</i><b>${mxPara(satis)}</b></span>
+    <span class="mu-kut"><i>KÂR</i><b class="${kar < 0 ? 'mu-eksi' : 'mu-arti'}">${mxPara(kar)}</b></span>
+    <span class="mu-kut"><i>MARJ</i><b>${muYuzde(marj)}</b></span>
+    ${eksik ? `<span class="mu-tbant-not">${eksik} üründe maliyet girilmedi — toplam eksik olabilir</span>` : ''}
+  </div>`;
+}
+// Bir satırın fiyatı değişince kendi şeridi ve alttaki bant güncellenir.
+function muSeritleriTazele(){
+  quoteLineItems.forEach((it, i) => {
+    const kutu = document.getElementById('muSerit' + i);
+    if(kutu) kutu.innerHTML = muTeklifSeridi(i);
+  });
+  muTeklifBandiTazele();
+}
+
 function maliyetView(id){
   const q = QUOTES.find(x => x.id === id);
   if(!q) return teklifListView();
@@ -14723,35 +15239,6 @@ function maliyetView(id){
   const items = m.items;
   const mxRozetMetni = { malzeme:'Malzeme', iscilik:'İşçilik', dis_hizmet:'Dış Hizmet' };
   const mxPaketIkon = `<svg class="mx-row-ikon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>`;
-  const rows = items.map((r, i) => r.aktif === false ? '' : `
-    <div class="mx-row">
-      <div class="mx-row-top">
-        <div class="mx-row-id">
-          <span class="mx-row-label">Ürün / Maliyet Kalemi</span>
-          <div class="mx-row-name">
-            ${mxPaketIkon}
-            <input class="mx-ad-input" value="${notEsc(r.ad || '')}" list="mxMalzemeListesi" placeholder="Kalem adı — yaz ya da listeden tedarikçi malzemesi seç" oninput="mkGuncelle(${i},'ad',this.value)">
-            ${mxRozetMetni[r.grup] ? `<span class="mx-row-rozet">${mxRozetMetni[r.grup]}</span>` : ''}
-          </div>
-        </div>
-        <div class="mx-row-nums">
-          <div class="mx-field mx-f-miktar"><label>Miktar</label><input inputmode="decimal" value="${virgulYaz(r.miktar ?? 1)}" oninput="mkGuncelle(${i},'miktar',this.value)"></div>
-          <div class="mx-field mx-f-birim"><label>Birim Maliyet</label><input inputmode="decimal" value="${virgulYaz(r.fiyat ?? 0)}" oninput="mkGuncelle(${i},'fiyat',this.value)"></div>
-          <div class="mx-field mx-f-tutar"><label>Tutar</label><input class="mx-tutar" id="mxTutar${i}" readonly value="${tl(r.toplamTL || 0)}"></div>
-          <button class="li-remove" aria-label="Kalemi sil" title="Kalemi sil" onclick="mkSatirSil(${i})">✕</button>
-        </div>
-      </div>
-      <div class="mx-olcu">📐
-        <span class="mx-bagli" id="mxMz_${i}">${mkBagliHtml(r, i)}</span>
-        <input inputmode="decimal" placeholder="En (cm)" value="${r.en ? virgulYaz(r.en) : ''}" oninput="mkOlcu(${i},'en',this.value)">
-        ×
-        <input inputmode="decimal" placeholder="Boy (cm)" value="${r.boy ? virgulYaz(r.boy) : ''}" oninput="mkOlcu(${i},'boy',this.value)">
-        <span class="m2sonuc" id="mxM2_${i}">${mkOlcuMetni(r)}</span>
-      </div>
-      <textarea class="mx-aciklama" rows="1"
-        placeholder="Açıklama / tedarikçi notu — ör. X firmasından alındı, özel iskontolu fiyattır"
-        oninput="mkGuncelle(${i},'not',this.value)">${notEsc(r.not || '')}</textarea>
-    </div>`).join('');
   const solBlok = maliyetTab === 'fiyatlar' ? `
       <div class="form-block" style="min-width:0; margin-bottom:0;">
         <div class="mz-head"><span>Malzeme</span><span>Birim</span><span>Fiyat</span><span>Döviz</span><span style="text-align:right;">Güncel ₺</span><span></span></div>
@@ -14772,12 +15259,9 @@ function maliyetView(id){
         <div class="hint" style="margin:10px 0 0;">Dövizli fiyatlar üstteki günlük satış kuruyla ₺'ye çevrilir ve maliyet satırlarına bu ₺ değeri yazılır.
         Buradaki fiyatlar tüm tekliflerde ortak kullanılır.</div>
       </div>` : `
-      <div class="form-block" style="min-width:0; margin-bottom:0;">
-        <div class="mx-liste">${rows}</div>
-        <button class="add-line-btn" onclick="mkSatirEkle('')">+ Satır Ekle</button>
-        <div class="hint" style="margin:10px 0 0;">Hızlı ekle:</div>
-        <div class="mx-chips">${HAZIR_MALIYET_KALEMLERI.map(a => `<button class="mx-chip" onclick="mkSatirEkle('${a.replace(/'/g,"\\'")}')">${notEsc(a)}</button>`).join('')}</div>
-        <div class="hint" style="margin:10px 0 0;">📐 Kalem adına <b>listeden malzeme</b> seçip <b>En × Boy (cm)</b> girildiğinde m² ve birim maliyet otomatik hesaplanır.</div>
+      <div class="form-block" style="min-width:0; margin-bottom:0; background:none; border:none; padding:0; box-shadow:none;">
+        ${muPaneliHtml(q, kur)}
+        <div class="hint" style="margin:12px 0 0;">📐 Kalem adına <b>listeden malzeme</b> seçip <b>En × Boy (cm)</b> girildiğinde m² ve birim maliyet otomatik hesaplanır.</div>
         <datalist id="mxMalzemeListesi">
           ${MALZEME_FIYATLARI.filter(mz => mz.ad).map(mz => `<option value="${notEsc(mz.ad)}">${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim}</option>`).join('')}
         </datalist>
@@ -14794,6 +15278,7 @@ function maliyetView(id){
         <div class="page-sub">${notEsc(q.no)} · ${notEsc(teklifMusteriAdi(q))} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
       </div>
       <div class="action-row">
+        <button class="mx-yazdir" onclick="openQuoteEdit('${q.id}')" title="Teklif düzenleme ekranına dön">← Teklifi Düzenle</button>
         <button class="mx-yazdir" onclick="maliyetYazdir()" title="Maliyet dökümünü yazdır / PDF olarak kaydet">🖨 Yazdır</button>
         <button id="mxKaydetBtn" class="mx-kaydet ${kaydet.cls}" ${kaydet.disabled ? 'disabled' : ''} onclick="mxKaydet()">${kaydet.metin}</button>
       </div>
@@ -14818,6 +15303,7 @@ function maliyetView(id){
         <div class="t-row final"><span>Öngörülen Kâr:</span><span id="mxKar" style="color:${kar >= 0 ? 'var(--ok)' : 'var(--risk)'};">${tl(kar)}</span></div>
         <div class="t-row"><span>Kâr Marjı:</span><span id="mxMarj" class="mx-marj-pill">${marj === null ? '—' : '%' + Math.round(marj)}</span></div>
         <div class="hint" style="margin:12px 0 0;">Kâr, teklifin KDV hariç toplamından maliyet düşülerek hesaplanır.</div>
+        ${maliyetTab === 'kalemler' ? muOzetListesiHtml(q, kur) : ''}
       </div>
     </div>
   `;
@@ -15272,10 +15758,10 @@ function mkBagliHtml(r, i){
   return `🔗 ${notEsc(mz.ad)} · ${(Number(mz.fiyat)||0).toLocaleString('tr-TR')} ${paraSimge(mz.para)}/${mz.birim} → ${tl(malzemeTL(mz, q ? mxKur(q) : KURLAR))}
     <span class="mini-islem sil" title="Malzeme bağlantısını kaldır" onclick="mkBaglantiKaldir(${i})">✕</span>`;
 }
-function mkSatirEkle(ad){
+function mkSatirEkle(ad, urunId){
   const q = mxAktifTeklif(); if(!q) return;
   const m = ensureMaliyet(q);
-  const r = { id: benzersizId('mk'), aktif:true, ad: ad || '', miktar:1, birim:'adet', hesapTuru:'dogrudan', para:'TL', fiyatOrj:0, fire:0, grup: ad ? mxGrupTahmin(ad) : 'diger', manuel:true, sira: m.items.length + 1 };
+  const r = { id: benzersizId('mk'), aktif:true, ad: ad || '', miktar:1, birim:'adet', hesapTuru:'dogrudan', para:'TL', fiyatOrj:0, fire:0, grup: ad ? mxGrupTahmin(ad) : 'diger', manuel:true, sira: m.items.length + 1, urunId: urunId || null };
   m.items.push(r);
   const i = m.items.length - 1;
   if(ad){
@@ -15283,9 +15769,12 @@ function mkSatirEkle(ad){
     if(mz){ r.fiyatKaydiId = mz.id; mkHesapla(i); }
   }
   mxSatirHesapla(r, mxKur(q));
+  if(urunId && typeof muAcik === 'object') muAcik[urunId] = true;
   renderContent();
-  const inputs = document.querySelectorAll('.mx-ad-input');
-  const son = inputs[inputs.length - 1]; if(son && !ad) son.focus();
+  // Yeni satır kendi ürününün bölümünde açılır; DOM'daki SON satır olmayabilir, kimlikle bulunur.
+  const kutu = document.getElementById('mxRow' + i);
+  const alan = kutu ? kutu.querySelector('.mx-ad-input') : null;
+  if(alan && !ad) alan.focus();
 }
 function mkSatirSil(i){
   const q = mxAktifTeklif(); if(!q) return;
@@ -15326,8 +15815,7 @@ function mkHesapla(i){
 function mkSatirTazele(i){
   const q = mxAktifTeklif(); if(!q) return;
   const r = ensureMaliyet(q).items[i]; if(!r) return;
-  const satirlar = document.querySelectorAll('.mx-row');
-  const satir = satirlar[items_mkGorunurIndex(i)];
+  const satir = document.getElementById('mxRow' + i);
   if(satir){
     const girisler = satir.querySelectorAll('input');
     if(document.activeElement !== girisler[0]) girisler[0].value = r.ad || '';
@@ -15341,6 +15829,7 @@ function mkSatirTazele(i){
   const bagli = document.getElementById('mxMz_' + i);
   if(bagli) bagli.innerHTML = mkBagliHtml(r, i);
   mkOzetGuncelle();
+  if(typeof muTazele === 'function') muTazele();
 }
 // Görünür (aktif) satırlar arasındaki DOM sırası ile veri dizisindeki index'i eşler (soft-delete satırlar DOM'da yoktur)
 function items_mkGorunurIndex(i){
