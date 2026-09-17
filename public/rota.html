@@ -2470,7 +2470,7 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 .mx-toolbar .ghost,.mx-toolbar .primary{height:40px;white-space:nowrap;}
 /* tablo */
 .mx-tablo{padding:0 14px 14px;}
-/* ===== ÜRÜN BAZLI MALİYET (v2026-09-17c) — .mu-* =====
+/* ===== ÜRÜN BAZLI MALİYET (v2026-09-17d) — .mu-* =====
    Renkler haftalık plandaki proje paletinden (--pj1..--pj6) gelir; koyu temada karşılıkları
    zaten tanımlı olduğu için gece modu ayrıca ele alınmadı. */
 .mu-r-pj1{--kf:var(--pj1);--kb:var(--pj1b);--kt:var(--pj1f);}
@@ -2997,7 +2997,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-17c';
+window.ROTA_SURUM = 'v2026-09-17d';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -3127,7 +3127,7 @@ function veriOnar(){
       id: benzersizId('v'), plate: def.plate,
       brand:'', model:'', year:'', fuel:'', km:'', owner:'', note:'',
       dates:{ muayene:def.muayene, trafik:def.trafik, kasko:def.kasko,
-              mtv1:'2027-01-01', mtv2:'2027-07-01', egzoz:'', bakim:'' },
+              mtv1:'2027-01-01', mtv2:'2027-07-01', egzoz:def.muayene || '', bakim:'' },
       kms:{}, expenses:[],
     });
     degisti = true;
@@ -3155,6 +3155,34 @@ function veriOnar(){
       v.odendi[alan] = def[alan];               // ödendi işareti: tarih görünür, uyarı üretmez
     });
     v.odendiMig14l = true;
+    degisti = true;
+  });
+  // (2026-09-17d) Kullanıcı ARAÇLAR.xlsx'i yeniden gönderdi; bu sefer EGZOZ EMİSYON sütunu da var.
+  // Yalnızca BOŞ alanlar doldurulur — kullanıcının girdiği hiçbir tarihe DOKUNULMAZ.
+  // Araç başına bir kez çalışır (v.tarihMig17d); kullanıcı bir tarihi silerse geri gelmez.
+  [
+    { plate:'07 AFK 223', muayene:'',           egzoz:'',           kasko:'2027-06-11', trafik:'2027-06-11' },
+    { plate:'05 AFK 503', muayene:'2027-03-23', egzoz:'2027-03-23', kasko:'2026-03-09', trafik:'2026-03-09' },
+    { plate:'07 AFK 203', muayene:'2026-12-15', egzoz:'2026-12-15', kasko:'2026-01-19', trafik:'2026-01-19' },
+    { plate:'07 AFK 603', muayene:'2027-05-20', egzoz:'2027-05-20', kasko:'2026-10-14', trafik:'2026-10-14' },
+    { plate:'07 AFK 653', muayene:'2027-03-31', egzoz:'2027-03-31', kasko:'2026-10-31', trafik:'2026-10-31' },
+    { plate:'07 MVL 37',  muayene:'2027-06-25', egzoz:'2027-06-25', kasko:'2026-09-30', trafik:'2026-09-30' },
+    { plate:'07 MKS 37',  muayene:'2027-01-06', egzoz:'2027-01-06', kasko:'2026-09-28', trafik:'2026-09-28' },
+    { plate:'07 BFN 384', muayene:'2027-02-05', egzoz:'2027-02-05', kasko:'2027-03-09', trafik:'2027-03-09' },
+    { plate:'07 AFK 030', muayene:'',           egzoz:'',           kasko:'2026-08-01', trafik:'2026-08-01' },
+    { plate:'07 AFK 803', muayene:'2027-06-23', egzoz:'2027-06-23', kasko:'2026-09-13', trafik:'2026-09-13' },
+    { plate:'07 AFK 273', muayene:'',           egzoz:'',           kasko:'2027-06-11', trafik:'2027-06-11' },
+  ].forEach(def => {
+    if(!Array.isArray(VEHICLES)) return;
+    const v = VEHICLES.find(x => daPlakaSade(x.plate) === daPlakaSade(def.plate));
+    if(!v || v.tarihMig17d) return;
+    v.dates = v.dates || {};
+    ['muayene', 'egzoz', 'kasko', 'trafik'].forEach(alan => {
+      if(!v.dates[alan] && def[alan]) { v.dates[alan] = def[alan]; degisti = true; }
+    });
+    if(!v.dates.mtv1){ v.dates.mtv1 = '2027-01-01'; degisti = true; }
+    if(!v.dates.mtv2){ v.dates.mtv2 = '2027-07-01'; degisti = true; }
+    v.tarihMig17d = true;
     degisti = true;
   });
   // (2026-09-14j) Uygulamayla gelen 3 ÖRNEK araç, gerçek filo girildikten sonra kullanıcı isteğiyle temizlenir.
@@ -3294,6 +3322,7 @@ function veriOnar(){
   const isIdleri = new Set(JOBS.map(j => j.id));
   PLAN_TASKS = PLAN_TASKS.filter(t => !t.jobId || isIdleri.has(t.jobId));
   if(JOBS.length !== isOnce || PLAN_TASKS.length !== planOnce) degisti = true;
+  if(typeof aracTakipGocu === 'function' && aracTakipGocu() > 0) degisti = true;
   return degisti;
 }
 
@@ -3802,7 +3831,51 @@ let NAV_HISTORY = [];
 function snapshotNavState(){
   return { currentPage, onMuhasebeSub, raporlarSub, stokSub, gorevSub, yonetimSub,
     teklifStep, teklifViewId, kisilerStep, gelirStep, giderStep, cekSenetStep,
-    personelStep, personelSecili, mesaiPersonelId, cariSecili };
+    personelStep, personelSecili, mesaiPersonelId, cariSecili,
+    // (2026-09-17d) Bu alanlar eksikti: geri tuşu araç detayından/düzenleme ekranlarından
+    // çıkamıyor, ekran durumu bir öncekine ait kalıyordu.
+    aracStep, viewingVehicleId, editingVehicleId,
+    editingCustomerId, editingQuoteId, cekSenetDuzenleId };
+}
+// popstate ile goBack() aynı işi yapar — tek kaynak.
+function navDurumUygula(st){
+  if(!st || !st.currentPage) return;
+  currentPage = st.currentPage;
+  // Eksik alan varsa MEVCUT değer korunur. Bir güncellemeden sonra tarayıcının geçmiş yığınında
+  // eski sürümün yazdığı kayıtlar durur; bunlarda yeni alanlar yoktur ve doğrudan atansaydı alt
+  // sekme boşalır, ekran çökerdi.
+  onMuhasebeSub = st.onMuhasebeSub || onMuhasebeSub;
+  raporlarSub = st.raporlarSub || raporlarSub;
+  stokSub = st.stokSub || stokSub;
+  gorevSub = st.gorevSub || gorevSub;
+  yonetimSub = st.yonetimSub || yonetimSub;
+  openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
+  cariSecili = st.cariSecili !== undefined ? st.cariSecili : null;
+  kisilerStep = st.kisilerStep || 'list'; teklifStep = st.teklifStep || 'list';
+  gelirStep = st.gelirStep || 'list'; giderStep = st.giderStep || 'list';
+  cekSenetStep = st.cekSenetStep || 'list'; personelStep = st.personelStep || 'list';
+  if(st.teklifViewId !== undefined && st.teklifViewId !== null) teklifViewId = st.teklifViewId;
+  personelSecili = st.personelSecili !== undefined ? st.personelSecili : null;
+  mesaiPersonelId = st.mesaiPersonelId !== undefined ? st.mesaiPersonelId : null;
+  aracStep = st.aracStep || 'list';
+  viewingVehicleId = st.viewingVehicleId !== undefined ? st.viewingVehicleId : null;
+  editingVehicleId = st.editingVehicleId !== undefined ? st.editingVehicleId : null;
+  editingCustomerId = st.editingCustomerId !== undefined ? st.editingCustomerId : null;
+  cekSenetDuzenleId = st.cekSenetDuzenleId !== undefined ? st.cekSenetDuzenleId : null;
+  editingQuoteId = st.editingQuoteId !== undefined ? st.editingQuoteId : null;
+  // Teklif düzenleme ekranına geri dönülüyorsa satırlar yeniden yüklenmeli; yoksa boş form çıkar.
+  if(teklifStep === 'form' && editingQuoteId){
+    const q = QUOTES.find(x => x.id === editingQuoteId);
+    if(q){
+      quoteLineItems = lineItemsNormalle(JSON.parse(JSON.stringify(q.items)));
+      quoteKosullar = null; quoteCurrency = q.currency || 'TL';
+    } else { teklifStep = 'list'; editingQuoteId = null; }
+  }
+  // Maliyet ekranından çıkılıyorsa tek ürün modu sıfırlanır.
+  if(teklifStep !== 'maliyet' && typeof muTekUrun !== 'undefined'){ muTekUrun = null; muHedefUrun = null; }
+  // Silinmiş kayda dönülürse listeye düş (boş ekran çıkmasın).
+  if(aracStep === 'detail' && !(VEHICLES || []).some(v => v.id === viewingVehicleId)) aracStep = 'list';
+  if(aracStep === 'form' && editingVehicleId && !(VEHICLES || []).some(v => v.id === editingVehicleId)) aracStep = 'list';
 }
 function pushHistory(){
   NAV_HISTORY.push(snapshotNavState());
@@ -3822,17 +3895,7 @@ window.addEventListener('popstate', e => {
   const st = e.state;
   if(!st || !st.currentPage) return;
   window.__gecmisGeziniyor = true;
-  currentPage = st.currentPage;
-  onMuhasebeSub = st.onMuhasebeSub; raporlarSub = st.raporlarSub;
-  stokSub = st.stokSub; gorevSub = st.gorevSub; yonetimSub = st.yonetimSub;
-  openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
-  cariSecili = st.cariSecili !== undefined ? st.cariSecili : null;
-  kisilerStep = st.kisilerStep || 'list'; teklifStep = st.teklifStep || 'list';
-  gelirStep = st.gelirStep || 'list'; giderStep = st.giderStep || 'list';
-  cekSenetStep = st.cekSenetStep || 'list'; personelStep = st.personelStep || 'list';
-  if(st.teklifViewId !== undefined && st.teklifViewId !== null) teklifViewId = st.teklifViewId;
-  personelSecili = st.personelSecili !== undefined ? st.personelSecili : null;
-  mesaiPersonelId = st.mesaiPersonelId !== undefined ? st.mesaiPersonelId : null;
+  navDurumUygula(st);
   renderNav(); renderContent();
   window.__gecmisGeziniyor = false;
 });
@@ -3842,17 +3905,7 @@ function updateBackBtn(){
 }
 function goBack(){
   if(NAV_HISTORY.length===0) return;
-  const snap = NAV_HISTORY.pop();
-  currentPage = snap.currentPage; onMuhasebeSub = snap.onMuhasebeSub; raporlarSub = snap.raporlarSub;
-  stokSub = snap.stokSub; gorevSub = snap.gorevSub; yonetimSub = snap.yonetimSub;
-  openSubmenu = SUBMENUS[currentPage] ? currentPage : null;
-  cariSecili = snap.cariSecili !== undefined ? snap.cariSecili : null;
-  kisilerStep = snap.kisilerStep || 'list'; teklifStep = snap.teklifStep || 'list';
-  gelirStep = snap.gelirStep || 'list'; giderStep = snap.giderStep || 'list';
-  cekSenetStep = snap.cekSenetStep || 'list'; personelStep = snap.personelStep || 'list';
-  if(snap.teklifViewId !== undefined && snap.teklifViewId !== null) teklifViewId = snap.teklifViewId;
-  personelSecili = snap.personelSecili !== undefined ? snap.personelSecili : null;
-  mesaiPersonelId = snap.mesaiPersonelId !== undefined ? snap.mesaiPersonelId : null;
+  navDurumUygula(NAV_HISTORY.pop());
   renderNav(); renderContent(); updateBackBtn();
 }
 
@@ -10547,13 +10600,17 @@ function canSeeVehicles(){ return (roleCfg().yonetimSubs||[]).includes('araclari
 
 function goToAraclarim(){
   pushHistory(); currentPage='yonetim'; yonetimSub='araclarim'; openSubmenu='yonetim';
-  aracStep='list'; renderNav(); renderContent();
+  aracStep='list'; viewingVehicleId=null; editingVehicleId=null;
+  renderNav(); renderContent(); tarayiciGecmisYaz();
 }
 function openVehicle(id){
   pushHistory(); currentPage='yonetim'; yonetimSub='araclarim'; openSubmenu='yonetim';
-  viewingVehicleId=id; aracStep='detail'; renderNav(); renderContent();
+  viewingVehicleId=id; aracStep='detail'; renderNav(); renderContent(); tarayiciGecmisYaz();
 }
-function backToVehicleList(){ aracStep='list'; editingVehicleId=null; renderContent(); }
+function backToVehicleList(){
+  aracStep='list'; editingVehicleId=null; viewingVehicleId=null;
+  renderContent(); tarayiciGecmisYaz();
+}
 
 // ===================== ARAÇ TAKİP VE GİDER MODÜLÜ (v2026-09-16k) =====================
 // TEMEL AYRIM — eskiden bu ikisi tek yerde karışıyordu:
@@ -10790,10 +10847,21 @@ function aracTakipGocu(){
   if(!Array.isArray(VEHICLES) || !Array.isArray(ARAC_TAKIP)) return 0;
   let n = 0;
   VEHICLES.forEach(v => {
-    if(v.takipMig === '16k') return;
+    // (2026-09-17d) Bayrak artık ALAN BAZLI. Eski sürüm yalnız v.takipMig='16k' yazıyordu;
+    // o kayıtlarda araca ait HİÇ takip kaydı yoksa göç kaybolmuş demektir (yedekten geri yükleme
+    // vb.) ve yeniden çalıştırılır. Kullanıcının kendi sildiği kayıtlar geri gelmez, çünkü göç
+    // eden her alan tek tek işaretlenir.
+    if(!v.takipMigAlan || typeof v.takipMigAlan !== 'object'){
+      const kaydiVar = ARAC_TAKIP.some(t => t.aracId === v.id);
+      v.takipMigAlan = (v.takipMig === '16k' && kaydiVar)
+        ? DATE_FIELDS.reduce((o, f) => { o[f.key] = 1; return o; }, {})
+        : {};
+    }
     DATE_FIELDS.forEach(f => {
+      if(v.takipMigAlan[f.key]) return;              // bu alan daha önce göç etmiş
       const tarih = (v.dates || {})[f.key];
-      if(!tarih) return;
+      if(!tarih) return;                             // boş alan: ileride doldurulursa o zaman göç eder
+      v.takipMigAlan[f.key] = 1;
       if(ARAC_TAKIP.some(t => t.aracId === v.id && t.tur === f.key && t.hedefTarih === tarih)) return;
       const odendi = tarihOdendiMi(v, f.key);
       const tt = takipTuru(f.key);
@@ -12050,7 +12118,7 @@ function vehicleCardHtml(v){
 }
 
 // ---- Form ----
-function openVehicleForm(id){ editingVehicleId = id; aracStep = 'form'; renderContent(); }
+function openVehicleForm(id){ pushHistory(); editingVehicleId = id; aracStep = 'form'; renderContent(); tarayiciGecmisYaz(); }
 function aracFormView(){
   const v = VEHICLES.find(x => x.id === editingVehicleId) ||
     { plate:'', brand:'', model:'', year:'', fuel:'Dizel', km:'', owner:'', note:'', dates:{}, kms:{}, expenses:[] };
@@ -12126,7 +12194,7 @@ function saveVehicle(){
   const existing = VEHICLES.find(x => x.id === editingVehicleId);
   if(existing){ Object.assign(existing, data); viewingVehicleId = existing.id; }
   else { const nv = Object.assign({ id:'v'+Date.now(), expenses:[] }, data); VEHICLES.push(nv); viewingVehicleId = nv.id; }
-  editingVehicleId = null; aracStep = 'detail'; renderContent();
+  editingVehicleId = null; aracStep = 'detail'; renderContent(); tarayiciGecmisYaz();
   showToast(plate + ' kaydedildi.');
 }
 function deleteVehicle(id){
@@ -14860,7 +14928,7 @@ window.addEventListener('beforeunload', e => {
   }catch(err){}
 });
 
-// ===================== ÜRÜN BAZLI MALİYET (v2026-09-17c) =====================
+// ===================== ÜRÜN BAZLI MALİYET (v2026-09-17d) =====================
 // Kurgu (kullanıcı kararı, 17 Eylül):
 //   - Her maliyet satırı BİR teklif ürününe bağlanır (r.urunId).
 //   - ORTAK GİDER / DAĞITIM YOKTUR. Nakliye, vinç, montaj teklifte kendi satırı olarak
@@ -14908,6 +14976,38 @@ function muUrunSatis(q, u, kur){
   return kurus(mxTLcevir(lineNet(u), q.currency || 'TL', kur || mxKur(q)));
 }
 
+// ---- BOŞ SATIR YÖNETİMİ ----
+// Kullanıcı isteği: "ürün direkt ekranda gelsin, satır ekleye basmaya gerek kalmasın."
+// Bölüm açıldığında hiç kalemi yoksa boş bir satır hazır konur. Kullanıcı hiçbir şey yazmadan
+// çıkarsa o satır çöp olarak kalmasın diye ayrılırken temizlenir.
+function muSatirDolu(r, kur){
+  if(!r || r.aktif === false) return false;
+  if(String(r.ad || '').trim()) return true;
+  if(r.fiyatKaydiId) return true;
+  if(Number(r.fiyatOrj) > 0) return true;
+  if(mxSatirToplam(r, kur || KURLAR) > 0) return true;
+  if(String(r.not || '').trim()) return true;
+  if(Number(r.en) > 0 || Number(r.boy) > 0) return true;
+  return false;
+}
+function muBosSatirGarantile(q, urunId){
+  if(!q || !urunId) return;
+  if(muIndeksler(q, urunId).length) return;
+  const m = ensureMaliyet(q);
+  const r = { id: benzersizId('mk'), aktif:true, ad:'', miktar:1, birim:'adet', hesapTuru:'dogrudan',
+              para:'TL', fiyatOrj:0, fire:0, grup:'diger', manuel:true,
+              sira: m.items.length + 1, urunId: urunId };
+  mxSatirHesapla(r, mxKur(q));
+  m.items.push(r);
+}
+// korunacak: o an ekranda olan ürün — oradaki boş satır silinmez, kullanıcı ona yazacak.
+function muBosSatirTemizle(q, korunacak){
+  if(!q || !q.maliyet || !Array.isArray(q.maliyet.items)) return;
+  const kur = mxKur(q);
+  q.maliyet.items = q.maliyet.items.filter(r =>
+    r.aktif === false || muSatirDolu(r, kur) || (korunacak && r.urunId === korunacak));
+}
+
 // Ekranın TEK hesap kaynağı. Satış > 0 değilse marj null döner ve "—" yazılır;
 // sıfıra bölüp %100 gibi yanıltıcı bir sayı ÜRETİLMEZ.
 function muOzet(q, kur, urunListesi){
@@ -14916,12 +15016,16 @@ function muOzet(q, kur, urunListesi){
   return urunler.map((u, i) => {
     const satis = muUrunSatis(q, u, kur);
     const maliyet = muUrunMaliyet(q, u.id, kur);
-    const kalem = muIndeksler(q, u.id).length;
+    const items = (q.maliyet && q.maliyet.items) || [];
+    // Ekran açılırken boş satır kendiliğinden geldiği için SATIR SAYISI "maliyet girildi" demek
+    // değildir; dolu satır sayılır ve maliyetVar tutara bakar. Aksi halde hiç rakam girilmemiş
+    // ürün "maliyeti var" görünür ve uyarılar susardı.
+    const kalem = muIndeksler(q, u.id).filter(i => muSatirDolu(items[i], kur)).length;
     return {
       urun: u, sira: i + 1, renk: muRenk(i), satis, maliyet, kalem,
       kar: kurus(satis - maliyet),
       marj: satis > 0 ? (satis - maliyet) / satis : null,
-      maliyetVar: kalem > 0,
+      maliyetVar: maliyet > 0,
     };
   });
 }
@@ -14956,7 +15060,15 @@ function muMarjDurum(q, d){
 function muYuzde(marj){ return (marj === null || marj === undefined) ? '—' : '%' + (marj * 100).toFixed(1).replace('.', ','); }
 
 // ---------------------------------------------------------------- MALİYET EKRANI
-function muBolumAc(urunId){ muAcik[urunId] = !muAcik[urunId]; renderContent(); }
+function muBolumAc(urunId){
+  const q = mxAktifTeklif();
+  muAcik[urunId] = !muAcik[urunId];
+  if(q){
+    muBosSatirTemizle(q, muAcik[urunId] ? urunId : null);
+    if(muAcik[urunId] && urunId !== '__bagsiz') muBosSatirGarantile(q, urunId);
+  }
+  renderContent();
+}
 
 // Ekrana girerken hangi bölümler açık olsun:
 //   - teklif ekranından gelinen ürün
@@ -14964,11 +15076,15 @@ function muBolumAc(urunId){ muAcik[urunId] = !muAcik[urunId]; renderContent(); }
 // Maliyeti girilmiş ürünler kapalı gelir — 10 kalemlik teklifte ekran boğulmasın diye.
 function muAcikHazirla(q){
   muAcik = {};
+  // Önceki ziyaretten kalmış boş satırlar temizlenir.
+  muBosSatirTemizle(q, null);
   muOzet(q).forEach(d => { if(!d.maliyetVar) muAcik[d.urun.id] = true; });
   // Teklif satırındaki düğmeyle gelindiyse TEK ÜRÜN modu açılır; menüden/teklif kartından
   // gelindiyse (muHedefUrun yok) her zamanki gibi tüm ürünler listelenir.
   muTekUrun = (muHedefUrun && muUrunler(q).some(u => u.id === muHedefUrun)) ? muHedefUrun : null;
   if(muHedefUrun) muAcik[muHedefUrun] = true;
+  // Açık gelen her bölümde yazmaya hazır bir satır bulunsun.
+  Object.keys(muAcik).forEach(id => { if(muAcik[id]) muBosSatirGarantile(q, id); });
 }
 
 function muSatirHtml(q, r, i){
@@ -15126,13 +15242,32 @@ function muBagsizHtml(q, kur){
 }
 
 // ---- TEK ÜRÜN MODU ----
-function muTekeGec(urunId){ muTekUrun = urunId; muAcik[urunId] = true; renderContent(); window.scrollTo(0, 0); }
-function muTumunuGoster(){ muTekUrun = null; renderContent(); window.scrollTo(0, 0); }
+function muTekeGec(urunId){
+  const q = mxAktifTeklif();
+  muTekUrun = urunId; muAcik[urunId] = true;
+  if(q){ muBosSatirTemizle(q, urunId); muBosSatirGarantile(q, urunId); }
+  renderContent(); window.scrollTo(0, 0);
+}
+function muTumunuGoster(){
+  const q = mxAktifTeklif();
+  muTekUrun = null;
+  if(q){ muBosSatirTemizle(q, null); Object.keys(muAcik).forEach(id => { if(muAcik[id] && id !== '__bagsiz') muBosSatirGarantile(q, id); }); }
+  renderContent(); window.scrollTo(0, 0);
+}
 function muKaydetDon(){
   const q = mxAktifTeklif(); if(!q) return;
+  muBosSatirTemizle(q, null);                 // yazılmamış satırlar teklifte çöp kalmasın
   if(typeof mxKaydet === 'function') mxKaydet();
   muTekUrun = null; muHedefUrun = null;
   openQuoteEdit(q.id);
+}
+// Maliyet ekranından çıkarken de yazılmamış satırlar temizlenir.
+function muCikVeGit(adim){
+  const q = mxAktifTeklif();
+  if(q) muBosSatirTemizle(q, null);
+  muTekUrun = null; muHedefUrun = null;
+  teklifStep = adim || 'view';
+  renderContent();
 }
 function muKomsuUrun(q, urunId, yon){
   const liste = muUrunler(q);
@@ -15356,12 +15491,12 @@ function maliyetView(id){
   return `
     <div class="page-head">
       <div style="display:flex; gap:12px; align-items:center;">
-        <button class="back-btn" aria-label="Teklife dön" onclick="teklifStep='view'; renderContent();">←</button>
+        <button class="back-btn" aria-label="Teklife dön" onclick="muCikVeGit('view')">←</button>
         <div><div class="page-title">Maliyet Hesabı</div>
         <div class="page-sub">${notEsc(q.no)} · ${notEsc(teklifMusteriAdi(q))} — bu döküm yalnız içeridedir, müşteri belgesinde görünmez.</div></div>
       </div>
       <div class="action-row">
-        <button class="mx-yazdir" onclick="openQuoteEdit('${q.id}')" title="Teklif düzenleme ekranına dön">← Teklifi Düzenle</button>
+        <button class="mx-yazdir" onclick="muKaydetDon()" title="Teklif düzenleme ekranına dön">← Teklifi Düzenle</button>
         <button class="mx-yazdir" onclick="maliyetYazdir()" title="Maliyet dökümünü yazdır / PDF olarak kaydet">🖨 Yazdır</button>
         <button id="mxKaydetBtn" class="mx-kaydet ${kaydet.cls}" ${kaydet.disabled ? 'disabled' : ''} onclick="mxKaydet()">${kaydet.metin}</button>
       </div>
