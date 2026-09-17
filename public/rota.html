@@ -2470,6 +2470,69 @@ html.dark .quote-summary .tf-totals>div.grand strong{color:var(--ink);}
 .mx-toolbar .ghost,.mx-toolbar .primary{height:40px;white-space:nowrap;}
 /* tablo */
 .mx-tablo{padding:0 14px 14px;}
+/* ===== ÜRÜN BAZLI MALİYET (v2026-09-17a) ===== */
+.mu-panel{background:var(--surface);border:1px solid var(--line);border-radius:9px;
+  box-shadow:var(--shadow-sm);padding:14px;margin:0 0 14px;}
+.mu-bas{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.mu-bas h3{font-family:var(--font-display);font-size:15px;font-weight:700;margin:0;color:var(--ink);}
+.mu-bas p{font-size:11.5px;color:var(--ink-3);margin:3px 0 0;max-width:62ch;}
+.mu-sarmal{overflow-x:auto;}
+.mu-tablo{width:100%;border-collapse:collapse;font-size:12.5px;}
+.mu-tablo th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--ink-3);
+  text-transform:uppercase;padding:8px 10px;background:var(--surface-muted);
+  border-bottom:1px solid var(--line);white-space:nowrap;}
+.mu-tablo td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--ink-2);}
+.mu-tablo .sag{text-align:right;}
+.mu-tablo tbody tr:hover{background:var(--surface-muted);}
+.mu-ad{font-weight:650;color:var(--ink);}
+.mu-alt{font-size:10.5px;color:var(--ink-3);margin-top:2px;}
+.mu-say{font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.mu-soluk{color:var(--ink-3);}
+.mu-eksi{color:var(--risk);font-weight:650;}
+.mu-tablo tfoot td{border-top:1px solid var(--line-strong);border-bottom:none;
+  background:var(--surface-muted);padding:10px;color:var(--ink);}
+.mu-ortak td{background:var(--surface-sunk);}
+.mu-giris{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line-strong);
+  border-radius:7px;padding:0 8px;background:var(--input-bg);}
+.mu-giris span{color:var(--ink-3);font-size:12px;}
+.mu-giris input{border:none;background:transparent;width:92px;padding:7px 0;text-align:right;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--text);outline:none;}
+.mu-giris:focus-within{border-color:var(--signal);}
+.mu-oneri{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);
+  border-radius:7px;padding:5px 10px;font-size:11.5px;font-weight:600;font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;}
+.mu-oneri:hover{border-color:var(--signal);color:var(--signal-ink);}
+.mu-bos{font-size:12.5px;color:var(--ink-3);padding:14px 2px;}
+.mu-sec{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-3);margin-left:auto;}
+.mu-sec select{border:1px solid var(--line);border-radius:6px;padding:4px 7px;font-size:11.5px;
+  background:var(--input-bg);color:var(--text);max-width:190px;}
+
+/* Teklif düzenleme ekranındaki maliyet şeridi */
+.tk-serit{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 0;padding:8px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--surface-muted);font-size:12px;}
+.tk-serit.tk-bos{color:var(--ink-3);background:transparent;border-style:dashed;}
+.tk-etiket{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3);}
+.tk-tutar{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:650;color:var(--ink);}
+.tk-alt{font-size:10.5px;color:var(--ink-3);}
+.tk-ayrac{color:var(--line-strong);}
+.tk-bosluk{flex:1;}
+.tk-oneri{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);
+  border-radius:7px;padding:5px 11px;font-size:11.5px;font-weight:600;font-family:var(--font-body);cursor:pointer;}
+.tk-oneri:hover{border-color:var(--signal);color:var(--signal-ink);}
+.tk-link{border:none;background:none;color:var(--signal);font-size:11.5px;font-weight:600;
+  font-family:var(--font-body);cursor:pointer;padding:0;text-decoration:underline;}
+
+@media (max-width:760px){
+  .mu-tablo,.mu-tablo tbody,.mu-tablo tfoot,.mu-tablo tr,.mu-tablo td{display:block;width:auto;}
+  .mu-tablo thead{display:none;}
+  .mu-tablo tbody tr,.mu-tablo tfoot tr{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:4px 0;}
+  .mu-tablo td{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border:none;padding:6px 10px;text-align:left !important;}
+  .mu-tablo td[data-e]::before{content:attr(data-e);font-size:10px;font-weight:700;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3);}
+  .mu-sec{margin-left:0;width:100%;}
+  .mu-sec select{max-width:none;flex:1;}
+}
 .mx-kolonlar,.mx-satir{display:grid;grid-template-columns:minmax(220px,1fr) 120px 140px 140px 68px;align-items:center;column-gap:12px;}
 .mx-kolonlar{height:42px;padding:0 10px;color:var(--ink-3);font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.06em;}
 .mx-kolonlar .sag,.mx-satir .sag{text-align:right;}
@@ -2852,7 +2915,7 @@ let JOBS = [
   { id:'j2', code:'AJ-2598', client:'Mavi Market Zinciri', customerId:'c2', desc:'12 şube tabela yenileme', stage:'TASARIM', assignees:['Ece Demir'], due:'13 Ağu', material:'Kutu harf + ışıklı pano', approval:'BEKLIYOR', quoteId:'q2', quoteNo:'P002', tutar:22200 },
   { id:'j3', code:'AJ-2590', client:'Pinar Su', customerId:'c3', desc:'Otoyol billboard kampanyası', stage:'URETIM', assignees:['İlke Küçükbey','Hakan Erdoğan'], due:'12 Ağu', material:'Branda 6x3m dijital baskı', approval:'ONAYLANDI', quoteId:'q4', quoteNo:'P004', tutar:9216 },
 ];
-window.ROTA_SURUM = 'v2026-09-16l';
+window.ROTA_SURUM = 'v2026-09-17a';
 try { console.log('ROTA sürüm:', window.ROTA_SURUM); } catch(e) {}
 // Benzersiz kimlik: sayaç DEĞİL — sayfa yenilense de çakışmaz (eski sayaçlar
 // yenilemede başa sarıp aynı kimlikten iki kayıt üretiyor, silme ikisini birden götürüyordu).
@@ -14039,6 +14102,7 @@ function renderLineItems(){
         </div>
       </div>
       <div id="liDimWrap${idx}">${dimLineHtml(idx)}</div>
+      <div id="tkSerit${idx}">${tkMaliyetSeridi(idx)}</div>
     </div>`;
   }).join('');
   const rozet = document.getElementById('liKalemSayi');
@@ -14183,6 +14247,9 @@ function syncRow(idx){
   if(m) m.innerHTML = '<small>Toplam</small> ' + fmt2(lineQty(it)) + ' ' + unitShort(it);
   if(f) f.textContent = lineFormul(it);
   if(t) t.textContent = liPara(lineNet(it));
+  // (2026-09-17a) Ortak maliyet payı satış tutarına göre dağıtıldığı için BİR satırın fiyatı
+  // değişince DİĞER satırların payı ve marjı da değişir — hepsini birden tazelemek şart.
+  if(typeof tkSeritleriTazele === 'function') tkSeritleriTazele();
   updateGrandTotals();
 }
 function updateGrandTotals(){
@@ -14702,6 +14769,377 @@ window.addEventListener('beforeunload', e => {
   }catch(err){}
 });
 
+// ===================== ÜRÜN BAZLI MALİYET (v2026-09-17a) =====================
+// SORUN: q.maliyet.items[] teklifin TAMAMI için tek havuzdu. 10 kalemlik bir teklifte
+// hangi ürünün kâr ettiği, hangisinin maliyetin altında satıldığı görülemiyordu.
+//
+// KURGU: Her maliyet satırı ya BİR ÜRÜNE aittir (r.urunId = teklif kaleminin id'si)
+// ya da ORTAK'tır (urunId yok). Ortak maliyetler — nakliye, montaj ekibi, genel gider —
+// tek bir kaleme bölünemez; bunlar ürünlere SATIŞ TUTARINA GÖRE dağıtılır (kullanıcı kararı,
+// 2026-09-16). Böylece maliyeti girilmemiş bir ürün "%100 kâr" gibi yalan bir görüntü vermez.
+//
+// GERİYE DÖNÜK UYUM — GÖÇ BETİĞİ GEREKMEZ:
+// Mevcut maliyet satırlarında urunId ALANI YOKTUR; kod bunu "ortak" olarak okur.
+// Yani hiçbir teklifin toplam maliyeti, kârı veya marjı DEĞİŞMEZ. Kullanıcı isterse
+// satırları tek tek ürünlere taşır; taşımadığı sürece bugünkü davranış aynen sürer.
+//
+// SARKAN BAĞLANTI: Bir ürün tekliften silinirse ona bağlı maliyet satırları yok olmaz —
+// otomatik olarak "ortak" sayılır ve panelde uyarı çıkar. Maliyet asla sessizce kaybolmaz.
+//
+// ADLANDIRMA UYARISI: Bu dosyada "ürün" = teklifin satılan kalemi (q.items[]).
+// "Maliyet kalemi" = q.maliyet.items[] satırı. mxKalemBul() ZATEN maliyet satırı bulur;
+// ürün tarafı için mxUrun* öneki kullanılır, çakışma olmasın.
+
+function mxUrunler(q){ return lineItemsNormalle((q && q.items) || []); }
+function mxUrunBul(q, id){ return mxUrunler(q).find(u => u.id === id) || null; }
+function mxUrunAdi(q, id){ const u = mxUrunBul(q, id); return u ? (u.title || 'Adsız ürün') : ''; }
+
+// Bir maliyet satırının ait olduğu ürün. Sarkan bağlantı (ürün silinmiş) ORTAK sayılır.
+function mxSatirUrunu(q, r){ return (r.urunId && mxUrunBul(q, r.urunId)) ? r.urunId : null; }
+function mxAktifMaliyetSatirlari(q){ return ((q && q.maliyet && q.maliyet.items) || []).filter(r => r.aktif !== false); }
+function mxUrunSatirlari(q, urunId){ return mxAktifMaliyetSatirlari(q).filter(r => mxSatirUrunu(q, r) === (urunId || null)); }
+function mxSarkanSatirlar(q){ return mxAktifMaliyetSatirlari(q).filter(r => r.urunId && !mxUrunBul(q, r.urunId)); }
+
+function mxUrunDogrudan(q, urunId, kur){
+  kur = kur || mxKur(q);
+  return kurus(mxUrunSatirlari(q, urunId).reduce((s, r) => s + mxSatirToplam(r, kur), 0));
+}
+function mxOrtakMaliyet(q, kur){ return mxUrunDogrudan(q, null, kur); }
+
+// ---- DAĞITIM MOTORU — TEK KAYNAK ----
+// Tablo, teklif ekranındaki şerit ve raporlar hep burayı çağırır; iki yerde farklı sonuç çıkamaz.
+// Ortak maliyet satış tutarı payına göre bölünür. Kuruş artığı SON ürüne yazılır ki
+// payların toplamı ortak maliyete BİREBİR eşit olsun (aksi halde tablo tutmaz).
+function mxUrunDagilimi(q, kur, urunListesi){
+  kur = kur || mxKur(q);
+  // urunListesi verilirse O kullanilir: teklif duzenleme ekraninda kullanicinin o an
+  // yazdigi (henuz kaydedilmemis) fiyatlarla hesap yapmak icin gerekir.
+  const urunler = urunListesi || mxUrunler(q);
+  if(!urunler.length) return [];
+  const ortak = mxOrtakMaliyet(q, kur);
+  const satislar = urunler.map(u => kurus(lineNet(u)));
+  const satisToplam = kurus(satislar.reduce((s, x) => s + x, 0));
+  // Hiç satış fiyatı girilmemişse orana göre bölmek 0'a bölme olur; eşit bölüştür.
+  const paylar = urunler.map((u, i) => satisToplam > 0
+    ? kurus(ortak * (satislar[i] / satisToplam))
+    : kurus(ortak / urunler.length));
+  const fark = kurus(ortak - paylar.reduce((s, x) => s + x, 0));
+  if(paylar.length) paylar[paylar.length - 1] = kurus(paylar[paylar.length - 1] + fark);
+
+  return urunler.map((u, i) => {
+    const satis = satislar[i];
+    const dogrudan = mxUrunDogrudan(q, u.id, kur);
+    const pay = paylar[i];
+    const toplam = kurus(dogrudan + pay);
+    return {
+      urun: u, satis: satis, dogrudan: dogrudan, pay: pay, toplam: toplam,
+      kar: kurus(satis - toplam),
+      // Marj yalnız satış varsa anlamlıdır. Yoksa null döner ve ekranda "—" çıkar;
+      // sıfıra bölüp %100 veya %-∞ gibi yanıltıcı bir sayı ÜRETİLMEZ.
+      marj: satis > 0 ? (satis - toplam) / satis : null,
+      maliyetVar: dogrudan > 0 || pay > 0,
+      dogrudanVar: dogrudan > 0,
+    };
+  });
+}
+function mxUrunSatiri(q, urunId, kur, urunListesi){
+  return mxUrunDagilimi(q, kur, urunListesi).find(d => d.urun.id === urunId) || null;
+}
+
+// ---- HIZLI GİRİŞ: TOPTAN MALİYET ----
+// 10 kalemlik teklifte her ürün için ayrı ayrı malzeme/işçilik satırı açmak kimsenin
+// yapmayacağı bir iştir. O yüzden her ürünün tek bir "toptan maliyet" kutusu vardır:
+// rakamı yazarsınız, arkada o ürüne bağlı TEK bir maliyet satırı olarak durur.
+// Detay isteyen aynı ürüne normal maliyet kalemleri de ekler; ikisi toplanır.
+function mxToptanSatir(q, urunId){
+  return mxAktifMaliyetSatirlari(q).find(r => r.toptan && r.urunId === urunId) || null;
+}
+function mxToptanYaz(q, urunId, tutar){
+  const m = q.maliyet;
+  const eski = mxToptanSatir(q, urunId);
+  const yeni = kurus(virgulSayi(tutar));
+  const ad = 'Toptan maliyet — ' + (mxUrunAdi(q, urunId) || 'ürün');
+  if(!(yeni > 0)){
+    if(eski){
+      m.items = m.items.filter(r => r.id !== eski.id);
+      mxGecmisYaz(q, 'silme', ad, mxPara(mxSatirToplam(eski, mxKur(q))), '');
+    }
+    return null;
+  }
+  if(eski){
+    const onceki = mxSatirToplam(eski, mxKur(q));
+    eski.ad = ad; eski.fiyatOrj = yeni; eski.para = 'TL'; eski.miktar = 1;
+    mxSatirHesapla(eski, mxKur(q));
+    if(kurus(onceki) !== yeni) mxGecmisYaz(q, 'fiyat', ad, mxPara(onceki), mxPara(yeni));
+    return eski;
+  }
+  const r = {
+    id: benzersizId('mx'), grup:'diger', ad: ad, kod:'', aciklama:'Ürün bazlı hızlı maliyet girişi',
+    hesapTuru:'dogrudan', miktar:1, birim:'adet', en:'', boy:'', adet:1, fire:0,
+    tedarikciAd:'', tedarikciId:null, fiyatKaydiId:null, para:'TL', fiyatOrj: yeni,
+    fiyatTarihi:'', gecerlilik:'', not:'', manuel:true, urunId: urunId, toptan:true,
+  };
+  mxSatirHesapla(r, mxKur(q));
+  m.items.push(r);
+  mxGecmisYaz(q, 'ekleme', ad, '', mxPara(yeni));
+  return r;
+}
+function mxToptanDegis(urunId, deger){
+  const q = mxAktifTeklif(); if(!q) return;
+  ensureMaliyet(q);
+  mxToptanYaz(q, urunId, deger);
+  renderContent();
+}
+
+// Bir maliyet satırını başka bir ürüne (veya ortağa) taşır.
+function mxSatirUrunAta(satirId, urunId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = mxKalemBul(q, satirId); if(!r) return;
+  const eski = r.urunId ? mxUrunAdi(q, r.urunId) : 'Ortak';
+  r.urunId = urunId || null;
+  if(r.toptan && !urunId) r.toptan = false;          // ortağa taşınan hızlı giriş artık "toptan" değildir
+  mxGecmisYaz(q, 'tasima', r.ad, eski, urunId ? mxUrunAdi(q, urunId) : 'Ortak');
+  renderContent();
+  showToast(r.ad + ' → ' + (urunId ? mxUrunAdi(q, urunId) : 'Ortak maliyet'));
+}
+
+// ---- ÖNERİLEN BİRİM FİYAT ----
+// Hedef marja göre: birim fiyat = (ürün toplam maliyeti / (1 - hedef)) / miktar.
+// NOT: Ortak pay satış tutarına göre dağıtıldığı için fiyatı değiştirince paylar da
+// yeniden hesaplanır. Öneri, MEVCUT dağıtıma göre üretilir; uygulandıktan sonra marj
+// birkaç puan oynayabilir. Ekranda güncel marj hemen görüldüğü için bu şeffaftır.
+function mxUrunOneriBirim(q, urunId, kur){
+  const d = mxUrunSatiri(q, urunId, kur);
+  if(!d || !d.maliyetVar) return null;
+  const m = q.maliyet;
+  const hedefli = (m.hedefMod === 'markup')
+    ? mxOneriMarkup(d.toplam, m.hedefOran)
+    : mxOneriMarj(d.toplam, m.hedefOran);
+  const miktar = lineQty(d.urun);
+  if(!(miktar > 0) || !(hedefli > 0)) return null;
+  return kurus(hedefli / miktar);
+}
+
+// ---- DURUM RENGİ ----
+// Maliyetin altında satış = kırmızı. Hedef marjın altı = amber. Hedefin üstü = yeşil.
+function mxMarjDurum(q, marj){
+  if(marj === null || marj === undefined) return { cls:'none', ad:'—' };
+  const hedef = (Number(q.maliyet && q.maliyet.hedefOran) || 0) / 100;
+  if(marj < 0)      return { cls:'late', ad:'Zararına' };
+  if(marj < hedef)  return { cls:'soon', ad:'Hedefin altında' };
+  return { cls:'ok', ad:'Hedefte' };
+}
+function mxYuzdeYaz(marj){ return (marj === null || marj === undefined) ? '—' : '%' + (marj * 100).toFixed(1).replace('.', ','); }
+
+// Marj rozeti. ÖNEMLİ: ortak gider varsa HER ürüne bir pay düşer, yani hiç maliyet
+// girilmemiş bir ürün de "maliyeti var" gibi görünür ve yüksek marjla yeşil yanar.
+// O yüzden kendi maliyeti girilmemiş ürünün rozeti -- marj ne çıkarsa çıksın -- sarıdır.
+function mxMarjRozet(q, d){
+  const st = mxMarjDurum(q, d.marj);
+  if(d.marj !== null && d.marj !== undefined && !d.dogrudanVar){
+    return { cls:'soon', ad:'Bu ürüne kendi maliyeti girilmedi — marj yalnız ortak paya göre hesaplandı, gerçekte daha düşüktür' };
+  }
+  return st;
+}
+
+// ---- ÜRÜN BAZLI MALİYET PANELİ (maliyet ekranı) ----
+// Canlı maliyet ekranı sade sürümdür (düz satır listesi). Bu panel onun ÜSTÜNE eklenir:
+// her teklif ürünü bir satır, yanında tek bir "maliyet" kutusu. 10 kalemlik teklifte
+// hızlı giriş buradan yapılır; ayrıntı isteyen aşağıdaki normal listeye kalem ekleyip
+// o kalemin "Ürün" seçicisinden ilgili ürüne bağlar.
+function mxUrunPaneliHtml(q){
+  const kur = mxKur(q);
+  const dag = mxUrunDagilimi(q, kur);
+  if(!dag.length){
+    return `<div class="mu-panel">
+      <div class="mu-bas"><h3>Ürün Bazlı Maliyet</h3></div>
+      <div class="mu-bos">Bu teklifte henüz ürün yok. Teklifi düzenleyip ürün ekleyin,
+        sonra her ürünün maliyetini buradan girebilirsiniz.</div></div>`;
+  }
+  const ortak = mxOrtakMaliyet(q, kur);
+  const sarkan = mxSarkanSatirlar(q);
+  // Ortak pay her ürüne düştüğü için "maliyetVar" burada işe yaramaz; kendi maliyeti
+  // girilmiş mi ona bakılır, uyarının anlamı budur.
+  const eksik = dag.filter(d => !d.dogrudanVar).length;
+  const toplamMaliyet = kurus(dag.reduce((s, d) => s + d.toplam, 0));
+  const toplamSatis = kurus(dag.reduce((s, d) => s + d.satis, 0));
+  const toplamMarj = toplamSatis > 0 ? (toplamSatis - toplamMaliyet) / toplamSatis : null;
+
+  return `
+  <div class="mu-panel">
+    <div class="mu-bas">
+      <div>
+        <h3>Ürün Bazlı Maliyet</h3>
+        <p>Her ürünün kendi maliyeti + ortak giderlerden düşen pay.
+          Ortak gider <b>satış tutarına göre</b> dağıtılır.</p>
+      </div>
+      ${eksik ? `<span class="v-chip soon" title="Bu ürünlere ortak giderden pay düşüyor ama kendi maliyetleri girilmedi — marjları olduğundan yüksek görünür">${eksik} üründe kendi maliyeti yok</span>`
+              : `<span class="v-chip ok">Tüm ürünlerde maliyet var</span>`}
+    </div>
+
+    ${sarkan.length ? `<div class="note" style="border-left-color:var(--hold);margin:0 0 10px;">
+      <b>${sarkan.length} maliyet satırı</b> tekliften silinmiş bir ürüne bağlıydı.
+      Kaybolmadılar — ortak maliyet sayılıyorlar. Aşağıdaki listeden başka bir ürüne bağlayabilirsiniz.</div>` : ''}
+
+    <div class="mu-sarmal">
+      <table class="mu-tablo">
+        <thead><tr>
+          <th>ÜRÜN</th><th class="sag">SATIŞ</th><th class="sag">MALİYETİ</th>
+          <th class="sag">ORTAK PAY</th><th class="sag">TOPLAM</th>
+          <th class="sag">KÂR</th><th class="sag">MARJ</th><th class="sag"></th>
+        </tr></thead>
+        <tbody>${dag.map(d => mxUrunSatirHtml(q, d, kur)).join('')}</tbody>
+        <tfoot>
+          <tr class="mu-ortak">
+            <td><b>Ortak maliyetler</b>
+              <div class="mu-alt">Nakliye, montaj, genel gider — tek ürüne yazılamayanlar.
+                Aşağıdaki listede "Ürün" seçicisi <b>Ortak</b> olan satırlar.</div></td>
+            <td class="sag mu-say">—</td>
+            <td class="sag mu-say"><b>${mxPara(ortak)}</b></td>
+            <td class="sag mu-alt" colspan="5">satış payına göre yukarıdaki ürünlere dağıtıldı</td>
+          </tr>
+          <tr class="mu-toplam">
+            <td><b>TOPLAM</b></td>
+            <td class="sag mu-say"><b>${mxPara(toplamSatis)}</b></td>
+            <td class="sag mu-say" colspan="2"></td>
+            <td class="sag mu-say"><b>${mxPara(toplamMaliyet)}</b></td>
+            <td class="sag mu-say"><b>${mxPara(kurus(toplamSatis - toplamMaliyet))}</b></td>
+            <td class="sag mu-say"><b>${mxYuzdeYaz(toplamMarj)}</b></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+function mxUrunSatirHtml(q, d, kur){
+  const u = d.urun;
+  const st = mxMarjRozet(q, d);
+  const toptan = mxToptanSatir(q, u.id);
+  const detaySayi = mxUrunSatirlari(q, u.id).filter(r => !r.toptan).length;
+  const oneri = mxUrunOneriBirim(q, u.id, kur);
+  return `
+    <tr>
+      <td>
+        <div class="mu-ad">${notEsc(u.title || 'Adsız ürün')}</div>
+        <div class="mu-alt">${liAdetYaz(lineQty(u))} ${notEsc(lineUnit(u))} · birim ${mxPara(Number(u.price) || 0)}</div>
+      </td>
+      <td class="sag mu-say">${mxPara(d.satis)}</td>
+      <td class="sag">
+        <label class="mu-giris">
+          <span>₺</span>
+          <input inputmode="decimal" aria-label="${notEsc(u.title || 'Ürün')} maliyeti"
+            value="${toptan ? virgulYaz(Number(toptan.fiyatOrj) || 0) : ''}" placeholder="0,00"
+            onchange="mxToptanDegis('${u.id}', this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+        </label>
+        ${detaySayi ? `<div class="mu-alt">+${detaySayi} kalem · toplam ${mxPara(d.dogrudan)}</div>` : ''}
+      </td>
+      <td class="sag mu-say mu-soluk">${mxPara(d.pay)}</td>
+      <td class="sag mu-say"><b>${mxPara(d.toplam)}</b></td>
+      <td class="sag mu-say ${d.kar < 0 ? 'mu-eksi' : ''}">${mxPara(d.kar)}</td>
+      <td class="sag">${d.maliyetVar
+          ? `<span class="v-chip ${st.cls}" title="${st.ad}">${mxYuzdeYaz(d.marj)}</span>`
+          : `<span class="v-chip none" title="Bu ürüne maliyet girilmedi">—</span>`}</td>
+      <td class="sag">${oneri !== null
+          ? `<button class="mu-oneri" title="Hedef marja göre önerilen birim fiyat — teklife uygular"
+              onclick="mxUrunFiyatUygula('${u.id}')">${mxPara(oneri)} uygula</button>` : ''}</td>
+    </tr>`;
+}
+
+// Maliyet listesindeki her satıra düşen "hangi ürüne ait?" seçicisi.
+function mxSatirUrunSecHtml(q, r, i){
+  const urunler = mxUrunler(q);
+  if(!urunler.length) return '';
+  const secili = mxSatirUrunu(q, r) || '';
+  return `<label class="mu-sec" title="Bu maliyet hangi ürüne ait? Tek ürüne yazılamıyorsa Ortak bırakın.">
+    <span>Ürün</span>
+    <select onchange="mxSatirUrunAtaIndex(${i}, this.value)">
+      <option value="" ${secili === '' ? 'selected' : ''}>Ortak (tüm iş)</option>
+      ${urunler.map(u => `<option value="${u.id}" ${secili === u.id ? 'selected' : ''}>${notEsc(u.title || 'Adsız ürün')}</option>`).join('')}
+    </select>
+  </label>`;
+}
+function mxSatirUrunAtaIndex(i, urunId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const r = ensureMaliyet(q).items[i]; if(!r) return;
+  mxSatirUrunAta(r.id, urunId);
+}
+
+// Hedef marja göre önerilen birim fiyatı teklife uygular.
+function mxUrunFiyatUygula(urunId){
+  const q = mxAktifTeklif(); if(!q) return;
+  const oneri = mxUrunOneriBirim(q, urunId, mxKur(q));
+  if(oneri === null){ showToast('Öneri için önce maliyet girin.'); return; }
+  const gercek = (q.items || []).find(x => x.id === urunId);
+  if(!gercek) return;
+  const eski = Number(gercek.price) || 0;
+  gercek.price = oneri;
+  mxGecmisYaz(q, 'uygulama', gercek.title || 'Ürün', mxPara(eski), mxPara(oneri));
+  renderContent();
+  showToast((gercek.title || 'Ürün') + ' birim fiyatı ' + mxPara(oneri) + ' oldu.');
+}
+
+// ---- TEKLİF DÜZENLEME EKRANINDAKİ MALİYET ŞERİDİ ----
+// Kullanıcı isteği: "fiyat vermeden önce yanında maliyet tutarı yazarsa satış rakamını
+// belirlemek daha kolay olur." Doğru — ama maliyet GİRİLMEMİŞKEN ₺0 yazmak
+// "%100 kâr" diye okunur ve insanı yanıltır. O yüzden iki ayrı görünüm var:
+//   maliyet varsa  -> Maliyet · Marj rozeti · önerilen fiyat düğmesi
+//   maliyet yoksa  -> soluk "maliyet girilmedi" bağlantısı (maliyet ekranına atar)
+function tkMaliyetSeridi(idx){
+  const it = quoteLineItems[idx];
+  if(!it) return '';
+  const q = editingQuoteId ? QUOTES.find(x => x.id === editingQuoteId) : null;
+  // Henüz kaydedilmemiş yeni teklifte maliyet çalışması yoktur; boş şerit gürültü olur.
+  if(!q || !q.maliyet || !Array.isArray(q.maliyet.items) || !q.maliyet.items.length) return '';
+  // Maliyet, teklif TUTARINI görme yetkisini izler: teklifi ve tutarını gören maliyeti de görür.
+  if(typeof teklifTutariGorebilir === 'function' && !teklifTutariGorebilir()) return '';
+  const kur = mxKur(q);
+  const d = mxUrunSatiri(q, it.id, kur, quoteLineItems);
+  if(!d) return '';
+  if(!d.maliyetVar){
+    return `<div class="tk-serit tk-bos">
+      <span>Bu ürüne maliyet girilmedi</span>
+      <button type="button" class="tk-link" onclick="tkMaliyeteGit()">Maliyet ekranında gir →</button>
+    </div>`;
+  }
+  const st = mxMarjRozet(q, d);
+  const oneri = mxUrunOneriBirim(q, it.id, kur);
+  const hedef = Number(q.maliyet.hedefOran) || 0;
+  return `<div class="tk-serit">
+    <span class="tk-etiket">Maliyet</span>
+    <span class="tk-tutar">${mxPara(d.toplam)}</span>
+    ${d.pay > 0 ? `<span class="tk-alt" title="Ortak giderlerden bu ürüne düşen pay (satış tutarına göre)">
+      ${mxPara(d.dogrudan)} + ${mxPara(d.pay)} ortak pay</span>` : ''}
+    <span class="tk-ayrac">·</span>
+    <span class="tk-etiket">Marj</span>
+    <span class="v-chip ${st.cls}" title="${st.ad} — hedef %${virgulYaz(hedef)}">${mxYuzdeYaz(d.marj)}</span>
+    <span class="tk-bosluk"></span>
+    ${oneri !== null ? `<button type="button" class="tk-oneri"
+      title="Hedef marja (%${virgulYaz(hedef)}) göre önerilen birim fiyat"
+      onclick="tkOneriUygula(${idx}, ${oneri})">Önerilen: ${mxPara(oneri)}</button>` : ''}
+  </div>`;
+}
+function tkOneriUygula(idx, fiyat){
+  const it = quoteLineItems[idx]; if(!it) return;
+  it.price = Number(fiyat) || 0;
+  const alan = document.getElementById('liPrice' + idx);
+  if(alan) alan.value = virgulYaz(it.price);
+  syncRow(idx);
+  showToast('Birim fiyat ' + mxPara(it.price) + ' oldu.');
+}
+function tkMaliyeteGit(){
+  if(!editingQuoteId){ showToast('Önce teklifi kaydedin.'); return; }
+  openMaliyet(editingQuoteId);
+}
+// Fiyat/miktar değişince şerit anında tazelensin (ortak pay da yeniden dağıtılır).
+function tkSeritleriTazele(){
+  quoteLineItems.forEach((it, i) => {
+    const kutu = document.getElementById('tkSerit' + i);
+    if(kutu) kutu.innerHTML = tkMaliyetSeridi(i);
+  });
+}
+
 function maliyetView(id){
   const q = QUOTES.find(x => x.id === id);
   if(!q) return teklifListView();
@@ -14748,6 +15186,7 @@ function maliyetView(id){
         <input inputmode="decimal" placeholder="Boy (cm)" value="${r.boy ? virgulYaz(r.boy) : ''}" oninput="mkOlcu(${i},'boy',this.value)">
         <span class="m2sonuc" id="mxM2_${i}">${mkOlcuMetni(r)}</span>
       </div>
+      <div class="mx-olcu" style="border:none;padding-top:0;">${mxSatirUrunSecHtml(q, r, i)}</div>
       <textarea class="mx-aciklama" rows="1"
         placeholder="Açıklama / tedarikçi notu — ör. X firmasından alındı, özel iskontolu fiyattır"
         oninput="mkGuncelle(${i},'not',this.value)">${notEsc(r.not || '')}</textarea>
@@ -14809,6 +15248,7 @@ function maliyetView(id){
       <button class="mx-sekme ${maliyetTab === 'kalemler' ? 'on' : ''}" onclick="maliyetTab='kalemler'; renderContent();">Maliyet Kalemleri</button>
       <button class="mx-sekme ${maliyetTab === 'fiyatlar' ? 'on' : ''}" onclick="maliyetTab='fiyatlar'; renderContent();">Tedarikçi Fiyatları</button>
     </div>
+    ${maliyetTab === 'kalemler' ? mxUrunPaneliHtml(q) : ''}
     <div class="mx-layout">
       ${solBlok}
       <div class="mx-ozet">
